@@ -59,6 +59,7 @@ export async function POST(req: Request) {
         break
       }
 
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription
         const customerId = sub.customer as string
@@ -67,6 +68,7 @@ export async function POST(req: Request) {
           data: {
             stripePriceId: sub.items.data[0]?.price?.id ?? null,
             subscriptionStatus: sub.status,
+            trialEndsAt: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
           },
         })
         break

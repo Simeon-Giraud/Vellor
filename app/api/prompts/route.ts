@@ -3,6 +3,7 @@ import { getCurrentDbUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canAddPrompt, canRunPrompts } from "@/lib/usage";
+import { getUserState } from "@/lib/userState";
 
 // POST /api/prompts — create prompt and optionally enqueue a run
 export async function POST(req: Request) {
@@ -45,23 +46,39 @@ export async function POST(req: Request) {
       }, { status: 403 });
     }
 
+    const userState = await getUserState(userId);
+
     const prompt = await prisma.prompt.create({
       data: { projectId, text },
       include: { project: true },
     });
 
     if (runNow) {
-      try {
-        const { promptQueue } = await import("@/lib/queue");
-        await promptQueue.add("run-prompt", {
-          promptId: prompt.id,
-          promptText: text,
-          projectId: project.id,
-          domain: prompt.project.domain,
-          competitors: prompt.project.competitors,
+      if (userState === "demo") {
+        const { generateDemoResults } = await import("@/lib/ai/demoData");
+        const mockResults = generateDemoResults(text, prompt.project.domain);
+        await prisma.promptResult.createMany({
+          data: mockResults.map(r => ({
+            promptId: prompt.id,
+            engine: r.engine,
+            brandMentioned: r.mentioned,
+            mentionPosition: r.position,
+            responseSnippet: r.snippet,
+          }))
         });
-      } catch {
-        console.warn("[API] Redis/BullMQ not available, skipping queue");
+      } else {
+        try {
+          const { promptQueue } = await import("@/lib/queue");
+          await promptQueue.add("run-prompt", {
+            promptId: prompt.id,
+            promptText: text,
+            projectId: project.id,
+            domain: prompt.project.domain,
+            competitors: prompt.project.competitors,
+          });
+        } catch {
+          console.warn("[API] Redis/BullMQ not available, skipping queue");
+        }
       }
     }
 

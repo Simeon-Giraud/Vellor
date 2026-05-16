@@ -11,7 +11,10 @@ export function PricingCard({ plan }: { plan: any }) {
       const res = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId: plan.priceId }),
+        body: JSON.stringify({ 
+          priceId: plan.priceId,
+          isTrial: window.location.search.includes("trial=true")
+        }),
       });
       const data = await res.json();
       if (data.url) {

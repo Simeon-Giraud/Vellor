@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
 import TrialBanner from "@/components/TrialBanner";
+import DemoBanner from "@/components/DemoBanner";
+import { getUserState } from "@/lib/userState";
 
 export default async function DashboardLayout({
   children,
@@ -14,11 +16,12 @@ export default async function DashboardLayout({
   const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
 
+  const userState = await getUserState(userId);
+
   // Fetch user data for sidebar + trial banner
   let usageCount = 0;
   let usageLimit = 500;
   let planName = "Starter";
-  let subscriptionStatus: string | null = null;
   let trialEnd: string | null = null;
   let projectCount = 0;
 
@@ -28,6 +31,7 @@ export default async function DashboardLayout({
       select: {
         subscriptionStatus: true,
         stripePriceId: true,
+        trialEndsAt: true,
         _count: {
           select: {
             projects: true,
@@ -37,7 +41,7 @@ export default async function DashboardLayout({
     });
 
     if (user) {
-      subscriptionStatus = user.subscriptionStatus;
+      trialEnd = user.trialEndsAt ? user.trialEndsAt.toISOString() : null;
       projectCount = user._count.projects;
 
       // Determine plan name from price ID
@@ -82,9 +86,12 @@ export default async function DashboardLayout({
       />
 
       {/* Main content area — offset by sidebar width */}
-      <div className="ml-[240px] min-h-screen flex flex-col">
-        {subscriptionStatus === "trialing" && (
+      <div className="ml-[240px] min-h-screen flex flex-col relative">
+        {userState === "trialing" && (
           <TrialBanner trialEnd={trialEnd} />
+        )}
+        {userState === "demo" && (
+          <DemoBanner />
         )}
         {children}
       </div>

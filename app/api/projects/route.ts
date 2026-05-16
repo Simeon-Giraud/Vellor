@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canCreateProject, getUserPlan } from "@/lib/usage";
 import { generateQueue } from "@/lib/queue";
+import { getUserState } from "@/lib/userState";
 
 // GET /api/projects — list all projects for current user
 export async function GET() {
@@ -61,11 +62,6 @@ export async function POST(req: Request) {
       }, { status: 403 });
     }
 
-    const dbUser = await getCurrentDbUser();
-    if (!dbUser) {
-      return NextResponse.json({ error: "User data not found" }, { status: 401 });
-    }
-
     const email = dbUser.email || `${userId}@placeholder.com`;
 
     // More resilient upsert: try to find by supabaseId first
@@ -88,6 +84,43 @@ export async function POST(req: Request) {
           data: { supabaseId: userId, email }
         });
       }
+    }
+
+    const userState = await getUserState(userId);
+
+    if (userState === "demo") {
+      const project = await prisma.project.create({
+        data: {
+          userId: user.id,
+          domain,
+          brandName,
+          industry,
+          competitors,
+          status: "active",
+        },
+      });
+
+      const { generateDemoResults } = await import("@/lib/ai/demoData");
+      const mockPrompts = [
+        `What are the best tools for ${industry}?`,
+        `Top solutions like ${brandName}?`
+      ];
+
+      for (const pt of mockPrompts) {
+        const prompt = await prisma.prompt.create({ data: { projectId: project.id, text: pt } });
+        const mockResults = generateDemoResults(pt, domain);
+        await prisma.promptResult.createMany({
+          data: mockResults.map(r => ({
+            promptId: prompt.id,
+            engine: r.engine,
+            brandMentioned: r.mentioned,
+            mentionPosition: r.position,
+            responseSnippet: r.snippet,
+          }))
+        });
+      }
+
+      return NextResponse.json({ project }, { status: 201 });
     }
 
     const project = await prisma.project.create({

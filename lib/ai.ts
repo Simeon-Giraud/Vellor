@@ -97,10 +97,18 @@ export async function runPromptOnPerplexity(prompt: string, domain: string): Pro
   }));
 }
 
+import { generateDemoResults } from "./ai/demoData";
+import { UserState } from "./userState";
+
 export async function runPromptOnAllEngines(
   prompt: string,
-  domain: string
+  domain: string,
+  userState: UserState = 'active'
 ): Promise<EngineResult[]> {
+  if (userState === 'demo') {
+    return generateDemoResults(prompt, domain);
+  }
+
   const results = await Promise.allSettled([
     runPromptOnChatGPT(prompt, domain),
     runPromptOnGemini(prompt, domain),

@@ -24,6 +24,7 @@ interface SettingsClientProps {
     subscriptionStatus: string | null;
     hasStripeCustomer: boolean;
     isTrial: boolean;
+    userState: string;
   };
   preferences: {
     emailAlerts: boolean;
@@ -161,12 +162,23 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
                     Trial active
                   </span>
                 )}
+                {plan.userState === "demo" && (
+                  <span className="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-semibold uppercase tracking-widest border border-yellow-500/20">
+                    Demo Mode
+                  </span>
+                )}
               </div>
-              <p className="text-[var(--color-fg-muted)] text-sm">
-                You are currently on the {plan.name} plan.
-              </p>
+              {plan.userState === "demo" ? (
+                <p className="text-[var(--color-fg-muted)] text-sm mt-1 max-w-sm">
+                  You are exploring Vellor with sample data. Upgrade to start running real AI visibility tracking.
+                </p>
+              ) : (
+                <p className="text-[var(--color-fg-muted)] text-sm mt-1">
+                  You are currently on the {plan.name} plan.
+                </p>
+              )}
             </div>
-            {plan.hasStripeCustomer && (
+            {plan.hasStripeCustomer ? (
               <button
                 onClick={handleManagePlan}
                 disabled={portalLoading}
@@ -174,6 +186,13 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
               >
                 {portalLoading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
                 {portalLoading ? "Redirecting..." : "Manage subscription"}
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push("/pricing?trial=true")}
+                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-[background-color,transform] duration-[160ms] ease-out active:scale-[0.97] glow-indigo flex items-center gap-2 w-max"
+              >
+                Start free trial
               </button>
             )}
           </div>

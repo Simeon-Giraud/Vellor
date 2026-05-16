@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { priceId } = await req.json()
+    const { priceId, isTrial } = await req.json()
     if (!priceId) {
       return NextResponse.json({ error: 'Missing priceId' }, { status: 400 })
     }
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       managed_payments: { enabled: true },
       subscription_data: {
-        trial_period_days: 7,
+        ...(isTrial ? { trial_period_days: 7 } : {}),
         metadata: { supabaseUserId: userId },
       },
       success_url: `${appUrl}/dashboard?subscribed=true`,

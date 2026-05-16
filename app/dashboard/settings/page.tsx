@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import SettingsClient from "./SettingsClient";
+import { getUserState } from "@/lib/userState";
 
 export const metadata: Metadata = { title: "Settings — Vellor" };
 
@@ -11,6 +12,8 @@ export default async function SettingsPage() {
   const dbUser = await getCurrentDbUser();
   const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
+
+  const userState = await getUserState(userId);
 
 
 
@@ -89,6 +92,7 @@ export default async function SettingsPage() {
         subscriptionStatus,
         hasStripeCustomer,
         isTrial: subscriptionStatus === "trialing",
+        userState,
       }}
       preferences={preferences}
     />

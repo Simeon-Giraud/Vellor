@@ -12,15 +12,18 @@ export default function TrialBanner({ trialEnd }: TrialBannerProps) {
     : 7;
 
   return (
-    <div className="w-full px-4 py-2.5 bg-indigo-600/12 border-b border-indigo-500/15 flex items-center justify-between">
-      <p className="text-sm text-indigo-200">
-        Your free trial ends in <span className="font-semibold text-white">{daysRemaining} day{daysRemaining !== 1 ? "s" : ""}</span>. Upgrade to keep access.
-      </p>
+    <div className="w-full px-6 py-2.5 bg-indigo-600/10 border-b border-indigo-500/15 flex items-center justify-between sticky top-0 z-50 backdrop-blur-xl animate-fade-in-down">
+      <div className="flex items-center gap-2.5">
+        <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+        <p className="text-sm text-indigo-100/90 font-medium tracking-tight">
+          Your free trial ends in <span className="font-bold text-white text-[15px] font-mono">{daysRemaining} day{daysRemaining !== 1 ? "s" : ""}</span>. Upgrade to keep full access.
+        </p>
+      </div>
       <Link
         href="/pricing"
-        className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] cursor-pointer"
+        className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold tracking-wide transition-all duration-[160ms] ease-out active:scale-[0.97] cursor-pointer shadow-[0_0_15px_rgba(79,70,229,0.25)]"
       >
-        Upgrade
+        Upgrade Now
       </Link>
     </div>
   );

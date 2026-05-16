@@ -250,10 +250,21 @@ function getRelativeTime(date: Date): string {
   return `${days}d ago`;
 }
 
+import WelcomeScreen from "./WelcomeScreen";
+
 export default async function DashboardPage() {
   const dbUser = await getCurrentDbUser();
   const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
+
+  const userRecord = await prisma.user.findUnique({
+    where: { supabaseId: userId },
+    select: { hasSeenWelcome: true }
+  });
+
+  if (userRecord && !userRecord.hasSeenWelcome) {
+    return <WelcomeScreen />;
+  }
 
   const data = await getDashboardData(userId);
 
