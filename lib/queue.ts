@@ -16,4 +16,15 @@ export const promptQueue = new Queue("prompt-runs", {
   },
 });
 
+export const generateQueue = new Queue("generate-prompts", {
+  connection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 1000,
+    },
+  },
+});
+
 export { connection };

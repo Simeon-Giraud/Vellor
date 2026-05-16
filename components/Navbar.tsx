@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { UserButton, SignInButton, SignUpButton, useAuth } from "@clerk/nextjs";
+import { Logo } from "./Logo";
 
 interface NavbarProps {
   variant?: "landing" | "dashboard";
@@ -15,9 +16,7 @@ export function Navbar({ variant = "landing" }: NavbarProps) {
         style={{ background: "rgba(10,10,15,0.8)", backdropFilter: "blur(16px)" }}>
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold">
-              V
-            </div>
+            <Logo className="w-9 h-9" />
             <span className="text-white font-bold hidden sm:inline">Vellor</span>
           </Link>
         </div>
@@ -46,9 +45,7 @@ function LandingNav() {
   return (
     <nav className="relative z-10 flex items-center justify-between px-4 md:px-8 py-4 md:py-6 max-w-7xl mx-auto">
       <Link href="/" className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm font-bold">
-          V
-        </div>
+        <Logo className="w-10 h-10" />
         <span className="text-xl font-bold text-white">Vellor</span>
       </Link>
 

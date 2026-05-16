@@ -14,13 +14,16 @@
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.22.0",
     "@stripe/stripe-js": "^9.5.0",
+    "@supabase/supabase-js": "^2.105.4",
     "bullmq": "^5.76.8",
     "ioredis": "^5.10.1",
+    "lucide-react": "^1.16.0",
     "next": "^16.2.6",
     "openai": "^6.37.0",
     "prisma": "^5.22.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "recharts": "^3.8.1",
     "stripe": "^22.1.1"
   },
   "devDependencies": {

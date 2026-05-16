@@ -1,11 +1,11 @@
-export async function generatePrompts(keyword: string): Promise<string[]> {
+export async function generatePrompts(domain: string, brandName: string, industry: string): Promise<string[]> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_AI === 'true') {
     return [
-      `What are the best tools for ${keyword}?`,
-      `How to improve ${keyword} performance?`,
-      `Compare top solutions for ${keyword}.`,
-      `Why is ${keyword} important for businesses?`,
-      `Best enterprise platforms for ${keyword} in 2025.`,
+      `What are the best tools for ${industry}?`,
+      `How to improve ${industry} performance?`,
+      `Compare top solutions for ${industry}.`,
+      `Why is ${brandName} considered a top choice?`,
+      `Best enterprise platforms for ${industry} in 2025.`,
     ]
   }
 

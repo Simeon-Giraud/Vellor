@@ -1,73 +1,28 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { prisma } from "@/lib/prisma";
+import { getHistoryCutoff } from "@/lib/usage";
+import AnimatedCounter from "@/components/AnimatedCounter";
+import TrendChart from "@/components/TrendChart";
+import DashboardNotice from "@/components/DashboardNotice";
 
 export const metadata: Metadata = { title: "Dashboard — Vellor" };
 
-/* ─── taste-skill: Dashboard Design Plan ──────────────────────────────────
- * DESIGN_VARIANCE: 8 (asymmetric bento, not 4-equal-stat-cards)
- * MOTION_INTENSITY: 6 (CSS stagger, no Framer Motion dependency needed)
- * VISUAL_DENSITY: 6 (structured, readable — not cockpit-dense)
- * Font: Geist + Geist Mono for all numbers
- * Colors: Zinc-950 base, single Indigo accent, NO neon/purple glows
- * Stats: organic values (47.2%, not 50%) — no fake round numbers
- * Layout: divide-y for recent runs (no card overuse)
- * Hero: left-aligned page title, NOT centered
- ─────────────────────────────────────────────────────────────────────────── */
+/* ─── taste-skill + Emil + ui-ux-pro-max applied throughout:
+ *   - Geist + Geist Mono typography
+ *   - Asymmetric bento stats (not 4 equal cards)
+ *   - divide-y rows for project list
+ *   - Organic data, no fake round numbers
+ *   - Staggered entrance animations via CSS
+ *   - 160ms ease-out transitions on interactive elements
+ *   - Monospace for all numbers
+ *   - Empty state with premium CTA
+ ─────────────────────────────────────────────────────── */
 
-// Organic mock data (taste-skill: no predictable round numbers, no "Acme")
-const MOCK_STATS = {
-  totalProjects: 7,
-  totalPrompts: 143,
-  totalResults: 1047,
-  avgMentionRate: 74.3,
-  weeklyDelta: +5.2,
-};
-
-const MOCK_PROJECTS = [
-  {
-    id: "proj_1",
-    domain: "vertexify.io",
-    competitors: ["altflow.ai", "rankpilot.co"],
-    promptCount: 47,
-    mentionRate: 81.4,
-    lastRun: "9 min ago",
-    trend: "up",
-    trendValue: "+6.2%",
-  },
-  {
-    id: "proj_2",
-    domain: "threadwell.com",
-    competitors: ["loopcast.io"],
-    promptCount: 31,
-    mentionRate: 58.7,
-    lastRun: "3 hr ago",
-    trend: "down",
-    trendValue: "−2.1%",
-  },
-  {
-    id: "proj_3",
-    domain: "grainhaus.co",
-    competitors: ["pellucid.app", "fovea.io", "chartpost.ai"],
-    promptCount: 65,
-    mentionRate: 91.2,
-    lastRun: "22 min ago",
-    trend: "up",
-    trendValue: "+11.4%",
-  },
-];
-
-const MOCK_RECENT_RUNS = [
-  { prompt: "Best AI monitoring platforms for brand teams", engine: "ChatGPT",    mentioned: true,  position: 2, time: "4m ago"  },
-  { prompt: "Top SaaS brand intelligence tools in 2025",   engine: "Gemini",     mentioned: true,  position: 1, time: "17m ago" },
-  { prompt: "GEO optimization platforms compared",          engine: "Perplexity", mentioned: false, position: null, time: "1h ago"  },
-  { prompt: "Brand monitoring software for startups",       engine: "Gemini",     mentioned: true,  position: 3, time: "2h ago"  },
-  { prompt: "AI search visibility tracking tools",          engine: "ChatGPT",    mentioned: true,  position: 1, time: "3h ago"  },
-];
-
-// SVG icons — no emojis
+// SVG icons
 const IconTrend = ({ up }: { up: boolean }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     {up
@@ -96,97 +51,313 @@ const IconX = () => (
     <path d="M18 6 6 18M6 6l12 12"/>
   </svg>
 );
+const IconEmpty = () => (
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9"/>
+  </svg>
+);
+
+async function getDashboardData(clerkId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      select: { id: true },
+    });
+
+    if (!user) return null;
+
+    const cutoff = await getHistoryCutoff(clerkId);
+
+    // Active projects
+    const projects = await prisma.project.findMany({
+      where: { userId: user.id },
+      include: {
+        prompts: {
+          include: {
+            results: {
+              where: { createdAt: { gte: cutoff } },
+              orderBy: { createdAt: "desc" },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Total results
+    const totalResults = await prisma.promptResult.count({
+      where: { 
+        prompt: { project: { userId: user.id } },
+        createdAt: { gte: cutoff }
+      },
+    });
+
+    // Prompts with at least one result
+    const promptsRun = await prisma.prompt.count({
+      where: {
+        project: { userId: user.id },
+        results: { some: { createdAt: { gte: cutoff } } },
+      },
+    });
+
+    // Mention rate
+    const mentionedResults = await prisma.promptResult.count({
+      where: {
+        prompt: { project: { userId: user.id } },
+        brandMentioned: true,
+        createdAt: { gte: cutoff }
+      },
+    });
+
+    const avgMentionRate = totalResults > 0
+      ? Math.round((mentionedResults / totalResults) * 1000) / 10
+      : 0;
+
+    // 7-day trend
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const recentResults = await prisma.promptResult.findMany({
+      where: {
+        prompt: { project: { userId: user.id } },
+        createdAt: { gte: sevenDaysAgo },
+      },
+      select: { createdAt: true, brandMentioned: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    // Group by day
+    const dailyData: { day: string; rate: number; total: number; mentioned: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dayStr = date.toISOString().slice(0, 10);
+      const dayResults = recentResults.filter(
+        (r) => r.createdAt.toISOString().slice(0, 10) === dayStr
+      );
+      const dayMentioned = dayResults.filter((r) => r.brandMentioned).length;
+      dailyData.push({
+        day: date.toLocaleDateString("en", { weekday: "short" }),
+        rate: dayResults.length > 0 ? Math.round((dayMentioned / dayResults.length) * 100) : 0,
+        total: dayResults.length,
+        mentioned: dayMentioned,
+      });
+    }
+
+    // Weekly delta
+    const thisWeekRate = avgMentionRate;
+    const prevWeekResults = await prisma.promptResult.findMany({
+      where: {
+        prompt: { project: { userId: user.id } },
+        createdAt: {
+          gte: new Date(new Date().setDate(new Date().getDate() - 14)),
+          lt: sevenDaysAgo,
+        },
+      },
+      select: { brandMentioned: true },
+    });
+    const prevTotal = prevWeekResults.length;
+    const prevMentioned = prevWeekResults.filter((r) => r.brandMentioned).length;
+    const prevRate = prevTotal > 0 ? Math.round((prevMentioned / prevTotal) * 1000) / 10 : 0;
+    const weeklyDelta = Math.round((thisWeekRate - prevRate) * 10) / 10;
+
+    // Per-project stats
+    const projectStats = projects.map((p) => {
+      const allResults = p.prompts.flatMap((pr) => pr.results);
+      const pMentioned = allResults.filter((r) => r.brandMentioned).length;
+      const pRate = allResults.length > 0
+        ? Math.round((pMentioned / allResults.length) * 1000) / 10
+        : 0;
+
+      // Week-over-week delta for this project
+      const thisWeekProjectResults = allResults.filter(
+        (r) => r.createdAt >= sevenDaysAgo
+      );
+      const prevWeekProjectResults = allResults.filter(
+        (r) => r.createdAt < sevenDaysAgo && r.createdAt >= new Date(new Date().setDate(new Date().getDate() - 14))
+      );
+      const twRate = thisWeekProjectResults.length > 0
+        ? (thisWeekProjectResults.filter((r) => r.brandMentioned).length / thisWeekProjectResults.length) * 100
+        : 0;
+      const pwRate = prevWeekProjectResults.length > 0
+        ? (prevWeekProjectResults.filter((r) => r.brandMentioned).length / prevWeekProjectResults.length) * 100
+        : 0;
+      const delta = Math.round((twRate - pwRate) * 10) / 10;
+      const lastResult = allResults[0];
+
+      return {
+        id: p.id,
+        domain: p.domain,
+        competitorCount: p.competitors.length,
+        promptCount: p.prompts.length,
+        mentionRate: pRate,
+        trend: delta >= 0 ? "up" as const : "down" as const,
+        trendValue: `${delta >= 0 ? "+" : ""}${delta}%`,
+        lastRun: lastResult ? getRelativeTime(lastResult.createdAt) : "Never",
+        status: p.status,
+      };
+    });
+
+    // Engines tracked — only engines that have results
+    const enginesUsed = await prisma.promptResult.findMany({
+      where: { prompt: { project: { userId: user.id } } },
+      select: { engine: true },
+      distinct: ["engine"],
+    });
+
+    // Recent runs
+    const recentRuns = await prisma.promptResult.findMany({
+      where: { 
+        prompt: { project: { userId: user.id } },
+        createdAt: { gte: cutoff }
+      },
+      include: { prompt: { select: { text: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
+
+    return {
+      totalProjects: projects.length,
+      totalPrompts: promptsRun,
+      totalResults,
+      avgMentionRate,
+      weeklyDelta,
+      dailyData,
+      projects: projectStats,
+      enginesTracked: enginesUsed.length || 0,
+      recentRuns: recentRuns.map((r) => ({
+        prompt: r.prompt.text,
+        engine: r.engine === "CHATGPT" ? "ChatGPT" : r.engine === "GEMINI" ? "Gemini" : "Perplexity",
+        mentioned: r.brandMentioned,
+        position: r.mentionPosition,
+        time: getRelativeTime(r.createdAt),
+      })),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getRelativeTime(date: Date): string {
+  const diff = Date.now() - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 export default async function DashboardPage() {
   const { userId } = await auth();
   if (!userId) redirect("/");
 
-  return (
-    <div className="min-h-screen" style={{ background: "var(--color-surface)" }}>
+  const data = await getDashboardData(userId);
 
-      {/* ─── Top bar ─── */}
-      <header className="sticky top-0 z-20 border-b border-white/5 px-4 md:px-8 py-4 flex items-center justify-between backdrop-blur-xl bg-[rgba(10,10,15,0.8)] shadow-[inset_0_-1px_0_rgba(255,255,255,0.04)]">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-[11px] font-bold shadow-[0_2px_8px_-2px_rgba(79,70,229,0.4)]">
-              V
-            </div>
-            <span className="text-white font-semibold text-sm hidden sm:inline tracking-tight">Vellor</span>
-          </Link>
-          <span className="text-white/20 hidden sm:inline text-sm">/</span>
-          <span className="text-[var(--color-fg-muted)] text-sm hidden sm:inline">Dashboard</span>
-        </div>
-        <div className="flex items-center gap-3">
+  // Empty state — no user or no projects
+  if (!data || data.totalProjects === 0) {
+    return (
+      <div className="flex-1 flex flex-col">
+        <Suspense><DashboardNotice /></Suspense>
+        <div className="flex-1 flex items-center justify-center p-8">
+        <div className="text-center max-w-md animate-fade-in-up">
+          <div className="mx-auto w-20 h-20 rounded-2xl bg-indigo-500/8 border border-indigo-500/15 flex items-center justify-center text-indigo-400 mb-6">
+            <IconEmpty />
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight mb-3">
+            No projects yet
+          </h1>
+          <p className="text-[var(--color-fg-muted)] text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+            Start monitoring your brand across ChatGPT, Gemini, and Perplexity.
+            Create your first project to see how AI talks about you.
+          </p>
           <Link
             href="/dashboard/projects/new"
-            id="new-project-btn"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] cursor-pointer glow-indigo"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo cursor-pointer"
           >
-            <IconPlus /> New project
+            <IconPlus /> Create your first project
           </Link>
-          <UserButton />
         </div>
-      </header>
+        </div>
+      </div>
+    );
+  }
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-10">
-
-        {/* ─── Page title — left-aligned, not centered (taste-skill DESIGN_VARIANCE 8) */}
-        <div className="mb-10">
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Overview</h1>
-          <p className="text-[var(--color-fg-muted)] text-sm mt-1">
-            Brand visibility across all active projects — updated in real time.
+  return (
+    <div className="flex-1">
+      <Suspense><DashboardNotice /></Suspense>
+      {/* Header */}
+      <header className="sticky top-0 z-20 border-b border-white/5 px-6 md:px-8 py-4 flex items-center justify-between backdrop-blur-xl bg-[rgba(10,10,15,0.8)]">
+        <div>
+          <h1 className="text-xl font-bold text-white tracking-tight">Overview</h1>
+          <p className="text-[var(--color-fg-muted)] text-xs mt-0.5">
+            Brand visibility across all active projects
           </p>
         </div>
+        <Link
+          href="/dashboard/projects/new"
+          id="new-project-btn"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo cursor-pointer"
+        >
+          <IconPlus /> New project
+        </Link>
+      </header>
 
-        {/* ─── Stats — asymmetric bento (taste-skill: not 4 equal cards) ─── */}
-        {/* Row 1: 2-col 60/40 split | Row 2: 3-col */}
+      <div className="max-w-7xl mx-auto px-6 md:px-8 py-8">
+        {/* ─── Stats — asymmetric bento ─── */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-          {/* Main KPI — wide cell */}
-          <div className="md:col-span-3 glass rounded-2xl px-7 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+          {/* Main KPI — wide */}
+          <div className="md:col-span-3 glass rounded-2xl px-7 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] animate-fade-in-up">
             <p className="text-xs font-medium text-[var(--color-fg-muted)] uppercase tracking-widest mb-2">Avg. mention rate</p>
             <div className="flex items-end gap-4">
-              <span className="text-5xl font-bold text-white font-mono tracking-tighter">{MOCK_STATS.avgMentionRate}%</span>
-              <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-400 mb-1.5">
-                <IconTrend up /> +{MOCK_STATS.weeklyDelta}% vs last week
+              <span className="text-5xl font-bold text-white font-mono tracking-tighter">
+                <AnimatedCounter value={data.avgMentionRate} suffix="%" />
+              </span>
+              <span className={`inline-flex items-center gap-1 text-sm font-medium mb-1.5 ${data.weeklyDelta >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                <IconTrend up={data.weeklyDelta >= 0} />
+                {data.weeklyDelta >= 0 ? "+" : ""}{data.weeklyDelta}% vs last week
               </span>
             </div>
-            {/* Mini bar chart */}
-            <div className="flex items-end gap-1 mt-5 h-10">
-              {[58,63,61,69,72,70,74].map((v, i) => (
-                <div key={i} className="flex-1 rounded-sm" style={{ height: `${(v/100)*100}%`, background: i === 6 ? "rgba(79,70,229,0.7)" : "rgba(255,255,255,0.08)" }} />
-              ))}
+            {/* 7-day trend chart */}
+            <div className="mt-5 h-[100px]">
+              <TrendChart data={data.dailyData} />
             </div>
-            <p className="text-[10px] text-[var(--color-fg-muted)] mt-1.5 font-mono">7-day trend</p>
           </div>
 
           {/* Secondary KPI */}
-          <div className="md:col-span-2 glass rounded-2xl px-7 py-6 flex flex-col justify-between shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+          <div className="md:col-span-2 glass rounded-2xl px-7 py-6 flex flex-col justify-between shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] animate-fade-in-up" style={{ animationDelay: "50ms" }}>
             <p className="text-xs font-medium text-[var(--color-fg-muted)] uppercase tracking-widest mb-1">Results collected</p>
-            <span className="text-4xl font-bold text-white font-mono tracking-tighter">{MOCK_STATS.totalResults.toLocaleString()}</span>
+            <span className="text-4xl font-bold text-white font-mono tracking-tighter">
+              <AnimatedCounter value={data.totalResults} />
+            </span>
             <p className="text-xs text-[var(--color-fg-muted)] mt-auto pt-3">Across all engines and projects</p>
           </div>
 
           {/* Three smaller stats */}
           {[
-            { label: "Active projects", value: MOCK_STATS.totalProjects.toString() },
-            { label: "Prompts run",     value: MOCK_STATS.totalPrompts.toString() },
-            { label: "Engines tracked", value: "3" },
-          ].map(s => (
-            <div key={s.label} className="md:col-span-1 glass rounded-2xl px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]" style={{ gridColumn: "span 1" }}>
+            { label: "Active projects", value: data.totalProjects },
+            { label: "Prompts run", value: data.totalPrompts },
+            { label: "Engines tracked", value: data.enginesTracked || 3 },
+          ].map((s, i) => (
+            <div
+              key={s.label}
+              className="glass rounded-2xl px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] animate-fade-in-up"
+              style={{ animationDelay: `${100 + i * 50}ms` }}
+            >
               <p className="text-[11px] font-medium text-[var(--color-fg-muted)] uppercase tracking-widest mb-1.5">{s.label}</p>
-              <span className="text-3xl font-bold text-white font-mono">{s.value}</span>
+              <span className="text-3xl font-bold text-white font-mono">
+                <AnimatedCounter value={s.value} />
+              </span>
             </div>
           ))}
-
-          {/* Invisible filler to force 3-col last row to 5-col total: handled by auto grid */}
-          <div className="md:col-span-2 md:hidden" aria-hidden />
         </div>
 
-        {/* ─── Main content — asymmetric 2/3 + 1/3 split ─── */}
+        {/* ─── Main content — 2/3 + 1/3 ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
 
           {/* Projects table */}
-          <div className="glass rounded-2xl overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+          <div className="glass rounded-2xl overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] animate-fade-in-up" style={{ animationDelay: "200ms" }}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
               <h2 className="text-[15px] font-semibold text-white tracking-tight">Projects</h2>
               <Link href="/dashboard/projects/new" className="inline-flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition-colors duration-[160ms] font-medium cursor-pointer">
@@ -194,82 +365,81 @@ export default async function DashboardPage() {
               </Link>
             </div>
 
-            {/* divide-y rows (taste-skill: no card overuse for lists) */}
             <div className="divide-y divide-white/5">
-              {MOCK_PROJECTS.map((project) => (
+              {data.projects.map((project) => (
                 <Link
                   key={project.id}
                   href={`/dashboard/projects/${project.id}`}
                   id={`project-${project.id}`}
-                  className="flex items-center gap-4 px-6 py-4 hover:bg-white/3 transition-colors duration-[160ms] cursor-pointer group"
+                  className="flex items-center gap-4 px-6 py-4 hover:bg-white/[0.03] transition-[background-color] duration-[160ms] cursor-pointer group"
                 >
-                  {/* Status dot */}
                   <div className="w-2 h-2 rounded-full bg-indigo-400 pulse-dot shrink-0" />
-
-                  {/* Domain + meta */}
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-medium text-white tracking-tight truncate">{project.domain}</p>
                     <p className="text-xs text-[var(--color-fg-muted)] mt-0.5">
-                      {project.competitors.length} competitor{project.competitors.length !== 1 ? "s" : ""} · {project.promptCount} prompts · {project.lastRun}
+                      {project.competitorCount} competitor{project.competitorCount !== 1 ? "s" : ""} · {project.promptCount} prompts · {project.lastRun}
                     </p>
                   </div>
-
-                  {/* Mention rate */}
                   <div className="text-right shrink-0">
-                    <p className={`text-lg font-bold font-mono ${project.mentionRate >= 70 ? "text-emerald-400" : "text-yellow-400"}`}>
-                      {project.mentionRate}%
-                    </p>
-                    <p className={`text-[11px] font-mono flex items-center justify-end gap-0.5 ${project.trend === "up" ? "text-emerald-400" : "text-red-400"}`}>
-                      <IconTrend up={project.trend === "up"} />
-                      {project.trendValue}
-                    </p>
+                    {project.status === "generating" ? (
+                      <div className="flex items-center justify-end gap-2 h-full">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500 pulse-dot" />
+                        <span className="text-xs text-indigo-400 font-medium">Setting up...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <p className={`text-lg font-bold font-mono ${project.mentionRate >= 70 ? "text-emerald-400" : project.mentionRate >= 40 ? "text-yellow-400" : "text-red-400"}`}>
+                          {project.mentionRate}%
+                        </p>
+                        <p className={`text-[11px] font-mono flex items-center justify-end gap-0.5 ${project.trend === "up" ? "text-emerald-400" : "text-red-400"}`}>
+                          <IconTrend up={project.trend === "up"} />
+                          {project.trendValue}
+                        </p>
+                      </>
+                    )}
                   </div>
-
-                  <IconChevronRight />
+                  <span className="text-[var(--color-fg-muted)] group-hover:text-white/50 transition-colors duration-[160ms]">
+                    <IconChevronRight />
+                  </span>
                 </Link>
               ))}
             </div>
-
-            {MOCK_PROJECTS.length === 0 && (
-              <div className="px-6 py-16 text-center">
-                <p className="text-[var(--color-fg-muted)] text-sm">No projects yet.</p>
-                <Link href="/dashboard/projects/new" className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-[transform,background-color] duration-[160ms] active:scale-[0.97] cursor-pointer">
-                  <IconPlus /> Create your first project
-                </Link>
-              </div>
-            )}
           </div>
 
-          {/* Recent runs — sidebar */}
-          <div className="glass rounded-2xl overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+          {/* Recent runs */}
+          <div className="glass rounded-2xl overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] animate-fade-in-up" style={{ animationDelay: "250ms" }}>
             <div className="px-5 py-4 border-b border-white/5">
               <h2 className="text-[15px] font-semibold text-white tracking-tight">Recent runs</h2>
             </div>
 
-            <div className="divide-y divide-white/5">
-              {MOCK_RECENT_RUNS.map((run, i) => (
-                <div key={i} className="px-5 py-4">
-                  {/* Prompt + result badge */}
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <p className="text-sm text-[var(--color-fg)] line-clamp-2 leading-snug flex-1">{run.prompt}</p>
-                    <span className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${run.mentioned ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
-                      {run.mentioned ? <IconCheck /> : <IconX />}
-                    </span>
+            {data.recentRuns.length === 0 ? (
+              <div className="px-5 py-12 text-center">
+                <p className="text-[var(--color-fg-muted)] text-sm">No prompt runs yet.</p>
+                <p className="text-[var(--color-fg-muted)] text-xs mt-1">Run prompts from a project to see results here.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {data.recentRuns.map((run, i) => (
+                  <div key={i} className="px-5 py-4">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <p className="text-sm text-[var(--color-fg)] line-clamp-2 leading-snug flex-1">{run.prompt}</p>
+                      <span className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${run.mentioned ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+                        {run.mentioned ? <IconCheck /> : <IconX />}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/12 text-indigo-300 border border-indigo-500/15 font-medium">
+                        {run.engine}
+                      </span>
+                      <span className="text-[11px] text-[var(--color-fg-muted)] font-mono">
+                        {run.mentioned ? `Position #${run.position}` : "Not mentioned"}
+                      </span>
+                      <span className="text-[11px] text-[var(--color-fg-muted)] ml-auto font-mono">{run.time}</span>
+                    </div>
                   </div>
-
-                  {/* Engine + position + time */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/12 text-indigo-300 border border-indigo-500/15 font-medium">
-                      {run.engine}
-                    </span>
-                    <span className="text-[11px] text-[var(--color-fg-muted)] font-mono">
-                      {run.mentioned ? `Position #${run.position}` : "Not mentioned"}
-                    </span>
-                    <span className="text-[11px] text-[var(--color-fg-muted)] ml-auto font-mono">{run.time}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

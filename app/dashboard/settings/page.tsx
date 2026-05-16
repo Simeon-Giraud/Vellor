@@ -1,0 +1,94 @@
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
+import SettingsClient from "./SettingsClient";
+
+export const metadata: Metadata = { title: "Settings — Vellor" };
+
+export default async function SettingsPage() {
+  const { userId } = await auth();
+  if (!userId) redirect("/");
+
+  const clerkUser = await currentUser();
+
+  // Fetch user data
+  let planName = "Starter";
+  let usageCount = 0;
+  let usageLimit = 500;
+  let subscriptionStatus: string | null = null;
+  let hasStripeCustomer = false;
+  let preferences = { emailAlerts: true, weeklySummary: true, mentionDropAlert: true };
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      select: {
+        subscriptionStatus: true,
+        stripePriceId: true,
+        stripeCustomerId: true,
+        preferences: {
+          select: {
+            emailAlerts: true,
+            weeklySummary: true,
+            mentionDropAlert: true,
+          },
+        },
+      },
+    });
+
+    if (user) {
+      subscriptionStatus = user.subscriptionStatus;
+      hasStripeCustomer = !!user.stripeCustomerId;
+
+      const priceId = user.stripePriceId;
+      if (priceId === process.env.STRIPE_PRO_PRICE_ID) {
+        planName = "Pro";
+        usageLimit = 5000;
+      } else if (priceId === process.env.STRIPE_GROWTH_PRICE_ID) {
+        planName = "Growth";
+        usageLimit = 2000;
+      }
+
+      if (user.preferences) {
+        preferences = user.preferences;
+      }
+
+      // Count this month's prompt results as usage
+      const resultCount = await prisma.promptResult.count({
+        where: {
+          prompt: {
+            project: {
+              user: { clerkId: userId },
+            },
+          },
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          },
+        },
+      });
+      usageCount = resultCount;
+    }
+  } catch {
+    // DB not connected — use defaults
+  }
+
+  return (
+    <SettingsClient
+      profile={{
+        name: [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") || clerkUser?.username || "User",
+        email: clerkUser?.primaryEmailAddress?.emailAddress || "",
+        avatarUrl: clerkUser?.imageUrl || "",
+      }}
+      plan={{
+        name: planName,
+        usageCount,
+        usageLimit,
+        subscriptionStatus,
+        hasStripeCustomer,
+        isTrial: subscriptionStatus === "trialing",
+      }}
+      preferences={preferences}
+    />
+  );
+}

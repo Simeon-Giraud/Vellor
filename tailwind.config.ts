@@ -25,7 +25,8 @@ const config: Config = {
         surface: "var(--color-surface)",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "Geist", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "Geist Mono", "JetBrains Mono", "monospace"],
       },
       animation: {
         "spin-slow": "spin 3s linear infinite",

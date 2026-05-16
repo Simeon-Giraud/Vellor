@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "prompt_results" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;

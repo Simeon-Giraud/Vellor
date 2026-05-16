@@ -15,7 +15,7 @@ export async function POST() {
       return NextResponse.json({ error: 'No Stripe customer found' }, { status: 404 })
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL!
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,

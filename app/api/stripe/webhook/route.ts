@@ -82,6 +82,18 @@ export async function POST(req: Request) {
         break
       }
 
+      case 'customer.subscription.trial_will_end': {
+        const sub = event.data.object as Stripe.Subscription
+        const customerId = sub.customer as string
+        await prisma.user.updateMany({
+          where: { stripeCustomerId: customerId },
+          data: { trialEndsAt: new Date(sub.trial_end ? sub.trial_end * 1000 : Date.now() + 3 * 24 * 60 * 60 * 1000) },
+        })
+        // TODO: Trigger a notification (e.g., email) to the user that their trial is ending
+        console.log(`[webhook] Trial ending soon for customer ${customerId}`)
+        break
+      }
+
       default:
         console.log(`[webhook] unhandled event: ${event.type}`)
     }

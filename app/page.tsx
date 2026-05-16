@@ -3,6 +3,7 @@
 import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 
 /* ─── taste-skill: Design Plan ─────────────────────────────────────────────
  * Python RNG (seed = "revamp dashboard and landing page" = 36 chars → 36 % 3 = 0):
@@ -93,9 +94,7 @@ export default function HomePage() {
       <nav className="relative z-10 px-4 md:px-8 pt-6 max-w-7xl mx-auto">
         <div className="glass rounded-2xl px-5 py-3.5 flex items-center justify-between shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-xs font-bold shadow-[0_2px_8px_-2px_rgba(79,70,229,0.5)]">
-              V
-            </div>
+            <Logo className="w-9 h-9 transition-transform duration-[160ms] ease-out group-active:scale-[0.95]" />
             <span className="text-[15px] font-semibold text-white tracking-tight">Vellor</span>
           </Link>
 
@@ -366,7 +365,7 @@ export default function HomePage() {
       <footer className="relative z-10 border-t border-white/5 py-10 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-[11px] font-bold">V</div>
+            <Logo className="w-6 h-6" />
             <span className="text-white font-semibold text-sm">Vellor</span>
           </Link>
           <p className="text-[var(--color-fg-muted)] text-sm">© 2025 Vellor. All rights reserved.</p>
