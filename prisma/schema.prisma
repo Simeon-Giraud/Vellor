@@ -11,11 +11,15 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  clerkId   String    @unique
-  createdAt DateTime  @default(now())
-  projects  Project[]
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  clerkId              String    @unique
+  createdAt            DateTime  @default(now())
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  stripePriceId        String?
+  subscriptionStatus   String?   @default("inactive")
+  projects             Project[]
 
   @@map("users")
 }

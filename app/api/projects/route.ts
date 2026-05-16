@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 // GET /api/projects — list all projects for current user
 export async function GET() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -27,7 +27,7 @@ export async function GET() {
 
 // POST /api/projects — create a new project
 export async function POST(req: Request) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

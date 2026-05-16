@@ -3,6 +3,14 @@ import { AIEngine, EngineResult } from "@/types";
 // Placeholder AI clients — wire up real API calls later
 
 export async function runPromptOnChatGPT(prompt: string, domain: string): Promise<EngineResult> {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_AI === 'true') {
+    return {
+      engine: "CHATGPT",
+      mentioned: true,
+      position: 1,
+      snippet: `This is a mock response for testing. The brand ${domain} is a great tool for teams. [MOCK]`,
+    };
+  }
   // TODO: Replace with real OpenAI call
   await new Promise((r) => setTimeout(r, 500)); // simulate latency
   const mockResponse = `Based on your query about ${prompt}, here are the top tools: 
@@ -20,6 +28,14 @@ export async function runPromptOnChatGPT(prompt: string, domain: string): Promis
 }
 
 export async function runPromptOnGemini(prompt: string, domain: string): Promise<EngineResult> {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_AI === 'true') {
+    return {
+      engine: "GEMINI",
+      mentioned: true,
+      position: 1,
+      snippet: `This is a mock response for testing. The brand ${domain} is a great tool for teams. [MOCK]`,
+    };
+  }
   // TODO: Replace with real Gemini API call
   await new Promise((r) => setTimeout(r, 600));
   const mockResponse = `For the question "${prompt}", I recommend exploring several tools. 
@@ -35,6 +51,14 @@ export async function runPromptOnGemini(prompt: string, domain: string): Promise
 }
 
 export async function runPromptOnPerplexity(prompt: string, domain: string): Promise<EngineResult> {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_AI === 'true') {
+    return {
+      engine: "PERPLEXITY",
+      mentioned: true,
+      position: 1,
+      snippet: `This is a mock response for testing. The brand ${domain} is a great tool for teams. [MOCK]`,
+    };
+  }
   // TODO: Replace with real Perplexity API call
   await new Promise((r) => setTimeout(r, 400));
   const mockResponse = `According to recent sources, the best tools for this use case include Semrush, 

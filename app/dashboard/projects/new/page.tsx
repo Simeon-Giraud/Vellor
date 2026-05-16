@@ -60,23 +60,23 @@ export default function NewProjectPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--color-surface)" }}>
       {/* Header */}
-      <header className="border-b border-white/5 px-8 py-4 flex items-center justify-between">
+      <header className="border-b border-white/5 px-4 md:px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold">
               V
             </div>
-            <span className="text-white font-bold">Vellor</span>
+            <span className="text-white font-bold hidden sm:inline">Vellor</span>
           </Link>
-          <span className="text-slate-600">/</span>
-          <Link href="/dashboard" className="text-slate-400 text-sm hover:text-white">Dashboard</Link>
-          <span className="text-slate-600">/</span>
-          <span className="text-slate-400 text-sm">New Project</span>
+          <span className="text-slate-600 hidden sm:inline">/</span>
+          <Link href="/dashboard" className="text-slate-400 text-sm hover:text-white hidden sm:inline">Dashboard</Link>
+          <span className="text-slate-600 hidden sm:inline">/</span>
+          <span className="text-slate-400 text-sm hidden sm:inline">New Project</span>
         </div>
-        <UserButton afterSignOutUrl="/" />
+        <UserButton />
       </header>
 
-      <div className="max-w-2xl mx-auto px-6 py-12">
+      <div className="max-w-2xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-8">
           {[1, 2, 3].map((s) => (
@@ -93,7 +93,7 @@ export default function NewProjectPage() {
               >
                 {s < step ? "✓" : s}
               </div>
-              <span className={`text-sm ${s === step ? "text-white" : "text-slate-500"}`}>
+              <span className={`text-sm hidden sm:inline ${s === step ? "text-white" : "text-slate-500"}`}>
                 {s === 1 ? "Domain" : s === 2 ? "Competitors" : "Prompts"}
               </span>
               {s < 3 && <div className="w-8 h-px bg-white/10 mx-1" />}

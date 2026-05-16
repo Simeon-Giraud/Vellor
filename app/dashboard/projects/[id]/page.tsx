@@ -56,7 +56,7 @@ export default async function ProjectDetailPage({
 }: {
   params: { id: string };
 }) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) redirect("/");
 
   const project = getMockProject(params.id);
@@ -68,16 +68,16 @@ export default async function ProjectDetailPage({
   return (
     <div className="min-h-screen" style={{ background: "var(--color-surface)" }}>
       {/* Header */}
-      <header className="border-b border-white/5 px-8 py-4 flex items-center justify-between">
+      <header className="border-b border-white/5 px-4 md:px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold">V</div>
-            <span className="text-white font-bold">Vellor</span>
+            <span className="text-white font-bold hidden sm:inline">Vellor</span>
           </Link>
-          <span className="text-slate-600">/</span>
-          <Link href="/dashboard" className="text-slate-400 text-sm hover:text-white">Dashboard</Link>
-          <span className="text-slate-600">/</span>
-          <span className="text-slate-400 text-sm">{project.domain}</span>
+          <span className="text-slate-600 hidden sm:inline">/</span>
+          <Link href="/dashboard" className="text-slate-400 text-sm hover:text-white hidden sm:inline">Dashboard</Link>
+          <span className="text-slate-600 hidden sm:inline">/</span>
+          <span className="text-slate-400 text-sm hidden sm:inline">{project.domain}</span>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -86,11 +86,11 @@ export default async function ProjectDetailPage({
           >
             ▶ Run prompts
           </button>
-          <UserButton afterSignOutUrl="/" />
+          <UserButton />
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8">
         {/* Project header */}
         <div className="flex items-start justify-between mb-8">
           <div>
