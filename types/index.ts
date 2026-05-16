@@ -5,7 +5,7 @@ export type AIEngine = "CHATGPT" | "GEMINI" | "PERPLEXITY";
 export interface User {
   id: string;
   email: string;
-  clerkId: string;
+  supabaseId: string;
   createdAt: Date;
 }
 

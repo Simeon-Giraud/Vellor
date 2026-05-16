@@ -1,8 +1,5 @@
-"use client";
-
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
+import { getCurrentDbUser } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 
 /* ─── taste-skill: Design Plan ─────────────────────────────────────────────
@@ -81,8 +78,9 @@ const FEATURES = [
   { Icon: IconGlobe, title: "AI engine coverage", desc: "72% ChatGPT · 18% Gemini · 10% Perplexity — full market coverage.", span: "" },
 ];
 
-export default function HomePage() {
-  const { isSignedIn } = useAuth();
+export default async function HomePage() {
+  const dbUser = await getCurrentDbUser();
+  const isSignedIn = !!dbUser;
 
   return (
     <main className="min-h-screen animated-gradient noise-overlay relative overflow-x-hidden">
@@ -110,20 +108,18 @@ export default function HomePage() {
                 <Link href="/dashboard" className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] cursor-pointer glow-indigo">
                   Dashboard
                 </Link>
-                <UserButton />
+                <Link href="/dashboard/settings" className="px-3 py-2 text-sm text-[var(--color-fg-muted)] hover:text-white transition-colors duration-[160ms] cursor-pointer">Profile</Link>
               </>
             ) : (
               <>
-                <SignInButton mode="modal">
-                  <button className="px-3 py-2 text-sm text-[var(--color-fg-muted)] hover:text-white transition-colors duration-[160ms] cursor-pointer">
+                <Link href="/sign-in"><button className="px-3 py-2 text-sm text-[var(--color-fg-muted)] hover:text-white transition-colors duration-[160ms] cursor-pointer">
                     Sign in
                   </button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo cursor-pointer">
+                </Link>
+                <Link href="/sign-up"><button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo cursor-pointer">
                     Get started
                   </button>
-                </SignUpButton>
+                </Link>
               </>
             )}
           </div>
@@ -163,11 +159,10 @@ export default function HomePage() {
                   Go to Dashboard <IconArrowRight />
                 </Link>
               ) : (
-                <SignUpButton mode="modal">
-                  <button className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo cursor-pointer">
+                <Link href="/sign-up"><button className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo cursor-pointer">
                     Start free trial <IconArrowRight />
                   </button>
-                </SignUpButton>
+                </Link>
               )}
               <a href="#features" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl glass glass-hover text-[var(--color-fg)] font-medium transition-[transform] duration-[160ms] ease-out active:scale-[0.97] cursor-pointer w-fit text-sm">
                 See how it works
@@ -300,11 +295,10 @@ export default function HomePage() {
                 View your engine scores <IconArrowRight />
               </Link>
             ) : (
-              <SignUpButton mode="modal">
-                <button className="inline-flex items-center gap-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors duration-[160ms] cursor-pointer">
+              <Link href="/sign-up"><button className="inline-flex items-center gap-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors duration-[160ms] cursor-pointer">
                   Start tracking free <IconArrowRight />
                 </button>
-              </SignUpButton>
+              </Link>
             )}
           </div>
 

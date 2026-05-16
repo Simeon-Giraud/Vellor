@@ -26,10 +26,10 @@ export async function POST(req: Request) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        const clerkUserId = session.metadata?.clerkUserId
-        if (!clerkUserId) break
+        const supabaseUserId = session.metadata?.supabaseUserId
+        if (!supabaseUserId) break
         await prisma.user.update({
-          where: { clerkId: clerkUserId },
+          where: { supabaseId: supabaseUserId },
           data: {
             stripeSubscriptionId: session.subscription as string,
             stripeCustomerId: session.customer as string,

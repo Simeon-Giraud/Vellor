@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentDbUser } from "@/lib/auth";
+
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -54,7 +55,8 @@ export default async function ProjectDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { userId } = await auth();
+  const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
 
   const { id } = await params;
@@ -62,7 +64,7 @@ export default async function ProjectDetailPage({
   let project;
   try {
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { supabaseId: userId },
       select: { id: true },
     });
     if (!user) redirect("/dashboard");

@@ -1,16 +1,18 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentDbUser } from "@/lib/auth";
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function PATCH(req: Request) {
   try {
-    const { userId } = await auth();
+    const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { supabaseId: userId },
       select: { id: true },
     });
 

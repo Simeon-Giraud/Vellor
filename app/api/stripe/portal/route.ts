@@ -1,16 +1,18 @@
+import { getCurrentDbUser } from "@/lib/auth";
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 
 export async function POST() {
   try {
-    const { userId } = await auth()
+    const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } })
+    const user = await prisma.user.findUnique({ where: { supabaseId: userId } })
     if (!user?.stripeCustomerId) {
       return NextResponse.json({ error: 'No Stripe customer found' }, { status: 404 })
     }

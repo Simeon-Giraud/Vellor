@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/prisma'
 
-export async function getUserSubscription(clerkUserId: string) {
+export async function getUserSubscription(supabaseUserId: string) {
   return prisma.user.findUnique({
-    where: { clerkId: clerkUserId },
+    where: { supabaseId: supabaseUserId },
     select: {
       subscriptionStatus: true,
       stripePriceId: true,

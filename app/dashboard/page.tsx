@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentDbUser } from "@/lib/auth";
+
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -57,16 +58,16 @@ const IconEmpty = () => (
   </svg>
 );
 
-async function getDashboardData(clerkId: string) {
+async function getDashboardData(supabaseId: string) {
   try {
     const user = await prisma.user.findUnique({
-      where: { clerkId },
+      where: { supabaseId },
       select: { id: true },
     });
 
     if (!user) return null;
 
-    const cutoff = await getHistoryCutoff(clerkId);
+    const cutoff = await getHistoryCutoff(supabaseId);
 
     // Active projects
     const projects = await prisma.project.findMany({
@@ -250,7 +251,8 @@ function getRelativeTime(date: Date): string {
 }
 
 export default async function DashboardPage() {
-  const { userId } = await auth();
+  const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
 
   const data = await getDashboardData(userId);

@@ -1,11 +1,13 @@
+import { getCurrentDbUser } from "@/lib/auth";
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth()
+    const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -16,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     // Get or create user in DB
-    let user = await prisma.user.findUnique({ where: { clerkId: userId } })
+    let user = await prisma.user.findUnique({ where: { supabaseId: userId } })
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
@@ -25,12 +27,12 @@ export async function POST(req: Request) {
     let stripeCustomerId = user.stripeCustomerId
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({
-        metadata: { clerkUserId: userId },
+        metadata: { supabaseUserId: userId },
         email: user.email,
       })
       stripeCustomerId = customer.id
       await prisma.user.update({
-        where: { clerkId: userId },
+        where: { supabaseId: userId },
         data: { stripeCustomerId },
       })
     }
@@ -44,11 +46,11 @@ export async function POST(req: Request) {
       managed_payments: { enabled: true },
       subscription_data: {
         trial_period_days: 7,
-        metadata: { clerkUserId: userId },
+        metadata: { supabaseUserId: userId },
       },
       success_url: `${appUrl}/dashboard?subscribed=true`,
       cancel_url: `${appUrl}/pricing`,
-      metadata: { clerkUserId: userId },
+      metadata: { supabaseUserId: userId },
     }, {
       apiVersion: '2026-02-25.preview' as any,
     })

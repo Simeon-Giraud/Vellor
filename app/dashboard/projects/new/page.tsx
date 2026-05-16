@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentDbUser } from "@/lib/auth";
+
 import { redirect } from "next/navigation";
 import { getUserPlan } from "@/lib/usage";
 import NewProjectClient from "./NewProjectClient";
@@ -9,7 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default async function NewProjectPage() {
-  const { userId } = await auth();
+  const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
 
   const plan = await getUserPlan(userId);

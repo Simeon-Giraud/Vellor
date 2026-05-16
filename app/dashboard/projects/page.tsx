@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentDbUser } from "@/lib/auth";
+
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -36,11 +37,12 @@ function getRelativeTime(date: Date): string {
 }
 
 export default async function ProjectsPage() {
-  const { userId } = await auth();
+  const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
 
   const user = await prisma.user.findUnique({
-    where: { clerkId: userId },
+    where: { supabaseId: userId },
     select: { id: true },
   });
 

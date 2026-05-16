@@ -1,14 +1,16 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentDbUser } from "@/lib/auth";
+
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
 export default async function PromptsPage() {
-  const { userId } = await auth();
+  const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
 
   try {
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { supabaseId: userId },
       select: { _count: { select: { projects: true } } },
     });
     if (!user || user._count.projects === 0) {

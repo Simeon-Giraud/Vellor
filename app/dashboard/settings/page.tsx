@@ -1,4 +1,5 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getCurrentDbUser } from "@/lib/auth";
+
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
@@ -7,10 +8,11 @@ import SettingsClient from "./SettingsClient";
 export const metadata: Metadata = { title: "Settings — Vellor" };
 
 export default async function SettingsPage() {
-  const { userId } = await auth();
+  const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
 
-  const clerkUser = await currentUser();
+
 
   // Fetch user data
   let planName = "Starter";
@@ -22,7 +24,7 @@ export default async function SettingsPage() {
 
   try {
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { supabaseId: userId },
       select: {
         subscriptionStatus: true,
         stripePriceId: true,
@@ -59,7 +61,7 @@ export default async function SettingsPage() {
         where: {
           prompt: {
             project: {
-              user: { clerkId: userId },
+              user: { supabaseId: userId },
             },
           },
           createdAt: {
@@ -76,9 +78,9 @@ export default async function SettingsPage() {
   return (
     <SettingsClient
       profile={{
-        name: [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") || clerkUser?.username || "User",
-        email: clerkUser?.primaryEmailAddress?.emailAddress || "",
-        avatarUrl: clerkUser?.imageUrl || "",
+        name: dbUser?.fullName || "User",
+        email: dbUser?.email || "",
+        avatarUrl: dbUser?.avatarUrl || "",
       }}
       plan={{
         name: planName,

@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentDbUser } from "@/lib/auth";
+
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
@@ -9,7 +10,8 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = await auth();
+  const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
 
   // Fetch user data for sidebar + trial banner
@@ -22,7 +24,7 @@ export default async function DashboardLayout({
 
   try {
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { supabaseId: userId },
       select: {
         subscriptionStatus: true,
         stripePriceId: true,
@@ -56,7 +58,7 @@ export default async function DashboardLayout({
         where: {
           prompt: {
             project: {
-              user: { clerkId: userId },
+              user: { supabaseId: userId },
             },
           },
           createdAt: {

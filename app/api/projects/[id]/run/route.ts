@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentDbUser } from "@/lib/auth";
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canRunPrompts } from "@/lib/usage";
@@ -8,7 +9,8 @@ export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { userId } = await auth();
+  const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -24,7 +26,7 @@ export async function POST(
     }
 
     const project = await prisma.project.findFirst({
-      where: { id, user: { clerkId: userId } },
+      where: { id, user: { supabaseId: userId } },
       include: { prompts: { select: { id: true, text: true } } },
     });
 

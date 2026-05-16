@@ -9,11 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.3.4",
-    "@clerk/themes": "^2.4.57",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.22.0",
     "@stripe/stripe-js": "^9.5.0",
+    "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
     "bullmq": "^5.76.8",
     "ioredis": "^5.10.1",

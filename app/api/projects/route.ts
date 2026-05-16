@@ -1,4 +1,5 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getCurrentDbUser } from "@/lib/auth";
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canCreateProject, getUserPlan } from "@/lib/usage";
@@ -6,13 +7,14 @@ import { generateQueue } from "@/lib/queue";
 
 // GET /api/projects — list all projects for current user
 export async function GET() {
-  const { userId } = await auth();
+  const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+    const user = await prisma.user.findUnique({ where: { supabaseId: userId } });
     if (!user) return NextResponse.json({ projects: [] });
 
     const projects = await prisma.project.findMany({ 
@@ -30,7 +32,8 @@ export async function GET() {
 
 // POST /api/projects — create a new project
 export async function POST(req: Request) {
-  const { userId } = await auth();
+  const dbUser = await getCurrentDbUser();
+  const userId = dbUser?.supabaseId;
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -58,31 +61,31 @@ export async function POST(req: Request) {
       }, { status: 403 });
     }
 
-    const clerkUser = await currentUser();
-    if (!clerkUser) {
-      return NextResponse.json({ error: "User data not found in Clerk" }, { status: 401 });
+    const dbUser = await getCurrentDbUser();
+    if (!dbUser) {
+      return NextResponse.json({ error: "User data not found" }, { status: 401 });
     }
 
-    const email = clerkUser.emailAddresses?.[0]?.emailAddress || `${userId}@placeholder.com`;
+    const email = dbUser.email || `${userId}@placeholder.com`;
 
-    // More resilient upsert: try to find by clerkId first
-    let user = await prisma.user.findUnique({ where: { clerkId: userId } });
+    // More resilient upsert: try to find by supabaseId first
+    let user = await prisma.user.findUnique({ where: { supabaseId: userId } });
     
     if (!user) {
-      // If not found by clerkId, try to find by email
+      // If not found by supabaseId, try to find by email
       const existingByEmail = await prisma.user.findUnique({ where: { email } });
       
       if (existingByEmail) {
-        // If found by email but has different clerkId, update the clerkId
+        // If found by email but has different supabaseId, update the supabaseId
         // This handles cases where a user might have re-created their account
         user = await prisma.user.update({
           where: { email },
-          data: { clerkId: userId }
+          data: { supabaseId: userId }
         });
       } else {
         // Create new user
         user = await prisma.user.create({
-          data: { clerkId: userId, email }
+          data: { supabaseId: userId, email }
         });
       }
     }

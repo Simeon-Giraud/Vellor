@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { UserButton, SignInButton, SignUpButton, useAuth } from "@clerk/nextjs";
+import { createClient } from "@/lib/supabase/client";
 import { Logo } from "./Logo";
 
 interface NavbarProps {
@@ -9,7 +10,6 @@ interface NavbarProps {
 }
 
 export function Navbar({ variant = "landing" }: NavbarProps) {
-
   if (variant === "dashboard") {
     return (
       <header className="border-b border-white/5 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-50"
@@ -28,19 +28,30 @@ export function Navbar({ variant = "landing" }: NavbarProps) {
             New Project
           </Link>
         </nav>
-        <UserButton />
+        {/* Placeholder for User Profile / Settings link */}
+        <Link href="/dashboard/settings" className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-white text-xs">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </Link>
       </header>
     );
   }
 
-  return (
-    <LandingNav />
-  );
+  return <LandingNav />;
 }
 
-// Client component to read auth state for landing nav
 function LandingNav() {
-  const { isSignedIn } = useAuth();
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsSignedIn(!!session);
+      setLoading(false);
+    };
+    checkUser();
+  }, []);
 
   return (
     <nav className="relative z-10 flex items-center justify-between px-4 md:px-8 py-4 md:py-6 max-w-7xl mx-auto">
@@ -56,7 +67,7 @@ function LandingNav() {
       </div>
 
       <div className="flex items-center gap-3">
-        {isSignedIn ? (
+        {!loading && isSignedIn ? (
           <>
             <Link
               href="/dashboard"
@@ -64,22 +75,20 @@ function LandingNav() {
             >
               Dashboard →
             </Link>
-            <UserButton />
+            <Link href="/dashboard/settings" className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-white text-xs">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </Link>
           </>
-        ) : (
+        ) : !loading ? (
           <>
-            <SignInButton mode="modal">
-              <button className="px-3 md:px-4 py-2 text-xs md:text-sm text-slate-300 hover:text-white transition-colors">
-                Sign in
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="px-3 md:px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs md:text-sm font-medium transition-all duration-200 glow-indigo">
-                Get started <span className="hidden sm:inline">free →</span>
-              </button>
-            </SignUpButton>
+            <Link href="/sign-in" className="px-3 md:px-4 py-2 text-xs md:text-sm text-slate-300 hover:text-white transition-colors">
+              Sign in
+            </Link>
+            <Link href="/sign-up" className="px-3 md:px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs md:text-sm font-medium transition-all duration-200 glow-indigo">
+              Get started <span className="hidden sm:inline">free →</span>
+            </Link>
           </>
-        )}
+        ) : null}
       </div>
     </nav>
   );

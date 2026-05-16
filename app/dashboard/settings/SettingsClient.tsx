@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useClerk } from "@clerk/nextjs";
+import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 /* taste-skill + ui-ux-pro-max:
@@ -33,8 +33,8 @@ interface SettingsClientProps {
 }
 
 export default function SettingsClient({ profile, plan, preferences: initialPrefs }: SettingsClientProps) {
-  const { openUserProfile, signOut } = useClerk();
   const router = useRouter();
+  const supabase = createClient();
 
   // Subscriptions
   const [portalLoading, setPortalLoading] = useState(false);
@@ -98,10 +98,10 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
     }
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     if (!window.confirm("This will permanently delete your account and all data. This cannot be undone. Continue?")) return;
-    // For now just sign out
-    signOut(() => router.push("/"));
+    await supabase.auth.signOut();
+    router.push("/");
   };
 
   const usagePct = Math.min((plan.usageCount / plan.usageLimit) * 100, 100);
@@ -139,7 +139,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
                 Manage your profile details via your account settings.
               </p>
               <button
-                onClick={() => openUserProfile()}
+                onClick={() => alert("Account management coming soon")}
                 className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium transition-[background-color,transform] duration-[160ms] ease-out active:scale-[0.97]"
               >
                 Manage account

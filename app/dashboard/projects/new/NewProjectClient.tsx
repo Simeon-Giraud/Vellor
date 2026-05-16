@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
 import type { Metadata } from "next";
 
 export default function NewProjectClient({ plan }: { plan: { name: string, maxCompetitors: number } }) {
@@ -63,7 +62,6 @@ export default function NewProjectClient({ plan }: { plan: { name: string, maxCo
           <span className="text-white/20">/</span>
           <span className="text-white">New Project</span>
         </div>
-        <UserButton />
       </header>
 
       <div className="max-w-2xl mx-auto px-4 md:px-6 py-8 md:py-12">

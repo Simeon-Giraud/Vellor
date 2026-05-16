@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { PLANS } from "./plans";
 
-export async function getUserPlan(clerkUserId: string) {
+export async function getUserPlan(supabaseUserId: string) {
   const user = await prisma.user.findUnique({
-    where: { clerkId: clerkUserId },
+    where: { supabaseId: supabaseUserId },
     select: { stripePriceId: true, subscriptionStatus: true }
   });
 
@@ -15,49 +15,49 @@ export async function getUserPlan(clerkUserId: string) {
   return PLANS.starter;
 }
 
-export async function canCreateProject(clerkUserId: string): Promise<boolean> {
-  const plan = await getUserPlan(clerkUserId);
+export async function canCreateProject(supabaseUserId: string): Promise<boolean> {
+  const plan = await getUserPlan(supabaseUserId);
   const count = await prisma.project.count({
-    where: { user: { clerkId: clerkUserId } }
+    where: { user: { supabaseId: supabaseUserId } }
   });
   return count < plan.maxProjects;
 }
 
-export async function canAddPrompt(clerkUserId: string, projectId: string): Promise<boolean> {
-  const plan = await getUserPlan(clerkUserId);
+export async function canAddPrompt(supabaseUserId: string, projectId: string): Promise<boolean> {
+  const plan = await getUserPlan(supabaseUserId);
   const count = await prisma.prompt.count({
-    where: { projectId, project: { user: { clerkId: clerkUserId } } }
+    where: { projectId, project: { user: { supabaseId: supabaseUserId } } }
   });
   return count < plan.maxPromptsPerProject;
 }
 
-export async function canAddCompetitor(clerkUserId: string, projectId: string): Promise<boolean> {
-  const plan = await getUserPlan(clerkUserId);
+export async function canAddCompetitor(supabaseUserId: string, projectId: string): Promise<boolean> {
+  const plan = await getUserPlan(supabaseUserId);
   const project = await prisma.project.findUnique({
-    where: { id: projectId, user: { clerkId: clerkUserId } },
+    where: { id: projectId, user: { supabaseId: supabaseUserId } },
     select: { competitors: true }
   });
   if (!project) return false;
   return project.competitors.length < plan.maxCompetitors;
 }
 
-export async function getRemainingRuns(clerkUserId: string): Promise<number> {
-  const plan = await getUserPlan(clerkUserId);
+export async function getRemainingRuns(supabaseUserId: string): Promise<number> {
+  const plan = await getUserPlan(supabaseUserId);
   const count = await prisma.promptResult.count({
     where: {
-      prompt: { project: { user: { clerkId: clerkUserId } } },
+      prompt: { project: { user: { supabaseId: supabaseUserId } } },
       createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
     }
   });
   return Math.max(0, plan.maxRunsPerMonth - count);
 }
 
-export async function canRunPrompts(clerkUserId: string): Promise<boolean> {
-  return (await getRemainingRuns(clerkUserId)) > 0;
+export async function canRunPrompts(supabaseUserId: string): Promise<boolean> {
+  return (await getRemainingRuns(supabaseUserId)) > 0;
 }
 
-export async function getHistoryCutoff(clerkUserId: string): Promise<Date> {
-  const plan = await getUserPlan(clerkUserId);
+export async function getHistoryCutoff(supabaseUserId: string): Promise<Date> {
+  const plan = await getUserPlan(supabaseUserId);
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - plan.dataHistoryDays);
   return cutoff;
