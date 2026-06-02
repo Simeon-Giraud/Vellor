@@ -63,7 +63,7 @@ export async function POST(req: Request) {
             engine: r.engine,
             brandMentioned: r.mentioned,
             mentionPosition: r.position,
-            responseSnippet: r.snippet,
+            response: r.snippet,
           }))
         });
       } else {

@@ -2,80 +2,42 @@ import Link from "next/link";
 import { getCurrentDbUser } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 
-/* ─── taste-skill: Design Plan ─────────────────────────────────────────────
- * Python RNG (seed = "revamp dashboard and landing page" = 36 chars → 36 % 3 = 0):
- *   Hero Layout   → [0] Asymmetric Split: text left, dashboard mockup right
- *   Typography    → Geist (banned: Inter, DM Sans)
- *   Components    → [Bento Asymmetric, Spotlight Card, Infinite Marquee]
- *   Motion        → MOTION_INTENSITY 6 → fluid CSS cubic-bezier, staggered reveals
- *
- * AIDA Check:
- *   Navigation ✓ | Attention (Hero split) ✓ | Interest (Bento features) ✓
- *   Desire (engines marquee) ✓ | Action (pricing CTA) ✓ | Footer ✓
- *
- * H1 Math: max-w-[720px], clamp(2.75rem,5vw,4.5rem), line-height 1.06 → max 2 lines
- * Hero has NO stamp icons, NO pill tags, NO data stats
- * Bento: asymmetric 2-col zig-zag (not 3 equal cards) + grid-flow-dense
- * Labels: section eyebrows are plain small caps, no "SECTION 01" meta-labels
- * Buttons: white text on dark bg ✓, tactile active:scale-[0.97] ✓
- ─────────────────────────────────────────────────────────────────────────── */
-
-// SVG icons — no emojis (taste-skill strict ban)
-const IconSignal = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 20h.01M7 20v-4M12 20V10M17 20V4M22 20h.01"/>
-  </svg>
-);
-const IconZap = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
-  </svg>
-);
-const IconTarget = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-  </svg>
-);
-const IconTrend = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>
-  </svg>
-);
-const IconBell = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-  </svg>
-);
-const IconGlobe = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-  </svg>
-);
-const IconArrowRight = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5 12h14M12 5l7 7-7 7"/>
-  </svg>
-);
-const IconCheck = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 6 9 17l-5-5"/>
-  </svg>
-);
-
-// Organic mock data (taste-skill: no fake round numbers)
 const MOCK_DATA = [
-  { engine: "ChatGPT", rate: 74, position: 2, delta: "+3", color: "#10b981" },
-  { engine: "Gemini",  rate: 61, position: 3, delta: "+1", color: "#3b82f6" },
-  { engine: "Perplexity", rate: 88, position: 1, delta: "+7", color: "#8b5cf6" },
+  { engine: "ChatGPT",    score: 74, delta: "+3" },
+  { engine: "Gemini",     score: 61, delta: "+1" },
+  { engine: "Perplexity", score: 88, delta: "+7" },
 ];
 
+const ENGINE_COLORS: Record<string, string> = {
+  ChatGPT: "#10a37f",
+  Gemini: "#0071e3",
+  "Google Gemini": "#0071e3",
+  Perplexity: "#ff6b00",
+};
+
 const FEATURES = [
-  { Icon: IconSignal, title: "Multi-engine tracking", desc: "Query ChatGPT, Gemini, and Perplexity simultaneously from one interface.", span: "md:col-span-2" },
-  { Icon: IconTarget, title: "Competitor intelligence", desc: "See exactly how rivals rank alongside you in every AI response.", span: "" },
-  { Icon: IconZap, title: "Automated scheduling", desc: "BullMQ-powered background runs — set it and forget it.", span: "" },
-  { Icon: IconTrend, title: "Trend analytics", desc: "Chart your GEO score over time with weekly and monthly breakdowns.", span: "md:col-span-2" },
-  { Icon: IconBell, title: "Instant alerts", desc: "Webhook and email notifications the moment your visibility changes.", span: "" },
-  { Icon: IconGlobe, title: "AI engine coverage", desc: "72% ChatGPT · 18% Gemini · 10% Perplexity — full market coverage.", span: "" },
+  {
+    title: "Track every AI engine",
+    desc: "Monitor how your brand surfaces in ChatGPT, Gemini, and Perplexity simultaneously — from one clean dashboard.",
+    tag: "Multi-engine",
+    wide: true,
+  },
+  {
+    title: "See competitors in context",
+    desc: "Vellor shows you exactly where rivals rank alongside you in every AI-generated response.",
+    tag: "Intelligence",
+  },
+  {
+    title: "Automate your monitoring",
+    desc: "Schedule prompts on a cadence. Get notified the moment your visibility shifts.",
+    tag: "Automation",
+  },
+  {
+    title: "Trend analytics over time",
+    desc: "Chart your GEO score week over week. Understand what's moving the needle.",
+    tag: "Analytics",
+    wide: true,
+  },
 ];
 
 export default async function HomePage() {
@@ -83,249 +45,580 @@ export default async function HomePage() {
   const isSignedIn = !!dbUser;
 
   return (
-    <main className="min-h-screen animated-gradient noise-overlay relative overflow-x-hidden">
-      {/* Ambient blobs — taste-skill: diffused, not neon */}
-      <div className="animate-blob absolute top-[-10%] right-[5%] w-[500px] h-[500px] rounded-full bg-indigo-700/6 blur-[140px] pointer-events-none" />
-      <div className="animate-blob animate-blob-delay-1 absolute top-[50%] left-[-8%] w-[420px] h-[420px] rounded-full bg-violet-700/5 blur-[120px] pointer-events-none" />
+    <main style={{ background: "#f5f5f7", minHeight: "100vh", position: "relative" }}>
+      {/* Ambient Radial Glow */}
+      <div
+        style={{
+          position: "absolute",
+          top: "-15%",
+          right: "-10%",
+          width: 800,
+          height: 800,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(0, 113, 227, 0.05) 0%, rgba(0, 113, 227, 0) 70%)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
 
-      {/* ─── Navigation ─── floating glass pill */}
-      <nav className="relative z-10 px-4 md:px-8 pt-6 max-w-7xl mx-auto">
-        <div className="glass rounded-2xl px-5 py-3.5 flex items-center justify-between shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Logo className="w-9 h-9 transition-transform duration-[160ms] ease-out group-active:scale-[0.95]" />
-            <span className="text-[15px] font-semibold text-white tracking-tight">Vellor</span>
+      {/* ── Nav ── */}
+      <div style={{ position: "fixed", top: 16, left: 0, right: 0, zIndex: 50, padding: "0 16px" }}>
+        <nav
+          className="nav-pill"
+          style={{
+            maxWidth: 960,
+            margin: "0 auto",
+            borderRadius: 980,
+            padding: "10px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+            <Logo className="w-7 h-7" />
+            <span style={{ fontWeight: 600, fontSize: 15, color: "#1d1d1f", letterSpacing: "-0.01em" }}>Vellor</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-7 text-sm text-[var(--color-fg-muted)]">
-            <a href="#features" className="hover:text-white transition-colors duration-[160ms] ease-out">Features</a>
-            <a href="#engines"  className="hover:text-white transition-colors duration-[160ms] ease-out">Engines</a>
-            <a href="#pricing"  className="hover:text-white transition-colors duration-[160ms] ease-out">Pricing</a>
-          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+            <div className="hidden md:flex" style={{ gap: 24, alignItems: "center" }}>
+              {[
+                { label: "Features", href: "#features" },
+                { label: "How it works", href: "#how-it-works" },
+                { label: "Engines", href: "#engines" },
+                { label: "Pricing", href: "#pricing" },
+              ].map(item => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="nav-link"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
 
-          <div className="flex items-center gap-3">
-            {isSignedIn ? (
-              <>
-                <Link href="/dashboard" className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] cursor-pointer glow-indigo">
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {isSignedIn ? (
+                <Link href="/dashboard" className="btn-black" style={{ fontSize: 14, padding: "8px 18px" }}>
                   Dashboard
                 </Link>
-                <Link href="/dashboard/settings" className="px-3 py-2 text-sm text-[var(--color-fg-muted)] hover:text-white transition-colors duration-[160ms] cursor-pointer">Profile</Link>
-              </>
+              ) : (
+                <>
+                  <Link href="/sign-in" style={{ fontSize: 14, color: "#6e6e73", textDecoration: "none", padding: "8px 12px" }}>Sign in</Link>
+                  <Link href="/sign-up" className="btn-black" style={{ fontSize: 14, padding: "8px 18px" }}>
+                    Get started
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      {/* ── Hero ── */}
+      <section
+        style={{
+          maxWidth: 1200,
+          margin: "0 auto",
+          padding: "120px 24px 48px",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 48,
+          alignItems: "center",
+        }}
+        className="hero-grid"
+      >
+        <div>
+          <div
+            className="chip"
+            style={{ marginBottom: 20 }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#34c759", display: "inline-block" }} />
+            Live across 3 AI engines
+          </div>
+
+          <h1
+            style={{
+              fontSize: "clamp(2.4rem, 5vw, 3.8rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.05,
+              color: "#1d1d1f",
+              marginBottom: 20,
+            }}
+          >
+            Your brand in AI—<br />
+            tracked, measured,<br />
+            <em
+              style={{
+                fontStyle: "normal",
+                background: "linear-gradient(90deg, #0071e3, #00d2ff)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              optimized.
+            </em>
+          </h1>
+
+          <p
+            style={{ fontSize: 18, color: "#6e6e73", lineHeight: 1.55, maxWidth: 440, marginBottom: 32 }}
+          >
+            Vellor monitors how your brand surfaces in ChatGPT, Gemini, and Perplexity responses — and tells you exactly what to do about it.
+          </p>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {isSignedIn ? (
+              <Link href="/dashboard" className="btn-black">
+                Go to Dashboard
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </Link>
             ) : (
               <>
-                <Link href="/sign-in"><button className="px-3 py-2 text-sm text-[var(--color-fg-muted)] hover:text-white transition-colors duration-[160ms] cursor-pointer">
-                    Sign in
-                  </button>
+                <Link href="/sign-up" className="btn-black">
+                  Start free trial
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </Link>
-                <Link href="/sign-up"><button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo cursor-pointer">
-                    Get started
-                  </button>
-                </Link>
+                <a href="#features" className="btn-ghost">See how it works</a>
               </>
             )}
           </div>
+
+          <p style={{ fontSize: 12, color: "#aeaeb2", marginTop: 16 }}>
+            7-day free trial · No card required
+          </p>
         </div>
-      </nav>
 
-      {/* ─── Hero — Asymmetric Split (DESIGN_VARIANCE 8, taste-skill §3) ─── */}
-      <section className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 pt-20 md:pt-28 pb-24 md:pb-36">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-16 items-center">
-
-          {/* Left — text column */}
-          <div>
-            <div className="inline-flex items-center gap-2 text-xs font-medium text-indigo-400 uppercase tracking-widest mb-6 animate-fade-in-up">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 pulse-dot" />
-              Live across 3 AI engines
-            </div>
-
-            {/* taste-skill: H1 max 2–3 lines, clamp size, tracking-tight */}
-            <h1
-              className="font-extrabold text-white leading-[1.06] tracking-tighter mb-6 animate-fade-in-up animate-fade-in-up-delay-1"
-              style={{ fontSize: "clamp(2.75rem, 5vw, 4.5rem)" }}
-            >
-              Your brand in AI —<br />
-              tracked, measured,<br />
-              <span className="gradient-text">optimized.</span>
-            </h1>
-
-            <p className="text-[var(--color-fg-muted)] text-lg leading-relaxed max-w-[54ch] mb-10 animate-fade-in-up animate-fade-in-up-delay-2">
-              Vellor monitors how often your brand surfaces in ChatGPT, Gemini,
-              and Perplexity responses — and tells you exactly what to do about it.
-            </p>
-
-            {/* taste-skill: max 1 primary CTA + ghost secondary */}
-            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up animate-fade-in-up-delay-3">
-              {isSignedIn ? (
-                <Link href="/dashboard" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo cursor-pointer w-fit">
-                  Go to Dashboard <IconArrowRight />
-                </Link>
-              ) : (
-                <Link href="/sign-up"><button className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo cursor-pointer">
-                    Start free trial <IconArrowRight />
-                  </button>
-                </Link>
-              )}
-              <a href="#features" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl glass glass-hover text-[var(--color-fg)] font-medium transition-[transform] duration-[160ms] ease-out active:scale-[0.97] cursor-pointer w-fit text-sm">
-                See how it works
-              </a>
-            </div>
-
-            {/* Social proof strip */}
-            <div className="flex items-center gap-3 mt-10 animate-fade-in-up animate-fade-in-up-delay-4">
-              <div className="flex -space-x-2">
-                {["4f46e5","7c3aed","0891b2","059669","dc2626"].map((c,i) => (
-                  <div key={i} className="w-7 h-7 rounded-full border-2 border-[var(--color-surface)] flex items-center justify-center text-[10px] font-bold text-white" style={{ background: `#${c}` }}>
-                    {["A","B","C","D","E"][i]}
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-[var(--color-fg-muted)]">
-                Trusted by <span className="text-white font-medium">247 brand teams</span> this month
-              </p>
+        {/* Dashboard mockup */}
+        <div className="card-white" style={{ padding: 20, borderRadius: 24, overflow: "hidden" }}>
+          {/* Browser bar */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
+            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57" }} />
+            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e" }} />
+            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840" }} />
+            <div style={{
+              flex: 1,
+              marginLeft: 8,
+              background: "#f5f5f7",
+              borderRadius: 6,
+              padding: "4px 10px",
+              fontSize: 11,
+              color: "#aeaeb2",
+              fontFamily: "var(--font-mono)",
+            }}>
+              vellor.app/dashboard
             </div>
           </div>
 
-          {/* Right — dashboard mockup */}
-          <div className="animate-fade-in-up animate-fade-in-up-delay-2">
-            <div className="glass rounded-2xl p-px gradient-border shadow-[0_32px_64px_-16px_rgba(79,70,229,0.2)]">
-              <div className="bg-[var(--color-surface-1)] rounded-[15px] p-5">
-                {/* Browser chrome */}
-                <div className="flex items-center gap-1.5 mb-4">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/50" />
-                  <div className="flex-1 ml-2 px-3 py-1 rounded-md bg-white/5 border border-white/5 text-[11px] text-[var(--color-fg-muted)] font-mono tracking-tight">
-                    vellor.app/dashboard
-                  </div>
-                </div>
-
-                {/* Metric row — taste-skill: monospace numbers, organic values */}
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  {[
-                    { label: "Projects", value: "7" },
-                    { label: "Prompts run", value: "143" },
-                    { label: "Avg. visibility", value: "74.3%" },
-                  ].map(m => (
-                    <div key={m.label} className="rounded-xl bg-white/4 border border-white/6 px-3 py-3">
-                      <p className="text-[10px] text-[var(--color-fg-muted)] mb-0.5 uppercase tracking-wider">{m.label}</p>
-                      <p className="text-xl font-bold text-white font-mono tracking-tight">{m.value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Engine result bars */}
-                <div className="space-y-2.5 mb-4">
-                  {MOCK_DATA.map(d => (
-                    <div key={d.engine} className="flex items-center gap-3">
-                      <span className="text-[11px] text-[var(--color-fg-muted)] w-20 shrink-0">{d.engine}</span>
-                      <div className="flex-1 h-1.5 rounded-full bg-white/8 overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${d.rate}%`, background: d.color, opacity: 0.7 }}
-                        />
-                      </div>
-                      <span className="text-[11px] font-mono text-white w-8 text-right">{d.rate}%</span>
-                      <span className="text-[10px] text-emerald-400 font-mono w-6">{d.delta}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Latest prompt */}
-                <div className="rounded-xl bg-indigo-500/8 border border-indigo-500/15 px-4 py-3">
-                  <p className="text-[10px] text-[var(--color-fg-muted)] uppercase tracking-widest mb-1.5">Latest prompt run</p>
-                  <p className="text-sm text-white mb-2">"What are the best AI monitoring tools for B2B brands?"</p>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-400 font-medium border border-emerald-500/15">
-                      <IconCheck /> 3/3 engines
-                    </span>
-                    <span className="text-[10px] text-[var(--color-fg-muted)]">4 min ago</span>
-                  </div>
-                </div>
+          {/* Metrics row */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 16 }}>
+            {[
+              { label: "Projects", value: "7" },
+              { label: "Prompts run", value: "143" },
+              { label: "Avg. visibility", value: "74.3%" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "#f5f5f7", borderRadius: 14, padding: "12px 14px" }}>
+                <p style={{ fontSize: 10, color: "#aeaeb2", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>{m.label}</p>
+                <p style={{ fontSize: 22, fontWeight: 700, color: "#1d1d1f", fontFamily: "var(--font-mono)", letterSpacing: "-0.03em" }}>{m.value}</p>
               </div>
+            ))}
+          </div>
+
+          {/* Engine bars */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+            {MOCK_DATA.map(d => (
+              <div key={d.engine} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 12, color: "#6e6e73", width: 74, flexShrink: 0 }}>{d.engine}</span>
+                <div className="stat-bar-track" style={{ flex: 1 }}>
+                  <div className="stat-bar-fill" style={{ width: `${d.score}%`, background: ENGINE_COLORS[d.engine] }} />
+                </div>
+                <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "#1d1d1f", width: 32, textAlign: "right" }}>{d.score}%</span>
+                <span style={{ fontSize: 11, color: "#34c759", fontFamily: "var(--font-mono)", width: 24 }}>{d.delta}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Latest prompt */}
+          <div style={{ background: "#f5f5f7", borderRadius: 14, padding: "12px 14px" }}>
+            <p style={{ fontSize: 10, color: "#aeaeb2", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Latest run</p>
+            <p style={{ fontSize: 13, color: "#1d1d1f", marginBottom: 8, lineHeight: 1.4 }}>
+              "What are the best AI monitoring tools for B2B brands?"
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 11, color: "#34c759", background: "#f0faf3", borderRadius: 999, padding: "2px 8px", fontWeight: 500 }}>✓ 3/3 engines</span>
+              <span style={{ fontSize: 11, color: "#aeaeb2" }}>4 min ago</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── Features — Bento asymmetric grid (taste-skill §4: zero empty cells) ─── */}
-      <section id="features" className="relative z-10 py-24 md:py-36 px-4 md:px-8 max-w-7xl mx-auto">
-        <div className="mb-14">
-          <p className="text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-3">How it works</p>
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight max-w-lg">
-              Built for brand teams who take AI seriously
-            </h2>
-            <p className="text-[var(--color-fg-muted)] text-base max-w-xs md:text-right">
-              Everything you need to measure, track, and improve your GEO score.
-            </p>
-          </div>
-        </div>
-
-        {/* Bento: 3-col grid, items span 1 or 2 cols, grid-flow-dense = zero gaps */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-auto" style={{ gridAutoFlow: "dense" }}>
-          {FEATURES.map(({ Icon, title, desc, span }, i) => (
-            <div
-              key={title}
-              className={`feature-card glass glass-hover rounded-2xl p-7 group cursor-default ${span} shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]`}
-              style={{ animationDelay: `${i * 60}ms` }}
-            >
-              <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-5 transition-transform duration-[160ms] ease-out group-hover:scale-110">
-                <Icon />
-              </div>
-              <h3 className="text-[15px] font-semibold text-white mb-2 tracking-tight">{title}</h3>
-              <p className="text-[var(--color-fg-muted)] text-sm leading-relaxed">{desc}</p>
+      {/* ── Social proof bar ── */}
+      <div style={{ overflow: "hidden", padding: "0 0 64px" }}>
+        <div className="marquee-track">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} style={{ display: "flex", gap: 0 }}>
+              {[
+                "ChatGPT visibility",
+                "Gemini tracking",
+                "Perplexity ranking",
+                "GEO optimization",
+                "Brand monitoring",
+                "AI search analytics",
+                "Competitor intelligence",
+                "Automated scheduling",
+              ].map(label => (
+                <span
+                  key={label}
+                  style={{
+                    padding: "8px 20px",
+                    fontSize: 13,
+                    color: "#aeaeb2",
+                    whiteSpace: "nowrap",
+                    borderRight: "1px solid rgba(0,0,0,0.06)",
+                  }}
+                >
+                  {label}
+                </span>
+              ))}
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="section-divider" />
+
+      {/* ── Features ── */}
+      <section id="features" style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 24px" }}>
+        <div style={{ textAlign: "center", marginBottom: 60 }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "#aeaeb2", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+            How it works
+          </p>
+          <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700, letterSpacing: "-0.025em", color: "#1d1d1f", lineHeight: 1.1 }}>
+            Built for brand teams<br />who take AI seriously.
+          </h2>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 16 }}>
+          {/* Wide card */}
+          <div className="card-white" style={{ gridColumn: "span 8", padding: 36 }}>
+            <span className="chip" style={{ marginBottom: 16 }}>Multi-engine</span>
+            <h3 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", color: "#1d1d1f", marginBottom: 8 }}>
+              Track every AI engine
+            </h3>
+            <p style={{ fontSize: 15, color: "#6e6e73", lineHeight: 1.55, maxWidth: 440 }}>
+              Monitor how your brand surfaces in ChatGPT, Gemini, and Perplexity simultaneously — from one clean dashboard.
+            </p>
+            {/* Mini engine chart */}
+            <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 10 }}>
+              {MOCK_DATA.map(d => (
+                <div key={d.engine} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 12, color: "#6e6e73", width: 70, flexShrink: 0 }}>{d.engine}</span>
+                  <div className="stat-bar-track" style={{ flex: 1 }}>
+                    <div className="stat-bar-fill" style={{ width: `${d.score}%`, background: ENGINE_COLORS[d.engine] }} />
+                  </div>
+                  <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "#1d1d1f", width: 30, textAlign: "right" }}>{d.score}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tall card */}
+          <div className="card-white" style={{ gridColumn: "span 4", padding: 36 }}>
+            <span className="chip" style={{ marginBottom: 16 }}>Intelligence</span>
+            <h3 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", color: "#1d1d1f", marginBottom: 8 }}>
+              See competitors in context
+            </h3>
+            <p style={{ fontSize: 15, color: "#6e6e73", lineHeight: 1.55 }}>
+              Vellor shows where rivals rank alongside you in every AI-generated response.
+            </p>
+          </div>
+
+          {/* Small card */}
+          <div className="card-white" style={{ gridColumn: "span 4", padding: 36 }}>
+            <span className="chip" style={{ marginBottom: 16 }}>Automation</span>
+            <h3 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", color: "#1d1d1f", marginBottom: 8 }}>
+              Automate your monitoring
+            </h3>
+            <p style={{ fontSize: 15, color: "#6e6e73", lineHeight: 1.55 }}>
+              Schedule prompts on a cadence. Get notified the moment your visibility shifts.
+            </p>
+          </div>
+
+          {/* Wide card 2 */}
+          <div className="card-white" style={{ gridColumn: "span 8", padding: 36 }}>
+            <span className="chip" style={{ marginBottom: 16 }}>Analytics</span>
+            <h3 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", color: "#1d1d1f", marginBottom: 8 }}>
+              Trend analytics over time
+            </h3>
+            <p style={{ fontSize: 15, color: "#6e6e73", lineHeight: 1.55, maxWidth: 440 }}>
+              Chart your GEO score week over week. Understand what's moving the needle — and act fast.
+            </p>
+            {/* Fake sparkline */}
+            <div style={{ marginTop: 28, height: 56, display: "flex", alignItems: "flex-end", gap: 5 }}>
+              {[32, 44, 38, 51, 58, 55, 61, 74, 71, 80, 78, 88].map((h, i) => (
+                <div
+                  key={i}
+                  style={{
+                    flex: 1,
+                    height: `${h}%`,
+                    background: i === 11 ? "#0071e3" : "#e5e5e7",
+                    borderRadius: "4px 4px 0 0",
+                    transition: "background 200ms ease",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* ─── Engine coverage — horizontal marquee-style */}
-      <section id="engines" className="relative z-10 py-24 md:py-36 px-4 md:px-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-12 lg:gap-20 items-center">
-          <div>
-            <p className="text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-3">Coverage</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-5">
-              Three engines.<br />One unified view.
-            </h2>
-            <p className="text-[var(--color-fg-muted)] text-base leading-relaxed mb-8 max-w-[48ch]">
-              ChatGPT handles 72% of AI search traffic. Gemini is growing fast at 18%.
-              Perplexity leads for research queries at 10%. Missing any one means losing ground.
-            </p>
+      <div className="section-divider" />
+
+      {/* ── How it works ── */}
+      <section id="how-it-works" style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 24px" }}>
+        <div style={{ textAlign: "center", marginBottom: 72 }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "#aeaeb2", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+            How it works
+          </p>
+          <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 700, letterSpacing: "-0.025em", color: "#1d1d1f", lineHeight: 1.1, marginBottom: 16 }}>
+            From setup to insights<br />in minutes.
+          </h2>
+          <p style={{ fontSize: 17, color: "#6e6e73", lineHeight: 1.6, maxWidth: 480, margin: "0 auto" }}>
+            Vellor automates the hard part of AI brand monitoring — so you always know how visible you are, without lifting a finger.
+          </p>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+
+          {/* Step 1 */}
+          <div className="card-white" style={{ padding: 40, display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 14,
+                background: "#1d1d1f", color: "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 18,
+                flexShrink: 0,
+              }}>1</div>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071e3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+                  <span className="chip">Setup</span>
+                </div>
+                <h3 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.02em", color: "#1d1d1f", marginBottom: 10 }}>
+                  Create your brand project
+                </h3>
+                <p style={{ fontSize: 15, color: "#6e6e73", lineHeight: 1.6 }}>
+                  Tell Vellor about your brand — your name, category, and who your competitors are. Takes 2 minutes. No code needed.
+                </p>
+              </div>
+            </div>
+            <div style={{ background: "#f5f5f7", borderRadius: 14, padding: "16px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
+              <p style={{ fontSize: 12, color: "#aeaeb2", fontWeight: 500, letterSpacing: "0.04em", textTransform: "uppercase" }}>Project setup</p>
+              {["Brand name: Acme Corp", "Category: B2B SaaS", "Competitors: Rival A, Rival B"].map(item => (
+                <div key={item} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#34c759", flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: "#1d1d1f", fontFamily: "var(--font-mono)" }}>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div className="card-white" style={{ padding: 40, display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 14,
+                background: "#0071e3", color: "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 18,
+                flexShrink: 0,
+              }}>2</div>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071e3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <span className="chip">Prompts</span>
+                </div>
+                <h3 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.02em", color: "#1d1d1f", marginBottom: 10 }}>
+                  Run prompts across AI engines
+                </h3>
+                <p style={{ fontSize: 15, color: "#6e6e73", lineHeight: 1.6 }}>
+                  Vellor fires your prompts at ChatGPT, Gemini, and Perplexity — simultaneously — and captures how your brand appears in every response.
+                </p>
+              </div>
+            </div>
+            <div style={{ background: "#f5f5f7", borderRadius: 14, padding: "16px 20px" }}>
+              <p style={{ fontSize: 12, color: "#aeaeb2", fontWeight: 500, letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 10 }}>Example prompt</p>
+              <p style={{ fontSize: 13, color: "#1d1d1f", lineHeight: 1.5, fontStyle: "italic", marginBottom: 10 }}>
+                "What are the best B2B SaaS tools for team collaboration?"
+              </p>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {[{ label: "ChatGPT", color: "#10a37f" }, { label: "Gemini", color: "#0071e3" }, { label: "Perplexity", color: "#ff6b00" }].map(e => (
+                  <span key={e.label} style={{ fontSize: 11, fontWeight: 500, color: e.color, background: `${e.color}18`, borderRadius: 999, padding: "3px 10px" }}>
+                    ✓ {e.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div className="card-white" style={{ padding: 40, display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 14,
+                background: "#34c759", color: "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 18,
+                flexShrink: 0,
+              }}>3</div>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071e3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  <span className="chip">Visibility</span>
+                </div>
+                <h3 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.02em", color: "#1d1d1f", marginBottom: 10 }}>
+                  See your visibility score
+                </h3>
+                <p style={{ fontSize: 15, color: "#6e6e73", lineHeight: 1.6 }}>
+                  Get a clear GEO (Generative Engine Optimization) score per engine. Track it over time and compare against your competitors.
+                </p>
+              </div>
+            </div>
+            <div style={{ background: "#f5f5f7", borderRadius: 14, padding: "16px 20px" }}>
+              <p style={{ fontSize: 12, color: "#aeaeb2", fontWeight: 500, letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 12 }}>Your scores</p>
+              {[{ engine: "ChatGPT", score: 74, color: "#10a37f" }, { engine: "Gemini", score: 61, color: "#0071e3" }, { engine: "Perplexity", score: 88, color: "#ff6b00" }].map(d => (
+                <div key={d.engine} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, color: "#6e6e73", width: 74, flexShrink: 0 }}>{d.engine}</span>
+                  <div className="stat-bar-track" style={{ flex: 1 }}>
+                    <div className="stat-bar-fill" style={{ width: `${d.score}%`, background: d.color }} />
+                  </div>
+                  <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "#1d1d1f", width: 32, textAlign: "right" }}>{d.score}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Step 4 */}
+          <div className="card-white" style={{ padding: 40, display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 14,
+                background: "#ff6b00", color: "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 18,
+                flexShrink: 0,
+              }}>4</div>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071e3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  <span className="chip">Optimize</span>
+                </div>
+                <h3 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.02em", color: "#1d1d1f", marginBottom: 10 }}>
+                  Act on AI-powered insights
+                </h3>
+                <p style={{ fontSize: 15, color: "#6e6e73", lineHeight: 1.6 }}>
+                  Vellor surfaces exactly why your score changed — and tells you what content, keywords, or mentions to create to improve it.
+                </p>
+              </div>
+            </div>
+            <div style={{ background: "#f5f5f7", borderRadius: 14, padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+              <p style={{ fontSize: 12, color: "#aeaeb2", fontWeight: 500, letterSpacing: "0.04em", textTransform: "uppercase" }}>Insights for you</p>
+              {[
+                { icon: "↑", text: "Add a case study mentioning \"team scalability\"", tag: "+8 pts" },
+                { icon: "→", text: "Your competitor ranked in 4 more responses this week", tag: "Watch" },
+                { icon: "✓", text: "Gemini picked up your new blog post", tag: "+3 pts" },
+              ].map((insight, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 16, flexShrink: 0 }}>{insight.icon}</span>
+                  <span style={{ fontSize: 13, color: "#1d1d1f", flex: 1, lineHeight: 1.4 }}>{insight.text}</span>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: insight.tag.startsWith("+") ? "#34c759" : "#aeaeb2", background: insight.tag.startsWith("+") ? "#f0faf3" : "#e5e5e7", borderRadius: 999, padding: "2px 8px", flexShrink: 0 }}>{insight.tag}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* CTA at bottom of section */}
+        <div style={{ textAlign: "center", marginTop: 56 }}>
+          <p style={{ fontSize: 15, color: "#6e6e73", marginBottom: 20 }}>
+            That's it. Runs automatically every week — or on demand.
+          </p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
             {isSignedIn ? (
-              <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors duration-[160ms] cursor-pointer">
-                View your engine scores <IconArrowRight />
+              <Link href="/dashboard" className="btn-black">
+                Open Dashboard
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </Link>
             ) : (
-              <Link href="/sign-up"><button className="inline-flex items-center gap-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors duration-[160ms] cursor-pointer">
-                  Start tracking free <IconArrowRight />
-                </button>
+              <>
+                <Link href="/sign-up" className="btn-black">
+                  Start free trial
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </Link>
+                <Link href="/pricing" className="btn-ghost">See pricing</Link>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <div className="section-divider" />
+
+      {/* ── Engines coverage ── */}
+      <section id="engines" style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 24px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "#aeaeb2", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+              Coverage
+            </p>
+            <h2 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)", fontWeight: 700, letterSpacing: "-0.025em", color: "#1d1d1f", lineHeight: 1.1, marginBottom: 20 }}>
+              Three engines.<br />One unified view.
+            </h2>
+            <p style={{ fontSize: 17, color: "#6e6e73", lineHeight: 1.6, marginBottom: 32, maxWidth: 400 }}>
+              ChatGPT handles 72% of AI search traffic. Gemini is growing fast. Perplexity leads for research queries. Missing any one means losing ground to competitors.
+            </p>
+            {isSignedIn ? (
+              <Link href="/dashboard" className="btn-black">
+                View your engine scores
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </Link>
+            ) : (
+              <Link href="/sign-up" className="btn-black">
+                Start tracking free
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </Link>
             )}
           </div>
 
-          {/* Engine cards — zig-zag offsets (taste-skill: no 3-equal-col layout) */}
-          <div className="flex flex-col gap-3">
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
-              { name: "ChatGPT", share: "72%", note: "GPT-4o responses", rate: 72 },
-              { name: "Google Gemini", share: "18%", note: "Gemini 1.5 Pro", rate: 18 },
-              { name: "Perplexity", share: "10%", note: "Web-grounded answers", rate: 10 },
-            ].map((e, i) => (
+              { name: "ChatGPT", share: "72%", note: "GPT-4o · largest reach", bar: 72 },
+              { name: "Google Gemini", share: "18%", note: "Gemini 1.5 Pro · fast growing", bar: 18, offset: true },
+              { name: "Perplexity", share: "10%", note: "Research queries · high intent", bar: 10 },
+            ].map((e) => (
               <div
                 key={e.name}
-                className="glass glass-hover rounded-2xl px-6 py-5 flex items-center gap-5 transition-transform duration-[240ms] ease-out shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-                style={{ marginLeft: i % 2 === 1 ? "clamp(0px,3vw,40px)" : "0" }}
+                className="card-white"
+                style={{
+                  padding: "18px 22px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                  marginLeft: e.offset ? 32 : 0,
+                  cursor: "default",
+                }}
               >
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
-                  <IconGlobe />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[15px] font-semibold text-white">{e.name}</span>
-                    <span className="text-xs font-mono font-bold text-white">{e.share}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: "#1d1d1f" }}>{e.name}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#1d1d1f" }}>{e.share}</span>
                   </div>
-                  <div className="w-full h-1 rounded-full bg-white/8 overflow-hidden">
-                    <div className="h-full rounded-full bg-indigo-500/60" style={{ width: `${e.rate * 1.1}%` }} />
+                  <div className="stat-bar-track">
+                    <div className="stat-bar-fill" style={{ width: `${e.bar * 1.2}%`, background: ENGINE_COLORS[e.name] }} />
                   </div>
-                  <p className="text-xs text-[var(--color-fg-muted)] mt-1.5">{e.note}</p>
+                  <p style={{ fontSize: 12, color: "#aeaeb2", marginTop: 6 }}>{e.note}</p>
                 </div>
               </div>
             ))}
@@ -333,43 +626,62 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─── Pricing CTA — glass card, high contrast (taste-skill §2 AIDA: Action) */}
-      <section id="pricing" className="relative z-10 py-24 md:py-36 px-4 md:px-8 max-w-5xl mx-auto">
-        <div className="glass rounded-3xl p-12 md:p-20 text-center gradient-border relative overflow-hidden shadow-[0_40px_80px_-20px_rgba(79,70,229,0.18)]">
-          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-56 h-56 rounded-full bg-indigo-600/12 blur-[70px] pointer-events-none" />
-          <p className="text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-4 relative z-10">Pricing</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-4 relative z-10">
+      {/* ── Pricing CTA — dark section ── */}
+      <section
+        id="pricing"
+        style={{ background: "#1d1d1f", padding: "100px 24px", marginTop: 0 }}
+      >
+        <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "#6e6e73", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
+            Pricing
+          </p>
+          <h2 style={{ fontSize: "clamp(2rem, 4.5vw, 3.2rem)", fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", lineHeight: 1.08, marginBottom: 16 }}>
             Transparent plans.<br />No surprises.
           </h2>
-          <p className="text-[var(--color-fg-muted)] text-lg mb-10 relative z-10 max-w-sm mx-auto">
-            Start with a 7-day free trial. Cancel anytime. No card required.
+          <p style={{ fontSize: 18, color: "#8e8e93", lineHeight: 1.55, marginBottom: 40 }}>
+            Start with a 7-day free trial. No credit card required. Cancel anytime.
           </p>
-          <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/pricing" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo cursor-pointer">
-              View plans & pricing <IconArrowRight />
+
+          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
+            <Link href="/pricing" className="btn-white">
+              View all plans
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </Link>
+            {!isSignedIn && (
+              <Link href="/sign-up" className="btn-ghost" style={{ color: "#fff", borderColor: "rgba(255,255,255,0.2)" }}>
+                Start free trial
+              </Link>
+            )}
           </div>
-          <p className="text-[var(--color-fg-muted)] text-sm mt-6 relative z-10 font-mono">
-            Starter $39 · Growth $79 · Pro $149 — per month
+
+          <p style={{ fontSize: 13, color: "#6e6e73", fontFamily: "var(--font-mono)" }}>
+            Starter $39 · Growth $79 · Pro $149 / mo
           </p>
         </div>
       </section>
 
-      {/* ─── Footer ─── */}
-      <footer className="relative z-10 border-t border-white/5 py-10 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2">
+      {/* ── Footer ── */}
+      <footer style={{ background: "#1d1d1f", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "32px 24px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
             <Logo className="w-6 h-6" />
-            <span className="text-white font-semibold text-sm">Vellor</span>
+            <span style={{ fontWeight: 600, fontSize: 14, color: "#fff" }}>Vellor</span>
           </Link>
-          <p className="text-[var(--color-fg-muted)] text-sm">© 2025 Vellor. All rights reserved.</p>
-          <div className="flex gap-6 text-sm text-[var(--color-fg-muted)]">
-            <a href="#" className="hover:text-white transition-colors duration-[160ms]">Privacy</a>
-            <a href="#" className="hover:text-white transition-colors duration-[160ms]">Terms</a>
-            <a href="#" className="hover:text-white transition-colors duration-[160ms]">Contact</a>
+          <p style={{ fontSize: 13, color: "#6e6e73" }}>© 2025 Vellor. All rights reserved.</p>
+          <div style={{ display: "flex", gap: 24 }}>
+            {["Privacy", "Terms", "Contact"].map(l => (
+              <a
+                key={l}
+                href="#"
+                className="footer-link"
+              >
+                {l}
+              </a>
+            ))}
           </div>
         </div>
       </footer>
+
     </main>
   );
 }

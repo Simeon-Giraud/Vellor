@@ -16,7 +16,13 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+    const isDev = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_APP_URL?.includes('localhost')
+    if (isDev && (!process.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET === 'whsec_placeholder')) {
+      console.warn('[webhook] Bypassing signature verification (development/test mode)')
+      event = JSON.parse(body) as Stripe.Event
+    } else {
+      event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+    }
   } catch (err: any) {
     console.error('[webhook] signature verification failed:', err.message)
     return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })

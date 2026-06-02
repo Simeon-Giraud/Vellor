@@ -63,35 +63,12 @@ export async function POST(req: Request) {
     }
 
     const email = dbUser.email || `${userId}@placeholder.com`;
-
-    // More resilient upsert: try to find by supabaseId first
-    let user = await prisma.user.findUnique({ where: { supabaseId: userId } });
-    
-    if (!user) {
-      // If not found by supabaseId, try to find by email
-      const existingByEmail = await prisma.user.findUnique({ where: { email } });
-      
-      if (existingByEmail) {
-        // If found by email but has different supabaseId, update the supabaseId
-        // This handles cases where a user might have re-created their account
-        user = await prisma.user.update({
-          where: { email },
-          data: { supabaseId: userId }
-        });
-      } else {
-        // Create new user
-        user = await prisma.user.create({
-          data: { supabaseId: userId, email }
-        });
-      }
-    }
-
     const userState = await getUserState(userId);
 
     if (userState === "demo") {
       const project = await prisma.project.create({
         data: {
-          userId: user.id,
+          userId: dbUser.id,
           domain,
           brandName,
           industry,
@@ -115,7 +92,7 @@ export async function POST(req: Request) {
             engine: r.engine,
             brandMentioned: r.mentioned,
             mentionPosition: r.position,
-            responseSnippet: r.snippet,
+            response: r.snippet,
           }))
         });
       }
@@ -125,7 +102,7 @@ export async function POST(req: Request) {
 
     const project = await prisma.project.create({
       data: {
-        userId: user.id,
+        userId: dbUser.id,
         domain,
         brandName,
         industry,
@@ -143,7 +120,7 @@ export async function POST(req: Request) {
           domain,
           brandName,
           industry,
-          userId: user.id,
+          userId: dbUser.id,
         }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error("Queue timeout")), 3000)

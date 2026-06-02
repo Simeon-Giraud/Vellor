@@ -77,7 +77,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--color-surface)" }}>
+    <div className="min-h-screen theme-dark" style={{ background: "var(--color-surface)", color: "var(--color-fg)" }}>
       <Sidebar
         usageCount={usageCount}
         usageLimit={usageLimit}

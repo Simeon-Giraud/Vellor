@@ -8,6 +8,7 @@ export function Logo({ className = "w-8 h-8" }: { className?: string }) {
         src="/logo.png"
         alt="Vellor Logo"
         fill
+        sizes="64px"
         className="object-contain"
         /* 
           The provided PNG has a white background and a black logo.
@@ -16,7 +17,7 @@ export function Logo({ className = "w-8 h-8" }: { className?: string }) {
           2. mix-blend-mode: screen: Makes the black background transparent 
              against the dark theme, leaving only the white logo visible.
         */
-        style={{ filter: "invert(1)", mixBlendMode: "screen" }}
+        style={{ filter: "var(--logo-filter)", mixBlendMode: "var(--logo-blend)" as any }}
         priority
       />
     </div>

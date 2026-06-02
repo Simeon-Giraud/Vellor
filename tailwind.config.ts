@@ -23,6 +23,12 @@ const config: Config = {
           900: "var(--color-brand-900)",
         },
         surface: "var(--color-surface)",
+        "surface-1": "var(--color-surface-1)",
+        "surface-2": "var(--color-surface-2)",
+        "surface-3": "var(--color-surface-3)",
+        fg: "var(--color-fg)",
+        "fg-muted": "var(--color-fg-muted)",
+        border: "var(--color-border)",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "Geist", "system-ui", "sans-serif"],

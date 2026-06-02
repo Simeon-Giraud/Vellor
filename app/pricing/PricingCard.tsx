@@ -29,39 +29,60 @@ export function PricingCard({ plan }: { plan: any }) {
     }
   };
 
+  const isDark = plan.highlight;
+
   return (
     <div
-      className={`relative rounded-2xl p-8 flex flex-col transition-all duration-300 ${
-        plan.highlight
-          ? "bg-gradient-to-b from-indigo-600/25 to-purple-600/15 border border-indigo-500/50 glow-indigo"
-          : "glass border border-white/10 hover:border-white/20"
-      }`}
+      style={{
+        background: isDark ? "#1d1d1f" : "#ffffff",
+        color: isDark ? "#ffffff" : "#1d1d1f",
+        border: isDark ? "1px solid transparent" : "1px solid rgba(0, 0, 0, 0.06)",
+        boxShadow: isDark ? "0 20px 40px rgba(0,0,0,0.12)" : "0 4px 12px rgba(0,0,0,0.03)",
+      }}
+      className="relative rounded-3xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
     >
       {plan.highlight && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="px-4 py-1 rounded-full text-xs font-bold bg-indigo-600 text-white uppercase tracking-wider">
+          <span
+            style={{ background: "#0071e3", color: "#ffffff" }}
+            className="px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+          >
             Most Popular
           </span>
         </div>
       )}
 
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-1">{plan.name}</h2>
-        <p className="text-slate-400 text-sm">{plan.description}</p>
+        <h2
+          style={{ color: isDark ? "#ffffff" : "#1d1d1f" }}
+          className="text-2xl font-bold mb-1 tracking-tight"
+        >
+          {plan.name}
+        </h2>
+        <p style={{ color: isDark ? "#8e8e93" : "#6e6e73" }} className="text-sm">
+          {plan.description}
+        </p>
       </div>
 
       <div className="mb-8">
         <div className="flex items-baseline gap-1">
-          <span className="text-5xl font-black text-white">${plan.price}</span>
-          <span className="text-slate-400 text-sm">/month</span>
+          <span
+            style={{ color: isDark ? "#ffffff" : "#1d1d1f" }}
+            className="text-5xl font-extrabold tracking-tight"
+          >
+            ${plan.price}
+          </span>
+          <span style={{ color: isDark ? "#8e8e93" : "#6e6e73" }} className="text-sm">
+            /month
+          </span>
         </div>
       </div>
 
-      <ul className="space-y-3 flex-1 mb-8">
+      <ul className="space-y-3.5 flex-1 mb-8">
         {plan.features.map((feature: string) => (
           <li key={feature} className="flex items-start gap-3 text-sm">
-            <span className="text-indigo-400 mt-0.5 shrink-0">✓</span>
-            <span className="text-slate-300">{feature}</span>
+            <span style={{ color: "#0071e3" }} className="mt-0.5 shrink-0 font-bold">✓</span>
+            <span style={{ color: isDark ? "#e5e5e7" : "#424245" }}>{feature}</span>
           </li>
         ))}
       </ul>
@@ -70,15 +91,16 @@ export function PricingCard({ plan }: { plan: any }) {
         id={`subscribe-${plan.id}`}
         onClick={handleSubscribe}
         disabled={loading}
-        className={`w-full py-3 rounded-xl font-semibold text-sm transition-[transform,filter,color,background-color,border-color] duration-[160ms] ease-out active:scale-[0.97] flex items-center justify-center gap-2 ${
-          plan.highlight
-            ? "bg-indigo-600 hover:bg-indigo-500 text-white"
-            : "glass glass-hover text-white border border-white/10 hover:border-white/20"
+        className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-150 active:scale-[0.97] flex items-center justify-center gap-2 ${
+          isDark ? "btn-white" : "btn-black"
         } disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         {loading ? (
           <>
-            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <span
+              style={{ borderTopColor: isDark ? "#1d1d1f" : "#ffffff" }}
+              className="w-4 h-4 border-2 border-zinc-400 rounded-full animate-spin"
+            />
             Redirecting...
           </>
         ) : (
