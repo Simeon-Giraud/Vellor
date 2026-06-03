@@ -166,10 +166,14 @@ export async function POST(req: Request) {
       }
     };
 
-    // Fire-and-forget — respond immediately, generation runs in background
-    generateAndSave();
+    // Wait for prompt generation and activation
+    await generateAndSave();
 
-    return NextResponse.json({ project }, { status: 201 });
+    const updatedProject = await prisma.project.findUnique({
+      where: { id: project.id }
+    });
+
+    return NextResponse.json({ project: updatedProject || project }, { status: 201 });
   } catch (error: any) {
     console.error("[API] Project creation error:", error);
     return NextResponse.json({ 
