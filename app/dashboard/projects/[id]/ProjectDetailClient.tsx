@@ -35,10 +35,11 @@ interface ProjectDetailClientProps {
   project: Project;
   prompts: Prompt[];
   chartData: any[];
-  competitorData: { domain: string; mentionRate: number }[];
+  competitorData: { domain: string; mentionRate: number; trend: number }[];
   planLimit: number;
   planName: string;
   maxCompetitors: number;
+  myTrend: number;
 }
 
 const ENGINE_LABELS: Record<string, string> = {
@@ -88,6 +89,18 @@ const IconExport = () => (
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
   </svg>
 );
+const IconTrendingUp = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+    <polyline points="16 7 22 7 22 13" />
+  </svg>
+);
+const IconTrendingDown = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 17 13.5 8.5 8.5 13.5 2 7" />
+    <polyline points="16 17 22 17 22 11" />
+  </svg>
+);
 
 export default function ProjectDetailClient({
   project: initialProject,
@@ -97,6 +110,7 @@ export default function ProjectDetailClient({
   planLimit,
   planName,
   maxCompetitors,
+  myTrend,
 }: ProjectDetailClientProps) {
   const router = useRouter();
   const [project, setProject] = useState<Project>(initialProject);
@@ -616,6 +630,17 @@ RECOMMENDATIONS:
                   <div className="flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "var(--color-border)" }}>
                      <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "var(--color-fg-muted)" }} />
                      <span className="text-xs font-semibold text-[var(--color-fg)] flex-1">{project.domain}</span>
+                     
+                     <div className="w-20 hidden md:flex items-center justify-end">
+                       {myTrend !== 0 && (
+                         <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${myTrend > 0 ? "text-emerald-500" : "text-red-500"}`}>
+                           {myTrend > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
+                           {Math.abs(myTrend)}%
+                         </span>
+                       )}
+                       {myTrend === 0 && <span className="text-[10px] text-[var(--color-fg-muted)] font-medium">—</span>}
+                     </div>
+
                      <div className="flex items-center gap-3 w-48">
                        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-surface-2)" }}>
                          <div className="h-full rounded-full" style={{ width: `${mentionRate}%`, background: "var(--color-fg)" }} />
@@ -627,6 +652,17 @@ RECOMMENDATIONS:
                     <div key={comp.domain} className="flex items-center gap-4 px-6 py-4 border-b last:border-b-0" style={{ borderColor: "var(--color-border)" }}>
                       <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "var(--color-surface-3)" }} />
                       <span className="text-xs text-[var(--color-fg-muted)] flex-1">{comp.domain}</span>
+                      
+                      <div className="w-20 hidden md:flex items-center justify-end">
+                        {comp.trend !== 0 && (
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${comp.trend > 0 ? "text-emerald-500" : "text-red-500"}`}>
+                            {comp.trend > 0 ? <IconTrendingUp /> : <IconTrendingDown />}
+                            {Math.abs(comp.trend)}%
+                          </span>
+                        )}
+                        {comp.trend === 0 && <span className="text-[10px] text-[var(--color-fg-muted)] font-medium">—</span>}
+                      </div>
+
                       <div className="flex items-center gap-3 w-48">
                         <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--color-surface-2)" }}>
                           <div className="h-full rounded-full" style={{ width: `${comp.mentionRate}%`, background: "var(--color-fg-muted)" }} />

@@ -87,6 +87,7 @@ export default async function DashboardLayout({
         planName={planName}
         projectCount={projectCount}
         userState={userState}
+        trialEnd={trialEnd}
       >
         {children}
       </DashboardLayoutWrapper>

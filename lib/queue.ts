@@ -27,4 +27,11 @@ export const generateQueue = new Queue("generate-prompts", {
   },
 });
 
+export const cronQueue = new Queue("cron-jobs", {
+  connection,
+  defaultJobOptions: {
+    attempts: 3,
+  },
+});
+
 export { connection };

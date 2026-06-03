@@ -4,12 +4,17 @@ import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import DemoBanner from "./DemoBanner";
 
+import TrialBanner from "./TrialBanner";
+import PastDueBanner from "./PastDueBanner";
+import CanceledOverlay from "./CanceledOverlay";
+
 interface DashboardLayoutWrapperProps {
   usageCount: number;
   usageLimit: number;
   planName: string;
   projectCount: number;
   userState: string;
+  trialEnd: string | null;
   children: React.ReactNode;
 }
 
@@ -19,6 +24,7 @@ export default function DashboardLayoutWrapper({
   planName,
   projectCount,
   userState,
+  trialEnd,
   children,
 }: DashboardLayoutWrapperProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -57,9 +63,10 @@ export default function DashboardLayoutWrapper({
           marginLeft: isMounted ? (isCollapsed ? "72px" : "240px") : "240px" 
         }}
       >
-        {userState === "demo" && (
-          <DemoBanner />
-        )}
+        {userState === "demo" && <DemoBanner />}
+        {userState === "trialing" && <TrialBanner trialEnd={trialEnd} />}
+        {userState === "past_due" && <PastDueBanner />}
+        {userState === "canceled" && <CanceledOverlay />}
         {children}
       </div>
     </div>

@@ -1,10 +1,44 @@
 import { AIEngine, EngineResult } from "@/types";
+import { runOpenAI } from "./ai/openai";
+import { runGemini } from "./ai/gemini";
+import { runPerplexity } from "./ai/perplexity";
+import { generateDemoResults } from "./ai/demoData";
+import { UserState } from "./userState";
 
 function checkMention(response: string, domain: string) {
   const brandName = domain.split('.')[0].toLowerCase();
   const domainLower = domain.toLowerCase();
   const resLower = response.toLowerCase();
   return resLower.includes(domainLower) || resLower.includes(brandName);
+}
+
+function evaluateMentionPosition(response: string, domain: string) {
+  const normalizedResponse = response.toLowerCase();
+  const normalizedDomain = domain.toLowerCase();
+  const domainName = normalizedDomain.split('.')[0];
+  
+  const brandMentioned = normalizedResponse.includes(normalizedDomain) || normalizedResponse.includes(domainName);
+  
+  let mentionPosition = null;
+  if (brandMentioned) {
+    const lines = response.split('\n');
+    let rankCounter = 0;
+    
+    for (const line of lines) {
+      if (/^\s*(\d+\.|-|\*)\s/.test(line)) {
+        rankCounter++;
+      }
+      
+      if (line.toLowerCase().includes(normalizedDomain) || line.toLowerCase().includes(domainName)) {
+        mentionPosition = rankCounter > 0 ? rankCounter : 1;
+        break;
+      }
+    }
+    
+    if (!mentionPosition) mentionPosition = 1;
+  }
+  
+  return { brandMentioned, mentionPosition };
 }
 
 const withTimeout = <T>(promise: Promise<T>, timeoutMs: number = 30000): Promise<T> => {
@@ -42,77 +76,73 @@ function getMockMetrics(engine: "CHATGPT" | "GEMINI" | "PERPLEXITY", domain: str
   };
 }
 
-export async function runPromptOnChatGPT(prompt: string, domain: string): Promise<EngineResult> {
+export async function runPromptOnChatGPT(prompt: string, domain: string, competitors: string[] = []): Promise<EngineResult> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_AI === 'true') {
     return getMockMetrics("CHATGPT", domain, prompt);
   }
   
-  return withTimeout(new Promise(async (resolve) => {
-    // TODO: Replace with real OpenAI call
-    await new Promise((r) => setTimeout(r, 500)); // simulate latency
-    const mockResponse = `Based on your query about ${prompt}, here are the top tools: 
-    1. ${domain} - An excellent solution for monitoring your brand's presence across AI engines.
-    2. Brandwatch - Good for social listening.
-    3. Mention - Great for real-time tracking.
-    ${domain} stands out for its comprehensive GEO (Generative Engine Optimization) features.`;
+  let instructionalPrompt = `${prompt}\n\nPlease provide a ranked, numbered list of the top recommendations.`;
+  if (competitors && competitors.length > 0) {
+     instructionalPrompt += ` Consider mentioning these alternatives if relevant: ${competitors.join(", ")}.`;
+  }
 
-    resolve({
+  return withTimeout(runOpenAI(instructionalPrompt).then(res => {
+    const { brandMentioned, mentionPosition } = evaluateMentionPosition(res, domain);
+    return {
       engine: "CHATGPT",
-      mentioned: checkMention(mockResponse, domain),
-      position: 1,
-      snippet: mockResponse.slice(0, 200),
-    });
+      mentioned: brandMentioned,
+      position: mentionPosition,
+      snippet: res,
+    };
   }));
 }
 
-export async function runPromptOnGemini(prompt: string, domain: string): Promise<EngineResult> {
+export async function runPromptOnGemini(prompt: string, domain: string, competitors: string[] = []): Promise<EngineResult> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_AI === 'true') {
     return getMockMetrics("GEMINI", domain, prompt);
   }
   
-  return withTimeout(new Promise(async (resolve) => {
-    // TODO: Replace with real Gemini API call
-    await new Promise((r) => setTimeout(r, 600));
-    const mockResponse = `For the question "${prompt}", I recommend exploring several tools. 
-    Brandwatch and Mention are popular options. Additionally, ${domain} offers specialized GEO monitoring 
-    capabilities that many businesses find valuable.`;
+  let instructionalPrompt = `${prompt}\n\nPlease provide a ranked, numbered list of the top recommendations.`;
+  if (competitors && competitors.length > 0) {
+     instructionalPrompt += ` Consider mentioning these alternatives if relevant: ${competitors.join(", ")}.`;
+  }
 
-    resolve({
+  return withTimeout(runGemini(instructionalPrompt).then(res => {
+    const { brandMentioned, mentionPosition } = evaluateMentionPosition(res, domain);
+    return {
       engine: "GEMINI",
-      mentioned: checkMention(mockResponse, domain),
-      position: 3,
-      snippet: mockResponse.slice(0, 200),
-    });
+      mentioned: brandMentioned,
+      position: mentionPosition,
+      snippet: res,
+    };
   }));
 }
 
-export async function runPromptOnPerplexity(prompt: string, domain: string): Promise<EngineResult> {
+export async function runPromptOnPerplexity(prompt: string, domain: string, competitors: string[] = []): Promise<EngineResult> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_AI === 'true') {
     return getMockMetrics("PERPLEXITY", domain, prompt);
   }
   
-  return withTimeout(new Promise(async (resolve) => {
-    // TODO: Replace with real Perplexity API call
-    await new Promise((r) => setTimeout(r, 400));
-    const mockResponse = `According to recent sources, the best tools for this use case include Semrush, 
-    Ahrefs, and several emerging GEO-focused platforms. ${domain} is increasingly mentioned in industry 
-    discussions about AI search optimization.`;
+  let instructionalPrompt = `${prompt}\n\nPlease provide a ranked, numbered list of the top recommendations.`;
+  if (competitors && competitors.length > 0) {
+     instructionalPrompt += ` Consider mentioning these alternatives if relevant: ${competitors.join(", ")}.`;
+  }
 
-    resolve({
+  return withTimeout(runPerplexity(instructionalPrompt).then(res => {
+    const { brandMentioned, mentionPosition } = evaluateMentionPosition(res, domain);
+    return {
       engine: "PERPLEXITY",
-      mentioned: checkMention(mockResponse, domain),
-      position: 2,
-      snippet: mockResponse.slice(0, 200),
-    });
+      mentioned: brandMentioned,
+      position: mentionPosition,
+      snippet: res,
+    };
   }));
 }
-
-import { generateDemoResults } from "./ai/demoData";
-import { UserState } from "./userState";
 
 export async function runPromptOnAllEngines(
   prompt: string,
   domain: string,
+  competitors: string[] = [],
   userState: UserState = 'active'
 ): Promise<EngineResult[]> {
   if (userState === 'demo') {
@@ -120,18 +150,27 @@ export async function runPromptOnAllEngines(
   }
 
   const results = await Promise.allSettled([
-    runPromptOnChatGPT(prompt, domain),
-    runPromptOnGemini(prompt, domain),
-    runPromptOnPerplexity(prompt, domain),
+    runPromptOnChatGPT(prompt, domain, competitors),
+    runPromptOnGemini(prompt, domain, competitors),
+    runPromptOnPerplexity(prompt, domain, competitors),
   ]);
 
   const validResults: EngineResult[] = [];
   
-  for (const result of results) {
+  // To match engines to results from Promise.allSettled
+  const engines: ("CHATGPT" | "GEMINI" | "PERPLEXITY")[] = ["CHATGPT", "GEMINI", "PERPLEXITY"];
+  
+  for (const [index, result] of results.entries()) {
     if (result.status === "fulfilled") {
       validResults.push(result.value);
     } else {
-      console.error("[runPromptOnAllEngines] Engine failed:", result.reason);
+      console.error(`[runPromptOnAllEngines] ${engines[index]} failed:`, result.reason);
+      validResults.push({
+        engine: engines[index],
+        snippet: `Error: Could not retrieve response from ${engines[index]}.`,
+        mentioned: false,
+        position: null
+      });
     }
   }
 

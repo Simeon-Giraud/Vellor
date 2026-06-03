@@ -14,12 +14,12 @@ interface PromptJobData {
 const promptWorker = new Worker<PromptJobData>(
   "prompt-runs",
   async (job: Job<PromptJobData>) => {
-    const { promptId, promptText, projectId, domain } = job.data;
+    const { promptId, promptText, projectId, domain, competitors = [] } = job.data;
 
     console.log(`[Worker] Running prompt ${promptId} for domain ${domain}`);
 
     try {
-      const results = await runPromptOnAllEngines(promptText, domain);
+      const results = await runPromptOnAllEngines(promptText, domain, competitors);
 
       // Persist results to DB
       for (const result of results) {

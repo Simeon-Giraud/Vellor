@@ -3,6 +3,7 @@ import { getCurrentDbUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canRunPrompts } from "@/lib/usage";
+import { rateLimit } from "@/lib/rateLimit";
 
 // POST /api/projects/[id]/run — queue BullMQ job to re-run all prompts
 export async function POST(
@@ -16,6 +17,12 @@ export async function POST(
   }
 
   const { id } = await params;
+
+  // Rate limiting
+  const { success } = await rateLimit.limit(userId);
+  if (!success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
 
   try {
     if (!(await canRunPrompts(userId))) {

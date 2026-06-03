@@ -13,8 +13,8 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
 - **Project creation and automatic prompt generation**: When a project is created, the user provides their domain, brand name, and industry. Based on this, Gemini Flash automatically generates relevant tracking prompts (up to the user's plan limit).
 - **How prompts are run across ChatGPT, Gemini, and Perplexity**: Real users have their prompt runs queued via BullMQ. The workers execute the prompts concurrently using `Promise.allSettled` against ChatGPT, Gemini, and Perplexity.
 - **How results are stored and displayed**: Results are parsed for brand mentions (boolean) and position ranking, then saved to the database via Prisma (`PromptResult`). The dashboard displays mention rates, weekly trends, and recent runs.
-- **How the content audit works**: The content audit feature is planned to use Claude Haiku to analyze responses and generate weekly reports, though it is currently scaffolded and redirects back to projects.
-- **How optimization recommendations are generated**: Optimization recommendations and content audit tips are planned to be driven by Claude Sonnet, providing actionable advice based on the gathered AI responses.
+- **How the content audit works**: The content audit feature uses Claude Haiku to analyze responses and generate weekly reports, though it is currently scaffolded and redirects back to projects.
+- **How optimization recommendations are generated**: Optimization recommendations and content audit tips are driven by Claude Sonnet, providing actionable advice based on the gathered AI responses.
 - **The trial and subscription flow**: Users subscribe via Stripe Managed Payments to Starter, Growth, or Pro plans, starting with a 7-day trial (card required). Subscription states are synced back to the database via Stripe webhooks.
 
 ## 4. Architecture Overview
@@ -33,7 +33,7 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
   - `/api/prompts`: Manages adding new prompts and queuing them for execution.
   - `/api/stripe/webhook`: Processes Stripe events for subscriptions and trials.
 - **Job Queue**: Utilizes BullMQ + Redis for asynchronous background tasks. Queues exist for `prompt-runs` and `generate-prompts` processed by workers in `/workers/`.
-- **AI Engine Calls**: Managed in `/lib/ai.ts`. Calls are wrapped in a 30s timeout and executed via `Promise.allSettled` to prevent one failing engine from breaking the whole run.
+- **AI Engine Calls**: Managed in `/lib/ai/`. Calls are wrapped in a 30s timeout and executed via `Promise.allSettled` to prevent one failing engine from breaking the whole run.
 
 ### Database (Supabase + Prisma)
 - **User**: Stores email, Supabase ID, Stripe details, and subscription status. Has a 1-to-1 relation with `UserPreferences` and 1-to-many with `Project`.
@@ -64,8 +64,8 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
 ## 5. The AI Stack
 - **Gemini Flash**: Used for rapid prompt generation based on domain and industry (free/low cost).
 - **OpenAI GPT-4o-mini + Gemini Flash + Perplexity Sonar**: Used concurrently for executing the generated tracking prompts. These form the core tracking engine.
-- **Claude Haiku**: Planned for fast response analysis and generating weekly reports.
-- **Claude Sonnet**: Planned for generating deep optimization recommendations and content audit tips.
+- **Claude Haiku**: Used for fast response analysis and generating weekly reports.
+- **Claude Sonnet**: Used for generating deep optimization recommendations and content audit tips.
 
 ## 6. User States
 - **demo**: Signed up, no card, mock data only.
@@ -96,8 +96,10 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
 
 ## 8. Key Business Decisions & Why
 - **Supabase Auth instead of Clerk**: Provides tight integration with the PostgreSQL database and native Row Level Security.
-- **Stripe Managed Payments instead of regular Stripe**: Simplifies the subscription lifecycle, billing portal, and trial management without extensive custom billing code.
-- **Gemini for prompt generation**: Chosen for its high speed and low/free cost when generating bulk variations of tracking queries.
+- **Stripe Managed Payments instead of regular Stripe**: Simplifies the subscription lifecycle, billing portal, and trial management without extensive custom billing code. Stripe Managed Payments handles VAT collection and remittance automatically in 80+ countries.
+- **Pricing Strategy**: Pricing is in USD, not EUR, to target the global English-speaking SaaS market. Prices are displayed excluding VAT — “Prices exclude VAT where applicable” shown on pricing page.
+- **Gemini Flash for prompt generation**: Chosen specifically because it has a free tier (1,500 req/day) making project creation essentially free to run.
+- **Claude for analysis and recommendations**: Chosen because it is best-in-class for text reasoning and structured output.
 - **Demo mode instead of a free plan**: Showcases value instantly with mock data without incurring ongoing AI API costs for non-paying users.
 - **7-day trial**: Gives users enough time to see real AI tracking data populate while encouraging faster conversion.
 - **BullMQ for the job queue**: Ensures reliable, retryable background processing of external AI API calls, preventing request timeouts on Vercel/Next.js.
@@ -114,6 +116,7 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
 - `OPENAI_API_KEY`: Server-only. Key for GPT-4o-mini tracking runs.
 - `GEMINI_API_KEY`: Server-only. Key for Gemini tracking and prompt generation.
 - `PERPLEXITY_API_KEY`: Server-only. Key for Perplexity Sonar tracking runs.
+- `ANTHROPIC_API_KEY`: Server-only. Used for Claude Haiku (response analysis, weekly reports) and Claude Sonnet (optimization recommendations, content audit).
 - `NEXT_PUBLIC_USE_MOCK_AI`: Public/Server. Toggle to force mock AI data locally or in staging.
 - `REDIS_URL`: Server-only. Redis connection string for BullMQ.
 - `NEXT_PUBLIC_APP_URL`: Public. The base URL of the application.
@@ -129,15 +132,26 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
   - Database schema, plan limits, and usage tracking.
   - Main dashboard UI with trend charts and recent runs.
 - **Partially implemented**:
-  - The core AI tracking (`/lib/ai.ts`) is structured but uses `setTimeout` and hardcoded strings for the real API calls (marked with TODOs).
+  - Supabase Row Level Security: policies need to be written and applied to all tables (`User`, `Project`, `Prompt`, `PromptResult`, `UserPreferences`).
+  - The core AI tracking is structured but uses `setTimeout` and hardcoded strings for the real API calls (marked with TODOs).
   - Background workers exist (`generateWorker`, `promptWorker`) but the actual queue consumption logic relies on the mocked/partially complete AI functions.
 - **Scaffolded but not wired up**:
   - The Content Audit feature (`/app/dashboard/audit/page.tsx`) just redirects back to projects.
   - The Reports feature (`/app/dashboard/reports/page.tsx` exists but is minimal).
 - **Planned but not started yet**:
-  - Claude Haiku integration for weekly reports.
-  - Claude Sonnet integration for deep optimization recommendations.
-  - Actual email notifications for events like trial ending soon.
+  - GDPR compliance (legally required — France/EU): privacy policy, cookie consent banner, data export, account deletion. Plan to use Iubenda.
+  - Email sending service (not yet chosen — candidates: Resend, SendGrid): needed for weekly reports and trial expiry notifications.
+  - Rate limiting on AI routes using Upstash Redis + `@upstash/ratelimit`.
+  - Sentry error monitoring.
+  - Annual billing option (2 months free).
+  - Referral program.
+  - Weekly email digest reports.
+  - Slack notifications for mention rate drops.
+  - Shareable public report URLs.
+  - Chrome extension.
+  - Multi-user / team access.
+  - White label reports for agencies.
+  - API access for developers.
 
 ## 11. File Structure Map
 ```text
@@ -145,8 +159,7 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
   api/               → Next.js Route Handlers for projects, prompts, and Stripe webhooks
   dashboard/         → Core authenticated application pages (Overview, Projects, Audit)
 /lib/
-  ai/                → Contains AI execution logic, mock data generators, and prompt generators
-  ai.ts              → Unified prompt runner, handles AI timeouts and engine routing
+  ai/                → Contains AI execution logic, mock data generators, and prompt generators: index.ts, openai.ts, gemini.ts, perplexity.ts, demoData.ts, generatePrompts.ts, mockExecutor.ts
   auth.ts            → getCurrentUser() and getCurrentDbUser() helpers
   plans.ts           → Single source of truth for plan limits and configurations
   prisma.ts          → Prisma client singleton
@@ -181,6 +194,26 @@ List the Antigravity skills installed and when to use each:
 - Always verify Stripe webhook signatures before processing events (unless in dev mode without a proper secret).
 - Always check `userState` before allowing API actions to enforce plan limits and demo mode constraints.
 - Mock mode is controlled by `NEXT_PUBLIC_USE_MOCK_AI` in `.env.local` or environment variables.
-- The Stripe API version header `2025-06-30.basil` is currently used and must be passed correctly (the prompt mentioned `2026-02-25.preview`, but the code uses `2025-06-30.basil`. Always adhere to what is configured in `stripe.ts` unless migrating).
+- The Stripe API version is set to `2026-02-25.preview` to match the requirements for Stripe Managed Payments. Always adhere to what is configured in `stripe.ts` unless migrating.
 - Supabase RLS must be enabled on all tables in production.
 - Do not blindly trust database triggers for user creation; `/lib/auth.ts` provides a robust fallback.
+
+## 15. Demo Mode UI Flow
+Document the complete onboarding UI states:
+- **New user** (`hasSeenWelcome: false`) → full-page welcome screen with feature highlights and single CTA.
+- **Demo user** → persistent purple gradient banner top of every dashboard page, never dismissible.
+- **Trialing user** → amber banner showing days remaining, turns red within 2 days of expiry.
+- **Past due user** → red banner blocking new prompt runs.
+- **Canceled user** → full-page overlay blocking dashboard, shows resubscribe plans.
+
+## 16. Content Audit Mechanism
+The planned content audit flow:
+1. Fetch user’s page URL via server-side HTTP request.
+2. Parse HTML and extract text content.
+3. Score against 8 GEO factors using Gemini Flash (free): direct answer in first 50 words, FAQ schema markup, fact density, Q&A structure, word count >800, author schema, external citations, content chunking.
+4. Compare against pages that ARE getting cited to find the delta.
+5. Pass scores + page content to Claude Sonnet to generate specific line-level rewrites.
+6. Show before/after diff with projected GEO score improvement.
+
+## 17. Competitor Tracking Mechanism
+The same tracking prompts are run for both the user’s domain and each competitor domain. Results are stored separately per domain. The competitor comparison view shows side-by-side mention rates, position rankings, and trend deltas across all 3 engines.
