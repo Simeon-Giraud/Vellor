@@ -17,14 +17,34 @@ const withTimeout = <T>(promise: Promise<T>, timeoutMs: number = 30000): Promise
   });
 };
 
+function getMockMetrics(engine: "CHATGPT" | "GEMINI" | "PERPLEXITY", domain: string, prompt: string) {
+  let mentionChance = 0.6;
+  if (engine === "CHATGPT") mentionChance = 0.75;
+  if (engine === "PERPLEXITY") mentionChance = 0.5;
+
+  const brandMentioned = Math.random() < mentionChance;
+  const mentionPosition = brandMentioned ? Math.floor(Math.random() * 4) + 1 : null;
+  const brandName = domain.split(".")[0];
+  const capitalizedBrand = brandName.charAt(0).toUpperCase() + brandName.slice(1);
+
+  let snippet = `Based on a query regarding "${prompt}", here is a summary of top solutions in the market:\n\n`;
+  if (brandMentioned) {
+    snippet += `Rank #${mentionPosition}: ${capitalizedBrand} (${domain}) is highly recommended for its state-of-the-art UI and premium features. [MOCK]`;
+  } else {
+    snippet += `Several platforms are active in this space, offering various features. Users should compare multiple options. [MOCK]`;
+  }
+
+  return {
+    engine,
+    mentioned: brandMentioned,
+    position: mentionPosition,
+    snippet,
+  };
+}
+
 export async function runPromptOnChatGPT(prompt: string, domain: string): Promise<EngineResult> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_AI === 'true') {
-    return {
-      engine: "CHATGPT",
-      mentioned: true,
-      position: 1,
-      snippet: `This is a mock response for testing. The brand ${domain} is a great tool for teams. [MOCK]`,
-    };
+    return getMockMetrics("CHATGPT", domain, prompt);
   }
   
   return withTimeout(new Promise(async (resolve) => {
@@ -47,12 +67,7 @@ export async function runPromptOnChatGPT(prompt: string, domain: string): Promis
 
 export async function runPromptOnGemini(prompt: string, domain: string): Promise<EngineResult> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_AI === 'true') {
-    return {
-      engine: "GEMINI",
-      mentioned: true,
-      position: 1,
-      snippet: `This is a mock response for testing. The brand ${domain} is a great tool for teams. [MOCK]`,
-    };
+    return getMockMetrics("GEMINI", domain, prompt);
   }
   
   return withTimeout(new Promise(async (resolve) => {
@@ -73,12 +88,7 @@ export async function runPromptOnGemini(prompt: string, domain: string): Promise
 
 export async function runPromptOnPerplexity(prompt: string, domain: string): Promise<EngineResult> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_AI === 'true') {
-    return {
-      engine: "PERPLEXITY",
-      mentioned: true,
-      position: 1,
-      snippet: `This is a mock response for testing. The brand ${domain} is a great tool for teams. [MOCK]`,
-    };
+    return getMockMetrics("PERPLEXITY", domain, prompt);
   }
   
   return withTimeout(new Promise(async (resolve) => {

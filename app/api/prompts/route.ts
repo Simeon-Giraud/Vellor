@@ -54,7 +54,25 @@ export async function POST(req: Request) {
     });
 
     if (runNow) {
-      if (userState === "demo") {
+      if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true") {
+        const { seedHistoricalMockResults, executeAndSaveMockResults } = await import("@/lib/ai/mockExecutor");
+        
+        // Seed 7 days of history for this single prompt
+        await seedHistoricalMockResults(
+          [{ id: prompt.id, text: prompt.text }],
+          prompt.project.domain,
+          prompt.project.competitors,
+          7
+        );
+
+        // Execute current run
+        await executeAndSaveMockResults(
+          prompt.id,
+          prompt.text,
+          prompt.project.domain,
+          prompt.project.competitors
+        );
+      } else if (userState === "demo") {
         const { generateDemoResults } = await import("@/lib/ai/demoData");
         const mockResults = generateDemoResults(text, prompt.project.domain);
         await prisma.promptResult.createMany({

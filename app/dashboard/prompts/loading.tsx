@@ -1,18 +1,23 @@
 export default function PromptsLoading() {
+  const sk = (h: string, w: string) => (
+    <div className="rounded-md animate-pulse" style={{ height: h, width: w, background: "var(--color-surface-3)" }} />
+  );
   return (
-    <div className="flex-1 animate-pulse">
-      {/* Header Skeleton */}
-      <header className="sticky top-0 z-20 border-b border-white/5 px-6 md:px-8 py-4 flex items-center justify-between backdrop-blur-xl bg-[rgba(10,10,15,0.8)]">
-        <div>
-          <div className="h-6 w-24 bg-white/10 rounded-md mb-2" />
-          <div className="h-3.5 w-48 bg-white/5 rounded-md" />
+    <div className="flex-1">
+      <header
+        className="sticky top-0 z-20 px-6 md:px-8 py-4 flex items-center justify-between backdrop-blur-xl border-b"
+        style={{ background: "var(--color-header-bg)", borderColor: "var(--color-header-border)" }}
+      >
+        <div className="space-y-2">
+          {sk("24px", "128px")}
+          {sk("14px", "192px")}
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-6 md:px-8 py-8">
-        <div className="glass rounded-2xl p-12 flex flex-col items-center justify-center h-[300px] space-y-4">
-          <div className="h-6 w-32 bg-white/10 rounded-md" />
-          <div className="h-4.5 w-64 bg-white/5 rounded-md" />
+        <div className="dash-card rounded-2xl p-12 flex flex-col items-center justify-center h-[300px] space-y-4">
+          {sk("24px", "144px")}
+          {sk("18px", "256px")}
         </div>
       </div>
     </div>

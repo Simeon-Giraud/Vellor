@@ -26,22 +26,23 @@ export default function TrendChart({ data }: TrendChartProps) {
           dataKey="day"
           axisLine={false}
           tickLine={false}
-          tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10, fontFamily: "var(--font-mono)" }}
+          tick={{ fill: "var(--color-fg-muted)", fontSize: 10, fontFamily: "var(--font-mono)" }}
         />
         <YAxis hide domain={[0, 100]} />
         <Tooltip
           cursor={false}
           contentStyle={{
-            background: "rgba(15,15,20,0.95)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: "var(--color-surface-2)",
+            border: "1px solid var(--color-border)",
             borderRadius: "12px",
             padding: "8px 12px",
             fontSize: "12px",
             fontFamily: "var(--font-mono)",
-            color: "#fff",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+            color: "var(--color-fg)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
           }}
-          labelStyle={{ color: "rgba(255,255,255,0.5)", marginBottom: 4 }}
+          labelStyle={{ color: "var(--color-fg-muted)", marginBottom: 4 }}
+          itemStyle={{ color: "var(--color-fg)" }}
           formatter={(value) => [`${value}%`, "Mention rate"]}
         />
         <Bar dataKey="rate" radius={[4, 4, 0, 0]} maxBarSize={32}>
@@ -50,8 +51,8 @@ export default function TrendChart({ data }: TrendChartProps) {
               key={index}
               fill={
                 index === data.length - 1
-                  ? "rgba(79,70,229,0.7)"
-                  : "rgba(255,255,255,0.08)"
+                  ? "var(--color-fg)"
+                  : "var(--color-surface-3)"
               }
             />
           ))}

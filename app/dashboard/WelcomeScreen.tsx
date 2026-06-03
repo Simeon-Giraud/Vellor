@@ -23,7 +23,7 @@ export default function WelcomeScreen() {
       <div className="w-full max-w-3xl mx-auto flex flex-col items-center text-center">
         
         {/* Decorative subtle icon */}
-        <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-8 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
+        <div className="w-16 h-16 rounded-2xl border flex items-center justify-center mb-8 shadow-sm" style={{ background: "var(--color-surface-2)", borderColor: "var(--color-border)", color: "var(--color-fg)" }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2L2 7l10 5 10-5-10-5z" />
             <path d="M2 17l10 5 10-5" />
@@ -31,7 +31,7 @@ export default function WelcomeScreen() {
           </svg>
         </div>
 
-        <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-5">
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-5 text-[var(--color-fg)]">
           Welcome to Vellor
         </h1>
         
@@ -41,29 +41,29 @@ export default function WelcomeScreen() {
 
         {/* Feature Highlights - 3 in a row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mb-16">
-          <div className="glass rounded-2xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] flex flex-col items-center text-center">
-            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[var(--color-fg)] mb-4">
+          <div className="dash-card rounded-2xl p-6 flex flex-col items-center text-center">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: "var(--color-surface-2)", color: "var(--color-fg)" }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m22 12-4-4"/><path d="m22 12-4 4"/><path d="M2 12h20"/></svg>
             </div>
-            <h3 className="text-[15px] font-semibold text-white tracking-tight mb-2">Track LLM presence</h3>
+            <h3 className="text-[15px] font-semibold tracking-tight mb-2 text-[var(--color-fg)]">Track LLM presence</h3>
             <p className="text-sm text-[var(--color-fg-muted)] leading-relaxed">
               Find out if top AI engines are recommending your brand to users searching your category.
             </p>
           </div>
-          <div className="glass rounded-2xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] flex flex-col items-center text-center">
-            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[var(--color-fg)] mb-4">
+          <div className="dash-card rounded-2xl p-6 flex flex-col items-center text-center">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: "var(--color-surface-2)", color: "var(--color-fg)" }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
             </div>
-            <h3 className="text-[15px] font-semibold text-white tracking-tight mb-2">Monitor competitors</h3>
+            <h3 className="text-[15px] font-semibold tracking-tight mb-2 text-[var(--color-fg)]">Monitor competitors</h3>
             <p className="text-sm text-[var(--color-fg-muted)] leading-relaxed">
               Compare your visibility against competitors to identify gaps and optimization opportunities.
             </p>
           </div>
-          <div className="glass rounded-2xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] flex flex-col items-center text-center">
-            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[var(--color-fg)] mb-4">
+          <div className="dash-card rounded-2xl p-6 flex flex-col items-center text-center">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: "var(--color-surface-2)", color: "var(--color-fg)" }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
-            <h3 className="text-[15px] font-semibold text-white tracking-tight mb-2">Optimize performance</h3>
+            <h3 className="text-[15px] font-semibold tracking-tight mb-2 text-[var(--color-fg)]">Optimize performance</h3>
             <p className="text-sm text-[var(--color-fg-muted)] leading-relaxed">
               Get actionable insights to improve your Generative Engine Optimization (GEO).
             </p>
@@ -74,10 +74,11 @@ export default function WelcomeScreen() {
           <button
             onClick={handleCreateProject}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] glow-indigo disabled:opacity-70 disabled:scale-100"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-[var(--color-bg)] font-semibold transition-[transform,opacity] duration-[160ms] ease-out active:scale-[0.97] disabled:opacity-70 disabled:scale-100"
+            style={{ background: "var(--color-fg)" }}
           >
             {loading ? (
-              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: "var(--color-bg)", borderTopColor: "transparent" }} />
             ) : null}
             Create my first project &rarr;
           </button>

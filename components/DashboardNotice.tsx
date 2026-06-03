@@ -37,12 +37,12 @@ export default function DashboardNotice() {
 
   return (
     <div
-      className="mx-6 md:mx-8 mt-4 px-4 py-3 rounded-xl bg-indigo-500/8 border border-indigo-500/15 flex items-center justify-between animate-fade-in-up"
+      className="mx-6 md:mx-8 mt-4 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between animate-fade-in-up"
     >
-      <p className="text-sm text-indigo-200">{message}</p>
+      <p className="text-sm text-zinc-200">{message}</p>
       <button
         onClick={dismiss}
-        className="ml-4 text-indigo-400/60 hover:text-indigo-300 transition-colors duration-[160ms] shrink-0 cursor-pointer"
+        className="ml-4 text-zinc-400/60 hover:text-white transition-colors duration-[160ms] shrink-0 cursor-pointer active:scale-[0.95]"
         aria-label="Dismiss notice"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

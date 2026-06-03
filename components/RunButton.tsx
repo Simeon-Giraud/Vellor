@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 
-/* Emil skill: button press feedback via scale(0.97).
- * Three states: idle → loading → success, with blur mask on state transition. */
-
 interface RunButtonProps {
   projectId: string;
 }
@@ -31,23 +28,36 @@ export default function RunButton({ projectId }: RunButtonProps) {
     }
   };
 
+  const successStyle: React.CSSProperties = {
+    background: "#059669",
+    color: "#ffffff",
+  };
+
+  const idleStyle: React.CSSProperties = {
+    background: "var(--color-btn-primary-bg)",
+    color: "var(--color-btn-primary-text)",
+  };
+
   return (
     <button
       onClick={handleRun}
       disabled={state === "loading"}
       className={`
-        inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+        inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
         transition-[transform,background-color,opacity] duration-[160ms] ease-out
         active:scale-[0.97] cursor-pointer
-        ${state === "success"
-          ? "bg-emerald-600 text-white"
-          : "bg-indigo-600 hover:bg-indigo-500 text-white glow-indigo"
-        }
         ${state === "loading" ? "opacity-80" : ""}
       `}
+      style={state === "success" ? successStyle : idleStyle}
     >
       {state === "loading" && (
-        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <span
+          className="w-3.5 h-3.5 border-2 rounded-full animate-spin"
+          style={{
+            borderColor: "var(--color-btn-primary-text)",
+            borderTopColor: "transparent",
+          }}
+        />
       )}
       {state === "idle" && (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">

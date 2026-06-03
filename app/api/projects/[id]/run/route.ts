@@ -34,6 +34,29 @@ export async function POST(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true") {
+      const { executeAndSaveMockResults } = await import("@/lib/ai/mockExecutor");
+      for (const prompt of project.prompts) {
+        await executeAndSaveMockResults(
+          prompt.id,
+          prompt.text,
+          project.domain,
+          project.competitors
+        );
+      }
+
+      await prisma.project.update({
+        where: { id },
+        data: { lastRunAt: new Date() },
+      });
+
+      return NextResponse.json({
+        queued: false,
+        executedMock: true,
+        promptCount: project.prompts.length,
+      });
+    }
+
     // Queue BullMQ jobs
     try {
       const { promptQueue } = await import("@/lib/queue");

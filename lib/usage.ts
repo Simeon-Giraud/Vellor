@@ -42,6 +42,9 @@ export async function canAddCompetitor(supabaseUserId: string, projectId: string
 }
 
 export async function getRemainingRuns(supabaseUserId: string): Promise<number> {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true") {
+    return 9999;
+  }
   const plan = await getUserPlan(supabaseUserId);
   const count = await prisma.promptResult.count({
     where: {
@@ -53,6 +56,9 @@ export async function getRemainingRuns(supabaseUserId: string): Promise<number> 
 }
 
 export async function canRunPrompts(supabaseUserId: string): Promise<boolean> {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true") {
+    return true;
+  }
   return (await getRemainingRuns(supabaseUserId)) > 0;
 }
 

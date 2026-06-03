@@ -22,7 +22,7 @@ export default function ProjectCharts({ data }: ProjectChartsProps) {
           dataKey="day"
           axisLine={false}
           tickLine={false}
-          tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10, fontFamily: "var(--font-mono)" }}
+          tick={{ fill: "var(--color-fg-muted)", fontSize: 10, fontFamily: "var(--font-mono)" }}
         />
         <YAxis
           hide
@@ -30,26 +30,27 @@ export default function ProjectCharts({ data }: ProjectChartsProps) {
         />
         <Tooltip
           contentStyle={{
-            background: "rgba(15,15,20,0.95)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: "var(--color-surface-2)",
+            border: "1px solid var(--color-border)",
             borderRadius: "12px",
             padding: "8px 12px",
             fontSize: "12px",
             fontFamily: "var(--font-mono)",
-            color: "#fff",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+            color: "var(--color-fg)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
           }}
-          labelStyle={{ color: "rgba(255,255,255,0.5)", marginBottom: 4 }}
+          labelStyle={{ color: "var(--color-fg-muted)", marginBottom: 4 }}
+          itemStyle={{ color: "var(--color-fg)" }}
           formatter={(value) => [`${value}%`]}
         />
         <Legend
           iconType="circle"
           iconSize={6}
-          wrapperStyle={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "rgba(255,255,255,0.5)" }}
+          wrapperStyle={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--color-fg-muted)" }}
         />
         <Line type="monotone" dataKey="ChatGPT" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
         <Line type="monotone" dataKey="Gemini" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
-        <Line type="monotone" dataKey="Perplexity" stroke="#8b5cf6" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+        <Line type="monotone" dataKey="Perplexity" stroke="#06b6d4" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
       </LineChart>
     </ResponsiveContainer>
   );

@@ -1,40 +1,45 @@
 export default function SettingsLoading() {
+  const sk = (h: string, w: string) => (
+    <div className="rounded-md animate-pulse" style={{ height: h, width: w, background: "var(--color-surface-3)" }} />
+  );
   return (
-    <div className="flex-1 animate-pulse">
-      {/* Header Skeleton */}
-      <header className="sticky top-0 z-20 border-b border-white/5 px-6 md:px-8 py-4 flex items-center justify-between backdrop-blur-xl bg-[rgba(10,10,15,0.8)]">
-        <div>
-          <div className="h-6 w-24 bg-white/10 rounded-md mb-2" />
-          <div className="h-3.5 w-40 bg-white/5 rounded-md" />
+    <div className="flex-1">
+      <header
+        className="sticky top-0 z-20 px-6 md:px-8 py-4 flex items-center justify-between backdrop-blur-xl border-b"
+        style={{ background: "var(--color-header-bg)", borderColor: "var(--color-header-border)" }}
+      >
+        <div className="space-y-2">
+          {sk("24px", "96px")}
+          {sk("14px", "160px")}
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto px-6 md:px-8 py-8 space-y-8">
-        {/* Navigation Tabs Skeleton */}
-        <div className="flex gap-2 border-b border-white/5 pb-px overflow-x-auto">
+        <div className="flex gap-2 border-b pb-px overflow-x-auto" style={{ borderColor: "var(--color-border)" }}>
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-9 w-24 bg-white/5 rounded-lg shrink-0" />
+            <div key={i} className="rounded-lg shrink-0" style={{ height: "36px", width: "96px", background: "var(--color-surface-2)" }} />
           ))}
         </div>
 
-        {/* Settings Content Card Skeleton */}
-        <div className="glass rounded-2xl p-6 md:p-8 space-y-6">
-          <div className="border-b border-white/5 pb-4">
-            <div className="h-5.5 w-32 bg-white/10 rounded-md mb-2" />
-            <div className="h-3.5 w-64 bg-white/5 rounded-md" />
+        <div className="dash-card rounded-2xl p-6 md:p-8 space-y-6">
+          <div className="border-b pb-4" style={{ borderColor: "var(--color-border)" }}>
+            <div className="mb-2">
+              {sk("22px", "128px")}
+            </div>
+            {sk("14px", "256px")}
           </div>
 
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="space-y-2">
-                <div className="h-3.5 w-24 bg-white/5 rounded-md" />
-                <div className="h-10 w-full bg-white/10 rounded-lg" />
+                {sk("14px", "96px")}
+                {sk("40px", "100%")}
               </div>
             ))}
           </div>
 
           <div className="pt-4 flex justify-end">
-            <div className="h-10 w-28 bg-white/10 rounded-lg" />
+            {sk("40px", "112px")}
           </div>
         </div>
       </div>

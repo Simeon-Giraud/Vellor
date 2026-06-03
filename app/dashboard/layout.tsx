@@ -6,6 +6,9 @@ import Sidebar from "@/components/Sidebar";
 import TrialBanner from "@/components/TrialBanner";
 import DemoBanner from "@/components/DemoBanner";
 import { getUserState } from "@/lib/userState";
+import { ThemeProvider } from "@/components/ThemeProvider";
+
+import DashboardLayoutWrapper from "@/components/DashboardLayoutWrapper";
 
 export default async function DashboardLayout({
   children,
@@ -77,24 +80,16 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen theme-dark" style={{ background: "var(--color-surface)", color: "var(--color-fg)" }}>
-      <Sidebar
+    <ThemeProvider>
+      <DashboardLayoutWrapper
         usageCount={usageCount}
         usageLimit={usageLimit}
         planName={planName}
         projectCount={projectCount}
-      />
-
-      {/* Main content area — offset by sidebar width */}
-      <div className="ml-[240px] min-h-screen flex flex-col relative">
-        {userState === "trialing" && (
-          <TrialBanner trialEnd={trialEnd} />
-        )}
-        {userState === "demo" && (
-          <DemoBanner />
-        )}
+        userState={userState}
+      >
         {children}
-      </div>
-    </div>
+      </DashboardLayoutWrapper>
+    </ThemeProvider>
   );
 }

@@ -3,7 +3,6 @@ import { getCurrentDbUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canCreateProject, getUserPlan } from "@/lib/usage";
-import { generateQueue } from "@/lib/queue";
 import { getUserState } from "@/lib/userState";
 
 // GET /api/projects — list all projects for current user
@@ -31,7 +30,7 @@ export async function GET() {
   }
 }
 
-// POST /api/projects — create a new project
+// POST /api/projects — create a new project (prompts are always AI-generated)
 export async function POST(req: Request) {
   const dbUser = await getCurrentDbUser();
   const userId = dbUser?.supabaseId;
@@ -62,44 +61,9 @@ export async function POST(req: Request) {
       }, { status: 403 });
     }
 
-    const email = dbUser.email || `${userId}@placeholder.com`;
     const userState = await getUserState(userId);
 
-    if (userState === "demo") {
-      const project = await prisma.project.create({
-        data: {
-          userId: dbUser.id,
-          domain,
-          brandName,
-          industry,
-          competitors,
-          status: "active",
-        },
-      });
-
-      const { generateDemoResults } = await import("@/lib/ai/demoData");
-      const mockPrompts = [
-        `What are the best tools for ${industry}?`,
-        `Top solutions like ${brandName}?`
-      ];
-
-      for (const pt of mockPrompts) {
-        const prompt = await prisma.prompt.create({ data: { projectId: project.id, text: pt } });
-        const mockResults = generateDemoResults(pt, domain);
-        await prisma.promptResult.createMany({
-          data: mockResults.map(r => ({
-            promptId: prompt.id,
-            engine: r.engine,
-            brandMentioned: r.mentioned,
-            mentionPosition: r.position,
-            response: r.snippet,
-          }))
-        });
-      }
-
-      return NextResponse.json({ project }, { status: 201 });
-    }
-
+    // ── Create the project ───────────────────────────────────────────────────
     const project = await prisma.project.create({
       data: {
         userId: dbUser.id,
@@ -111,25 +75,99 @@ export async function POST(req: Request) {
       },
     });
 
-    try {
-      // Add to queue with a 3-second timeout to prevent hanging the response
-      // if Redis is unreachable
-      await Promise.race([
-        generateQueue.add("generate-prompts", {
-          projectId: project.id,
-          domain,
-          brandName,
-          industry,
-          userId: dbUser.id,
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Queue timeout")), 3000)
-        )
-      ]);
-    } catch (queueErr) {
-      console.warn("[API] Redis/BullMQ error or timeout:", queueErr);
-      // We don't fail the request here, as the project is already created
-    }
+    // ── Generate AI prompts in the background ────────────────────────────────
+    const generateAndSave = async () => {
+      try {
+        const { generatePrompts } = await import("@/lib/ai/generatePrompts");
+
+        let promptTexts: string[];
+
+        if (userState === "demo") {
+          // Demo: use quick template prompts (5 items)
+          promptTexts = [
+            `What are the best tools for ${industry}?`,
+            `Top ${industry} solutions for growing teams`,
+            `How does ${brandName} compare to alternatives?`,
+            `Best ${industry} software in 2025`,
+            `${brandName} reviews and pricing`,
+          ];
+        } else {
+          // Real users: generate up to plan limit (20 / 50 / 100)
+          promptTexts = await generatePrompts(
+            domain,
+            brandName,
+            industry,
+            plan.maxPromptsPerProject
+          );
+        }
+
+        // Save prompts to DB
+        const createdPrompts: { id: string; text: string }[] = [];
+        for (const text of promptTexts) {
+          const p = await prisma.prompt.create({ data: { projectId: project.id, text } });
+          createdPrompts.push(p);
+        }
+
+        if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true") {
+          const { seedHistoricalMockResults, executeAndSaveMockResults } = await import("@/lib/ai/mockExecutor");
+          
+          // Seed historical mock data (last 7 days)
+          await seedHistoricalMockResults(createdPrompts, domain, competitors, 7);
+          
+          // Run a fresh current check
+          for (const p of createdPrompts) {
+            await executeAndSaveMockResults(p.id, p.text, domain, competitors);
+          }
+        } else if (userState === "demo") {
+          // Generate mock results for demo users immediately
+          const { generateDemoResults } = await import("@/lib/ai/demoData");
+          for (const p of createdPrompts) {
+            const mockResults = generateDemoResults(p.text, domain);
+            await prisma.promptResult.createMany({
+              data: mockResults.map(r => ({
+                promptId: p.id,
+                engine: r.engine,
+                brandMentioned: r.mentioned,
+                mentionPosition: r.position,
+                response: r.snippet,
+              }))
+            });
+          }
+        } else {
+          // Queue prompt runs for real users
+          for (const p of createdPrompts) {
+            try {
+              const { promptQueue } = await import("@/lib/queue");
+              await promptQueue.add("run-prompt", {
+                promptId: p.id,
+                promptText: p.text,
+                projectId: project.id,
+                domain,
+                competitors,
+              });
+            } catch (queueErr) {
+              console.warn("[API] Redis/BullMQ error queuing prompt run:", queueErr);
+            }
+          }
+        }
+
+        // Mark project active
+        await prisma.project.update({
+          where: { id: project.id },
+          data: { status: "active" },
+        });
+      } catch (err) {
+        console.error("[API] Error generating AI prompts for project:", err);
+        // Don't fail the project — mark active anyway
+        await prisma.project.update({
+          where: { id: project.id },
+          data: { status: "active" },
+        }).catch(() => {});
+      }
+    };
+
+    // Fire-and-forget — respond immediately, generation runs in background
+    generateAndSave();
 
     return NextResponse.json({ project }, { status: 201 });
   } catch (error: any) {

@@ -664,7 +664,7 @@ export default async function HomePage() {
       <footer style={{ background: "#1d1d1f", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "32px 24px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-            <Logo className="w-6 h-6" />
+            <Logo className="w-6 h-6" invert />
             <span style={{ fontWeight: 600, fontSize: 14, color: "#fff" }}>Vellor</span>
           </Link>
           <p style={{ fontSize: 13, color: "#6e6e73" }}>© 2025 Vellor. All rights reserved.</p>

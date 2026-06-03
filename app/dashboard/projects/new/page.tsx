@@ -16,5 +16,5 @@ export default async function NewProjectPage() {
 
   const plan = await getUserPlan(userId);
 
-  return <NewProjectClient plan={{ name: plan.name, maxCompetitors: plan.maxCompetitors }} />;
+  return <NewProjectClient plan={{ name: plan.name, maxCompetitors: plan.maxCompetitors, maxPromptsPerProject: plan.maxPromptsPerProject }} />;
 }
