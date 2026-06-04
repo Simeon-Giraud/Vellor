@@ -131,8 +131,8 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
   - Stripe subscription flows, webhooks, and `userState` logic.
   - Database schema, plan limits, and usage tracking.
   - Main dashboard UI with trend charts and recent runs.
+  - Supabase Row Level Security (RLS) policies implemented on all database tables (`users`, `user_preferences`, `projects`, `prompts`, `prompt_results`, `_prisma_migrations`).
 - **Partially implemented**:
-  - Supabase Row Level Security: policies need to be written and applied to all tables (`User`, `Project`, `Prompt`, `PromptResult`, `UserPreferences`).
   - The core AI tracking is structured but uses `setTimeout` and hardcoded strings for the real API calls (marked with TODOs).
   - Background workers exist (`generateWorker`, `promptWorker`) but the actual queue consumption logic relies on the mocked/partially complete AI functions.
 - **Scaffolded but not wired up**:
