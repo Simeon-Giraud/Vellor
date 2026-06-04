@@ -10,3 +10,4 @@
 8. Never hardcode values that belong in environment variables
 9. Check /lib/plans.ts before implementing any feature limits
 10. After any Prisma schema change, run migrate and verify in Supabase MCP
+11.	Read PROJECT_CONTEXT.md sections 15, 16, and 17 specifically before touching onboarding, audit, or competitor features
