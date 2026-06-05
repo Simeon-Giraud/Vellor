@@ -6,7 +6,6 @@ import Sidebar from "@/components/Sidebar";
 import TrialBanner from "@/components/TrialBanner";
 import DemoBanner from "@/components/DemoBanner";
 import { getUserState } from "@/lib/userState";
-import { ThemeProvider } from "@/components/ThemeProvider";
 
 import DashboardLayoutWrapper from "@/components/DashboardLayoutWrapper";
 
@@ -80,17 +79,15 @@ export default async function DashboardLayout({
   }
 
   return (
-    <ThemeProvider>
-      <DashboardLayoutWrapper
-        usageCount={usageCount}
-        usageLimit={usageLimit}
-        planName={planName}
-        projectCount={projectCount}
-        userState={userState}
-        trialEnd={trialEnd}
-      >
-        {children}
-      </DashboardLayoutWrapper>
-    </ThemeProvider>
+    <DashboardLayoutWrapper
+      usageCount={usageCount}
+      usageLimit={usageLimit}
+      planName={planName}
+      projectCount={projectCount}
+      userState={userState}
+      trialEnd={trialEnd}
+    >
+      {children}
+    </DashboardLayoutWrapper>
   );
 }

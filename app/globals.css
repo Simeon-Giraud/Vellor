@@ -207,19 +207,19 @@ button, a, [class*="animate-"], [class*="spin"] {
   to   { transform: translateY(0); }
 }
 .nav-pill {
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--color-sidebar-bg);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--color-card-shadow);
   animation: navSlideDown 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ── Landing cards ── */
 .card-white {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.04);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  box-shadow: var(--color-card-shadow);
   border-radius: 20px;
   transition: box-shadow 240ms ease, transform 240ms var(--ease-spring);
 }
@@ -227,9 +227,12 @@ button, a, [class*="animate-"], [class*="spin"] {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.04);
   transform: translateY(-2px);
 }
+[data-theme="dark"] .card-white:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
 .card-dark {
-  background: #1d1d1f;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
   border-radius: 20px;
 }
 
@@ -249,7 +252,7 @@ button, a, [class*="animate-"], [class*="spin"] {
 /* ── Landing buttons ── */
 .btn-black {
   display: inline-flex; align-items: center; gap: 6px;
-  background: #1d1d1f; color: #fff;
+  background: var(--color-btn-primary-bg); color: var(--color-btn-primary-text);
   font-size: 15px; font-weight: 500;
   padding: 10px 22px; border-radius: 980px; border: none;
   cursor: pointer;
@@ -257,32 +260,63 @@ button, a, [class*="animate-"], [class*="spin"] {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   white-space: nowrap;
 }
-.btn-black:hover { background: #3d3d3f; transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.btn-black:hover { background: var(--color-btn-primary-hover); transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 .btn-black:active { transform: scale(0.97); }
 
 .btn-ghost {
   display: inline-flex; align-items: center; gap: 6px;
-  background: transparent; color: #1d1d1f;
+  background: transparent; color: var(--color-fg);
   font-size: 15px; font-weight: 400;
-  padding: 10px 22px; border-radius: 980px; border: 1px solid rgba(0,0,0,0.14);
+  padding: 10px 22px; border-radius: 980px; border: 1px solid var(--color-border);
   cursor: pointer;
   transition: background 200ms ease, border-color 200ms ease, transform 200ms var(--ease-spring);
   white-space: nowrap;
 }
-.btn-ghost:hover { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.22); transform: scale(1.02); }
+.btn-ghost:hover { background: var(--color-sidebar-hover-bg); border-color: var(--color-border-hover); transform: scale(1.02); }
 .btn-ghost:active { transform: scale(0.97); }
 
 .btn-white {
   display: inline-flex; align-items: center; gap: 6px;
-  background: #fff; color: #1d1d1f;
+  background: var(--color-surface-1); color: var(--color-fg);
   font-size: 15px; font-weight: 500;
-  padding: 10px 22px; border-radius: 980px; border: none;
+  padding: 10px 22px; border-radius: 980px; border: 1px solid var(--color-border);
   cursor: pointer;
   transition: background 200ms ease, transform 200ms var(--ease-spring);
   white-space: nowrap;
 }
-.btn-white:hover { background: #f0f0f0; transform: scale(1.02); }
+.btn-white:hover { background: var(--color-surface-3); transform: scale(1.02); }
 .btn-white:active { transform: scale(0.97); }
+
+/* ── Section classes ── */
+.pricing-section {
+  background: #1d1d1f;
+  color: #ffffff;
+  --pricing-fg: #ffffff;
+  --pricing-fg-muted: #8e8e93;
+  --pricing-fg-subtle: #6e6e73;
+  --pricing-border: rgba(255, 255, 255, 0.2);
+}
+[data-theme="dark"] .pricing-section {
+  background: var(--color-surface-1);
+  color: var(--color-fg);
+  --pricing-fg: var(--color-fg);
+  --pricing-fg-muted: var(--color-fg-muted);
+  --pricing-fg-subtle: var(--color-fg-subtle);
+  --pricing-border: var(--color-border);
+}
+
+.footer-section {
+  background: #1d1d1f;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  --footer-fg: #ffffff;
+  --footer-fg-muted: #6e6e73;
+}
+[data-theme="dark"] .footer-section {
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  --footer-fg: var(--color-fg);
+  --footer-fg-muted: var(--color-fg-muted);
+}
 
 /* ── Fade-up animation ── */
 @keyframes vellorFadeUpAnimation {
@@ -310,12 +344,12 @@ button, a, [class*="animate-"], [class*="spin"] {
 .chip {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 12px; font-weight: 500;
-  color: #6e6e73; background: #f0f0f0;
+  color: var(--color-fg-muted); background: var(--color-surface-3);
   border-radius: 999px; padding: 3px 10px;
 }
 
 /* ── Divider ── */
-.section-divider { height: 1px; background: rgba(0,0,0,0.06); margin: 0 auto; max-width: 1200px; }
+.section-divider { height: 1px; background: var(--color-border); margin: 0 auto; max-width: 1200px; }
 
 /* ── Marquee ── */
 @keyframes marquee {
@@ -326,10 +360,10 @@ button, a, [class*="animate-"], [class*="spin"] {
 .marquee-track:hover { animation-play-state: paused; }
 
 /* ── Landing-specific ── */
-.nav-link { font-size: 14px; color: #6e6e73; text-decoration: none; transition: color 160ms ease; }
-.nav-link:hover { color: #1d1d1f; }
-.footer-link { font-size: 13px; color: #6e6e73; text-decoration: none; transition: color 160ms ease; }
-.footer-link:hover { color: #fff; }
+.nav-link { font-size: 14px; color: var(--color-fg-muted); text-decoration: none; transition: color 160ms ease; }
+.nav-link:hover { color: var(--color-fg); }
+.footer-link { font-size: 13px; color: var(--footer-fg-muted, var(--color-fg-muted)); text-decoration: none; transition: color 160ms ease; }
+.footer-link:hover { color: var(--footer-fg, var(--color-fg)); }
 
 @media (max-width: 768px) {
   .hero-grid { grid-template-columns: 1fr !important; }
