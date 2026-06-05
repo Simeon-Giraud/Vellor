@@ -5,6 +5,8 @@ import { scoreGeoFactors } from "@/lib/ai/gemini";
 import { generateRewrites } from "@/lib/ai/claude";
 import { strictRateLimit } from "@/lib/rateLimit";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const user = await getCurrentDbUser();
