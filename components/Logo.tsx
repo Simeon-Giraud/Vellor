@@ -12,7 +12,7 @@ export function Logo({
   const mixBlendMode = invert === true ? "screen" : invert === false ? "normal" : "var(--logo-blend)";
 
   return (
-    <div className={`relative flex-shrink-0 ${className} overflow-hidden`}>
+    <div className={`relative flex-shrink-0 ${className} overflow-hidden logo-svg transition-transform duration-300`}>
       <Image
         src="/logo.png"
         alt="Vellor Logo"

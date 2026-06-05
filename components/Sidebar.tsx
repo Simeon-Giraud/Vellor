@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "./Logo";
-import { useTheme } from "./ThemeProvider";
 
 // SVG icons — clean, consistent strokeWidth 1.6
 const icons = {
@@ -72,6 +71,7 @@ interface SidebarProps {
   projectCount?: number;
   isCollapsed?: boolean;
   toggleSidebar?: () => void;
+  collapseSidebar?: () => void;
 }
 
 export default function Sidebar({
@@ -81,12 +81,30 @@ export default function Sidebar({
   projectCount = 0,
   isCollapsed = false,
   toggleSidebar,
+  collapseSidebar,
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
-  const { theme, setTheme } = useTheme();
   const [userProfile, setUserProfile] = useState<{name: string, email: string} | null>(null);
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+  const retractTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-retract sidebar when navigating to a new route
+  useEffect(() => {
+    if (!isCollapsed && collapseSidebar) {
+      collapseSidebar();
+    }
+  }, [pathname]);
+
+  // Clean up retract timers on unmount
+  useEffect(() => {
+    return () => {
+      if (retractTimeoutRef.current) {
+        clearTimeout(retractTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     async function loadUser() {
@@ -120,13 +138,54 @@ export default function Sidebar({
 
   return (
     <aside
-      className="fixed inset-y-0 left-0 z-30 flex flex-col transition-all duration-300 ease-in-out"
+      onClick={(e) => {
+        if (isCollapsed && toggleSidebar) {
+          toggleSidebar();
+        }
+      }}
+      onMouseEnter={() => {
+        if (isCollapsed) {
+          setIsSidebarHovered(true);
+        } else {
+          if (retractTimeoutRef.current) {
+            clearTimeout(retractTimeoutRef.current);
+            retractTimeoutRef.current = null;
+          }
+        }
+      }}
+      onMouseLeave={() => {
+        if (isCollapsed) {
+          setIsSidebarHovered(false);
+        } else {
+          if (retractTimeoutRef.current) {
+            clearTimeout(retractTimeoutRef.current);
+          }
+          retractTimeoutRef.current = setTimeout(() => {
+            if (collapseSidebar) collapseSidebar();
+          }, 4000);
+        }
+      }}
+      className={`fixed z-30 flex flex-col transition-all duration-300 ease-in-out ${
+        isCollapsed ? "cursor-pointer" : ""
+      }`}
       style={{
+        top: "16px",
+        bottom: "16px",
+        left: "16px",
         width: isCollapsed ? "72px" : "240px",
         background: "var(--color-sidebar-bg)",
-        borderRight: "1px solid var(--color-sidebar-border)",
+        border: `1px solid ${
+          isCollapsed && isSidebarHovered
+            ? "var(--color-border-hover)"
+            : "var(--color-sidebar-border)"
+        }`,
+        borderRadius: "24px",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
+        boxShadow: isCollapsed && isSidebarHovered
+          ? "0 12px 40px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.04)"
+          : "0 8px 30px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)",
+        transform: isCollapsed && isSidebarHovered ? "scale(1.015)" : "scale(1)",
       }}
     >
       {/* Header: Logo + theme toggle + sidebar collapse */}
@@ -143,38 +202,13 @@ export default function Sidebar({
           )}
         </Link>
 
-        {/* Controls: theme toggle + collapse chevron */}
-        <div className={`flex ${isCollapsed ? "flex-col" : "flex-row"} items-center gap-1.5 shrink-0`}>
-          {/* Theme toggle */}
+        {/* Controls: collapse chevron */}
+        <div className="flex items-center shrink-0">
           <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-1.5 rounded-lg border hover:bg-[var(--color-sidebar-hover-bg)] transition-all duration-300 active:scale-[0.93]"
-            style={{
-              color: "var(--color-fg-muted)",
-              borderColor: "var(--color-sidebar-border)",
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleSidebar && toggleSidebar();
             }}
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {theme === "dark" ? (
-              // Sun icon (click to go light)
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            ) : (
-              // Moon icon (click to go dark)
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-            )}
-          </button>
-
-          {/* Collapse chevron */}
-          <button
-            onClick={toggleSidebar}
             className="p-1.5 rounded-lg border hover:bg-[var(--color-sidebar-hover-bg)] transition-all duration-300 active:scale-[0.93] shrink-0 animate-fade-in"
             style={{
               color: "var(--color-fg-muted)",
@@ -374,7 +408,10 @@ export default function Sidebar({
               {userProfile?.name?.charAt(0).toUpperCase() || "A"}
             </div>
             <button
-              onClick={handleSignOut}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSignOut();
+              }}
               className="p-1.5 rounded-lg transition-colors shrink-0 active:scale-[0.95] hover:bg-[var(--color-sidebar-hover-bg)]"
               style={{ color: "var(--color-fg-muted)" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-fg)")}
@@ -405,7 +442,10 @@ export default function Sidebar({
               </p>
             </div>
             <button
-              onClick={handleSignOut}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSignOut();
+              }}
               className="p-1.5 rounded-lg transition-colors shrink-0 active:scale-[0.95]"
               style={{ color: "var(--color-fg-muted)" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-fg)")}

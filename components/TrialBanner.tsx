@@ -14,11 +14,11 @@ export default function TrialBanner({ trialEnd }: TrialBannerProps) {
   const isUrgent = daysRemaining <= 2;
 
   return (
-    <div className={`w-full px-6 py-2.5 flex items-center justify-between sticky top-0 z-50 backdrop-blur-xl animate-fade-in-down border-b ${isUrgent ? 'bg-red-600/10 border-red-500/20' : 'bg-amber-500/10 border-amber-500/20'}`}>
+    <div className={`mx-6 md:mx-8 mt-6 p-4 flex items-center justify-between animate-fade-in-down rounded-2xl border ${isUrgent ? 'bg-red-500/5 border-red-500/15' : 'bg-amber-500/5 border-amber-500/15'}`}>
       <div className="flex items-center gap-2.5">
         <div className={`w-2 h-2 rounded-full animate-pulse ${isUrgent ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'}`} />
-        <p className={`text-sm font-medium tracking-tight ${isUrgent ? 'text-red-200/90' : 'text-amber-200/90'}`}>
-          Your free trial ends in <span className="font-bold text-white text-[15px] font-mono">{daysRemaining} day{daysRemaining !== 1 ? "s" : ""}</span>. Upgrade to keep full access.
+        <p className={`text-sm font-medium tracking-tight ${isUrgent ? 'text-red-800 dark:text-red-200/90' : 'text-amber-800 dark:text-amber-200/90'}`}>
+          Your free trial ends in <span className={`font-bold text-[15px] font-mono ${isUrgent ? 'text-red-950 dark:text-white' : 'text-amber-950 dark:text-white'}`}>{daysRemaining} day{daysRemaining !== 1 ? "s" : ""}</span>. Upgrade to keep full access.
         </p>
       </div>
       <Link

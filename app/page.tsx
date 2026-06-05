@@ -134,7 +134,7 @@ export default async function HomePage() {
             className="chip"
             style={{ marginBottom: 20 }}
           >
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#34c759", display: "inline-block" }} />
+            <span className="pulse-dot-green" style={{ width: 6, height: 6, borderRadius: "50%", background: "#34c759", display: "inline-block" }} />
             Live across 3 AI engines
           </div>
 
@@ -359,12 +359,14 @@ export default async function HomePage() {
               {[32, 44, 38, 51, 58, 55, 61, 74, 71, 80, 78, 88].map((h, i) => (
                 <div
                   key={i}
+                  className="grow-bar"
                   style={{
                     flex: 1,
                     height: `${h}%`,
                     background: i === 11 ? "#0071e3" : "#e5e5e7",
                     borderRadius: "4px 4px 0 0",
                     transition: "background 200ms ease",
+                    animationDelay: `${i * 30}ms`,
                   }}
                 />
               ))}

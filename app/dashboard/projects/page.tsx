@@ -116,7 +116,7 @@ export default async function ProjectsPage() {
                   >
                     {/* Status dot */}
                     <div
-                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      className={`w-2.5 h-2.5 rounded-full shrink-0 ${project.status === "generating" ? "pulse-dot-yellow" : "pulse-dot-green"}`}
                       style={{ background: project.status === "generating" ? "#f59e0b" : "#10b981" }}
                     />
                     <div className="flex-1 min-w-0">

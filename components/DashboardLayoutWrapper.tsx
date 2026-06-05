@@ -45,6 +45,11 @@ export default function DashboardLayoutWrapper({
     localStorage.setItem("sidebar-collapsed", String(nextState));
   };
 
+  const collapseSidebar = () => {
+    setIsCollapsed(true);
+    localStorage.setItem("sidebar-collapsed", "true");
+  };
+
   return (
     <div className="min-h-screen flex" style={{ background: "var(--color-surface)", color: "var(--color-fg)" }}>
       <Sidebar
@@ -54,14 +59,16 @@ export default function DashboardLayoutWrapper({
         projectCount={projectCount}
         isCollapsed={isCollapsed}
         toggleSidebar={toggleSidebar}
+        collapseSidebar={collapseSidebar}
       />
 
-      {/* Main content area — dynamic margin-left based on sidebar state */}
+      {/* Main content area — stretches behind sidebar with dynamic padding */}
       <div 
-        className="flex-1 min-h-screen flex flex-col relative transition-[margin-left] duration-300 ease-in-out"
+        className="flex-1 min-h-screen flex flex-col relative dashboard-main-content transition-[padding-left] duration-300 ease-in-out"
         style={{ 
-          marginLeft: isMounted ? (isCollapsed ? "72px" : "240px") : "240px" 
-        }}
+          paddingLeft: isMounted ? (isCollapsed ? "104px" : "272px") : "272px",
+          "--sidebar-offset": isMounted ? (isCollapsed ? "104px" : "272px") : "272px"
+        } as React.CSSProperties}
       >
         {userState === "demo" && <DemoBanner />}
         {userState === "trialing" && <TrialBanner trialEnd={trialEnd} />}
