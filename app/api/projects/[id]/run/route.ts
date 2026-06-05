@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { canRunPrompts } from "@/lib/usage";
 import { rateLimit } from "@/lib/rateLimit";
 
+export const dynamic = "force-dynamic";
+
 // POST /api/projects/[id]/run — queue BullMQ job to re-run all prompts
 export async function POST(
   _req: Request,

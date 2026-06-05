@@ -4,6 +4,8 @@ import type { NextRequest } from "next/server";
 const DEV_AUTH_COOKIE = "vellor_dev_auth";
 const DEV_PASSWORD = process.env.DEV_PASSWORD || "vellor2024";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const { password } = body as { password?: string };

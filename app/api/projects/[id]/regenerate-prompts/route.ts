@@ -10,6 +10,8 @@ import { getUserState } from "@/lib/userState";
  * Deletes all existing prompts for the project and generates a fresh AI set
  * based on the user's current plan limit.
  */
+export const dynamic = "force-dynamic";
+
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }

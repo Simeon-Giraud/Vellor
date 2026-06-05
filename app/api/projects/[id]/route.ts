@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserPlan } from "@/lib/usage";
 
+export const dynamic = "force-dynamic";
+
 // PATCH /api/projects/[id] — update project details (brandName, industry, competitors)
 export async function PATCH(
   req: Request,

@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { canCreateProject, getUserPlan } from "@/lib/usage";
 import { getUserState } from "@/lib/userState";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/projects — list all projects for current user
 export async function GET() {
   const dbUser = await getCurrentDbUser();

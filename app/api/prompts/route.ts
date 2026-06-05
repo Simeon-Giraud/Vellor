@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { canAddPrompt, canRunPrompts } from "@/lib/usage";
 import { getUserState } from "@/lib/userState";
 
+export const dynamic = "force-dynamic";
+
 // POST /api/prompts — create prompt and optionally enqueue a run
 export async function POST(req: Request) {
   const dbUser = await getCurrentDbUser();
