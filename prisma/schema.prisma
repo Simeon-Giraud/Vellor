@@ -59,10 +59,12 @@ model Project {
   lastRunAt   DateTime?
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   prompts     Prompt[]
+  runs        ProjectRun[]
 
   @@index([userId])
   @@map("projects")
 }
+
 
 model Prompt {
   id        String          @id @default(cuid())
@@ -98,3 +100,16 @@ model PromptResult {
   @@index([createdAt])
   @@map("prompt_results")
 }
+
+model ProjectRun {
+  id        String   @id @default(cuid())
+  projectId String
+  runType   String   // "scheduled" or "on_demand"
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([createdAt])
+  @@map("project_runs")
+}
+

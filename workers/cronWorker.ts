@@ -2,6 +2,8 @@ import { Worker, Job } from "bullmq";
 import { connection } from "@/lib/queue";
 import { prisma } from "@/lib/prisma";
 import { sendTrialExpiryEmail, sendWeeklyDigestEmail } from "@/lib/email";
+import { getUserPlan } from "@/lib/usage";
+
 
 const worker = new Worker(
   "cron-jobs",
@@ -10,6 +12,7 @@ const worker = new Worker(
 
     if (job.name === "daily-checks") {
       await processTrialExpiries();
+      await processScheduledPromptRuns();
       
       // If today is Monday, send weekly digests
       const today = new Date();
@@ -62,6 +65,95 @@ async function processWeeklyDigests() {
     await sendWeeklyDigestEmail(project.user.email, projectName, summaryHtml);
   }
 }
+
+async function processScheduledPromptRuns() {
+  console.log("[CronWorker] Starting scheduled prompt runs check...");
+  
+  try {
+    const projects = await prisma.project.findMany({
+      include: {
+        user: true,
+        prompts: {
+          select: { id: true, text: true }
+        }
+      }
+    });
+
+    const now = new Date();
+
+    for (const project of projects) {
+      const user = project.user;
+      if (!user) continue;
+
+      const plan = await getUserPlan(user.supabaseId);
+      const runIntervalDays = plan.runIntervalDays;
+
+      const lastRun = project.lastRunAt;
+      let shouldRun = false;
+
+      if (!lastRun) {
+        shouldRun = true;
+      } else {
+        const timeDiff = now.getTime() - lastRun.getTime();
+        const daysDiff = timeDiff / (1000 * 3600 * 24);
+        if (daysDiff >= runIntervalDays) {
+          shouldRun = true;
+        }
+      }
+
+      if (shouldRun) {
+        console.log(`[CronWorker] Project ${project.id} is due for a scheduled run. Last run: ${lastRun}. Plan interval: ${runIntervalDays} days.`);
+        
+        const userState = user.subscriptionStatus || "demo";
+        const isMockMode = process.env.NEXT_PUBLIC_USE_MOCK_AI === "true" || userState === "demo";
+
+        // Create the ProjectRun record for the scheduled run
+        await prisma.projectRun.create({
+          data: {
+            projectId: project.id,
+            runType: "scheduled",
+          },
+        });
+
+        if (isMockMode) {
+          console.log(`[CronWorker] Running mock results for project ${project.id}`);
+          const { executeAndSaveMockResults } = await import("@/lib/ai/mockExecutor");
+          for (const prompt of project.prompts) {
+            await executeAndSaveMockResults(
+              prompt.id,
+              prompt.text,
+              project.domain,
+              project.competitors
+            );
+          }
+          await prisma.project.update({
+            where: { id: project.id },
+            data: { lastRunAt: new Date() },
+          });
+        } else {
+          console.log(`[CronWorker] Queueing real prompt runs for project ${project.id}`);
+          try {
+            const { promptQueue } = await import("@/lib/queue");
+            for (const prompt of project.prompts) {
+              await promptQueue.add("run-prompt", {
+                promptId: prompt.id,
+                promptText: prompt.text,
+                projectId: project.id,
+                domain: project.domain,
+                competitors: project.competitors,
+              });
+            }
+          } catch (queueErr) {
+            console.error(`[CronWorker] Failed to queue jobs for project ${project.id}:`, queueErr);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[CronWorker] Error in processScheduledPromptRuns:", err);
+  }
+}
+
 
 worker.on("completed", (job) => {
   console.log(`[CronWorker] Job ${job.id} completed successfully`);

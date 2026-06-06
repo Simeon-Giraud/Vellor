@@ -38,11 +38,13 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
 ### Database (Supabase + Prisma)
 - **User**: Stores email, Supabase ID, Stripe details, and subscription status. Has a 1-to-1 relation with `UserPreferences` and 1-to-many with `Project`.
 - **UserPreferences**: Stores settings like email alerts and weekly summaries.
-- **Project**: Represents a tracked domain. Stores brand name, industry, competitors, and status.
+- **Project**: Represents a tracked domain. Stores brand name, industry, competitors, status, and 1-to-many relations with `Prompt` and `ProjectRun`.
 - **Prompt**: Individual search queries generated for a project.
 - **PromptResult**: Individual AI engine responses for a prompt, storing the engine used, response text, mention boolean, and ranking position.
+- **ProjectRun**: Logs when a project is executed, storing the execution type (`"scheduled"` or `"on_demand"`).
 - **Indexes**: Applied to `supabaseId`, `stripeCustomerId`, `userId`, `projectId`, and `createdAt` for fast querying.
 - **RLS**: Row Level Security is required on all tables at the Supabase level for security.
+
 
 ### Authentication (Supabase Auth)
 - **Mechanism**: Supabase Auth handles user sessions.
@@ -78,21 +80,22 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
 - **Starter ($39/mo)**
   - Max projects: 5
   - Max prompts per project: 20
-  - Max runs per month: 100
+  - Run limits: weekly scheduled runs (~4/month) + 5 on-demand project runs/month
   - Competitors: 1
   - Data history: 30 days
 - **Growth ($79/mo)**
   - Max projects: 10
   - Max prompts per project: 50
-  - Max runs per month: 500
+  - Run limits: scheduled runs every 3 days (~10/month) + 10 on-demand project runs/month
   - Competitors: 3
   - Data history: 60 days
 - **Pro ($149/mo)**
   - Max projects: Unlimited (Infinity)
   - Max prompts per project: 100
-  - Max runs per month: 1000
+  - Run limits: daily scheduled runs (~30/month) + 25 on-demand project runs/month
   - Competitors: Unlimited (Infinity)
   - Data history: 365 days
+
 
 ## 8. Key Business Decisions & Why
 - **Supabase Auth instead of Clerk**: Provides tight integration with the PostgreSQL database and native Row Level Security.
@@ -129,12 +132,14 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
   - Supabase Authentication and user syncing.
   - Project creation and automated prompt generation (with mock generation paths).
   - Stripe subscription flows, webhooks, and `userState` logic.
-  - Database schema, plan limits, and usage tracking.
+  - Database schema, plan limits, and usage tracking (via ProjectRun on-demand run checks).
+  - Background scheduler in `cronWorker.ts` registering daily midnight checks repeatable job to trigger plan-based prompt runs (weekly/every 3 days/daily).
   - Main dashboard UI with trend charts and recent runs.
   - Supabase Row Level Security (RLS) policies implemented on all database tables (`users`, `user_preferences`, `projects`, `prompts`, `prompt_results`, `_prisma_migrations`).
 - **Partially implemented**:
   - The core AI tracking is structured but uses `setTimeout` and hardcoded strings for the real API calls (marked with TODOs).
-  - Background workers exist (`generateWorker`, `promptWorker`) but the actual queue consumption logic relies on the mocked/partially complete AI functions.
+  - Background workers exist (`generateWorker`, `promptWorker`, `cronWorker`) but the actual queue consumption logic relies on the mocked/partially complete AI functions.
+
 - **Scaffolded but not wired up**:
   - The Content Audit feature (`/app/dashboard/audit/page.tsx`) just redirects back to projects.
   - The Reports feature (`/app/dashboard/reports/page.tsx` exists but is minimal).

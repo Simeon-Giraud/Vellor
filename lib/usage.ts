@@ -46,13 +46,34 @@ export async function getRemainingRuns(supabaseUserId: string): Promise<number> 
     return 9999;
   }
   const plan = await getUserPlan(supabaseUserId);
-  const count = await prisma.promptResult.count({
+  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const count = await prisma.projectRun.count({
     where: {
-      prompt: { project: { user: { supabaseId: supabaseUserId } } },
-      createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
+      project: { user: { supabaseId: supabaseUserId } },
+      runType: "on_demand",
+      createdAt: { gte: startOfMonth }
     }
   });
-  return Math.max(0, plan.maxRunsPerMonth - count);
+  return Math.max(0, plan.maxOnDemandRunsPerMonth - count);
+}
+
+export async function getUserUsage(supabaseUserId: string): Promise<{ usageCount: number; usageLimit: number }> {
+  const plan = await getUserPlan(supabaseUserId);
+  if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true") {
+    return { usageCount: 0, usageLimit: plan.maxOnDemandRunsPerMonth };
+  }
+  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const count = await prisma.projectRun.count({
+    where: {
+      project: { user: { supabaseId: supabaseUserId } },
+      runType: "on_demand",
+      createdAt: { gte: startOfMonth }
+    }
+  });
+  return {
+    usageCount: count,
+    usageLimit: plan.maxOnDemandRunsPerMonth
+  };
 }
 
 export async function canRunPrompts(supabaseUserId: string): Promise<boolean> {
@@ -61,6 +82,7 @@ export async function canRunPrompts(supabaseUserId: string): Promise<boolean> {
   }
   return (await getRemainingRuns(supabaseUserId)) > 0;
 }
+
 
 export async function getHistoryCutoff(supabaseUserId: string): Promise<Date> {
   const plan = await getUserPlan(supabaseUserId);

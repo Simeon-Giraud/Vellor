@@ -34,4 +34,21 @@ export const cronQueue = new Queue("cron-jobs", {
   },
 });
 
+// Setup repeatable job for daily checks (running every day at midnight)
+if (typeof window === "undefined") {
+  cronQueue.add(
+    "daily-checks",
+    {},
+    {
+      repeat: {
+        pattern: "0 0 * * *", // midnight
+      },
+      jobId: "daily-checks-repeat",
+    }
+  ).catch((err) => {
+    console.error("[Queue] Failed to register repeatable daily-checks:", err);
+  });
+}
+
 export { connection };
+

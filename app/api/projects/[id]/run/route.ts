@@ -43,6 +43,15 @@ export async function POST(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    // Record the on-demand run
+    await prisma.projectRun.create({
+      data: {
+        projectId: id,
+        runType: "on_demand",
+      },
+    });
+
+
     if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true") {
       const { executeAndSaveMockResults } = await import("@/lib/ai/mockExecutor");
       for (const prompt of project.prompts) {
