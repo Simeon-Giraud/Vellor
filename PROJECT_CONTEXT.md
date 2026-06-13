@@ -230,3 +230,19 @@ The planned content audit flow:
 
 ## 17. Competitor Tracking Mechanism
 The same tracking prompts are run for both the user’s domain and each competitor domain. Results are stored separately per domain. The competitor comparison view shows side-by-side mention rates, position rankings, and trend deltas across all 3 engines.
+
+## 18. Dashboard UI/UX & Layout Guidelines
+- **Theme Constraints**: The platform is locked to **Light Mode** (`data-theme="light"` forced in `ThemeProvider.tsx`). The dashboard sidebar is locked to **Dark Mode** (completely pitch black `#000000` background) via CSS overrides in `.main-sidebar` in `globals.css` and inline styles in `Sidebar.tsx`.
+- **Canvas Layout**: The main dashboard area (`.dashboard-main-content`) is styled as a floating white canvas layered over the black sidebar, featuring `borderTopLeftRadius: "24px"`, `borderBottomLeftRadius: "24px"`, and a drop shadow (`boxShadow: "-8px 0 32px rgba(0, 0, 0, 0.08)"`).
+- **Scrolling Behavior**: Scrolling is contained at the viewport level. The outer parent container is locked to `h-screen overflow-hidden` and the `.dashboard-main-content` container is set to `h-screen overflow-y-auto overflow-x-hidden`. This keeps the rounded bottom-left corner fixed exactly at the bottom of the screen viewport as content scrolls internally.
+- **Sidebar Drag & Navigation**:
+  - The sidebar collapses to `72px` and expands to `240px` via dragging or clicking.
+  - To prevent snap-back and click propagation, a timestamp debouncer (`lastDragTimeRef`) is used.
+  - If the sidebar is collapsed, navigation clicks on the icons change pages without expanding the sidebar (`target.closest("a")` and `target.closest("button")` checks in the aside `onClick` handler).
+  - There are no visible vertical borders/divider lines on the sidebar or its hover handle.
+- **Profile Customization & Real-time Sync**:
+  - Profile metadata (`fullName` and `avatarUrl`) is editable under the settings profile tab, updating both Prisma via `/api/settings/profile` and Supabase Auth metadata.
+  - Avatars support 6 premium gradient presets or a custom image URL.
+  - The sidebar subscribes to `supabase.auth.onAuthStateChange` to listen for `"USER_UPDATED"` events, updating the sidebar avatar and name in real-time without page reloads.
+  - A dedicated sign out section is available in the profile tab.
+

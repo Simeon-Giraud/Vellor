@@ -43,7 +43,8 @@ const icons = {
   ),
   settings: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   ),
   logout: (
@@ -92,7 +93,41 @@ export default function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
-  const [userProfile, setUserProfile] = useState<{name: string, email: string} | null>(null);
+  const [userProfile, setUserProfile] = useState<{name: string, email: string, avatarUrl: string} | null>(null);
+  const renderAvatar = (url: string | undefined, name: string, className: string = "w-8 h-8 text-sm") => {
+    const initials = name.charAt(0).toUpperCase() || "A";
+    if (url && url.startsWith("linear-gradient")) {
+      return (
+        <div
+          className={`${className} rounded-full flex items-center justify-center font-bold text-white shadow-md`}
+          style={{ background: url }}
+        >
+          {initials}
+        </div>
+      );
+    }
+    if (url && (url.startsWith("http") || url.startsWith("/"))) {
+      return (
+        <img
+          src={url}
+          alt="Avatar"
+          className={`${className} rounded-full object-cover`}
+        />
+      );
+    }
+    return (
+      <div
+        className={`${className} rounded-full flex items-center justify-center font-bold`}
+        style={{
+          background: "var(--color-avatar-bg)",
+          border: "1px solid var(--color-avatar-border)",
+          color: "var(--color-fg)",
+        }}
+      >
+        {initials}
+      </div>
+    );
+  };
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const retractTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -219,11 +254,26 @@ export default function Sidebar({
       if (user) {
         setUserProfile({
           name: user.user_metadata?.full_name || "Account",
-          email: user.email || ""
+          email: user.email || "",
+          avatarUrl: user.user_metadata?.avatar_url || ""
         });
       }
     }
     loadUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUserProfile({
+          name: session.user.user_metadata?.full_name || "Account",
+          email: session.user.email || "",
+          avatarUrl: session.user.user_metadata?.avatar_url || ""
+        });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [supabase]);
 
   useEffect(() => {
@@ -543,17 +593,13 @@ export default function Sidebar({
       >
         {isCollapsed ? (
           <div className="flex flex-col items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
-              style={{
-                background: "var(--color-avatar-bg)",
-                border: "1px solid var(--color-avatar-border)",
-                color: "var(--color-fg)",
-              }}
+            <Link
+              href="/dashboard/settings"
+              className="transition-all active:scale-[0.95] hover:opacity-80 shrink-0"
               title={`${userProfile?.name || "Account"} (${userProfile?.email || ""})`}
             >
-              {userProfile?.name?.charAt(0).toUpperCase() || "A"}
-            </div>
+              {renderAvatar(userProfile?.avatarUrl, userProfile?.name || "A", "w-8 h-8 text-xs")}
+            </Link>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -570,24 +616,20 @@ export default function Sidebar({
           </div>
         ) : (
           <div className="flex items-center gap-3 px-2">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
-              style={{
-                background: "var(--color-avatar-bg)",
-                border: "1px solid var(--color-avatar-border)",
-                color: "var(--color-fg)",
-              }}
+            <Link
+              href="/dashboard/settings"
+              className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
             >
-              {userProfile?.name?.charAt(0).toUpperCase() || "A"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium truncate" style={{ color: "var(--color-fg)" }}>
-                {userProfile?.name || "Account"}
-              </p>
-              <p className="text-[11px] truncate" style={{ color: "var(--color-fg-muted)" }}>
-                {userProfile?.email || ""}
-              </p>
-            </div>
+              {renderAvatar(userProfile?.avatarUrl, userProfile?.name || "Account", "w-8 h-8 text-sm")}
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-medium truncate" style={{ color: "var(--color-fg)" }}>
+                  {userProfile?.name || "Account"}
+                </p>
+                <p className="text-[11px] truncate" style={{ color: "var(--color-fg-muted)" }}>
+                  {userProfile?.email || ""}
+                </p>
+              </div>
+            </Link>
             <button
               onClick={(e) => {
                 e.stopPropagation();
