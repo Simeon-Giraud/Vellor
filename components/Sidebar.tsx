@@ -99,6 +99,7 @@ export default function Sidebar({
   const asideRef = useRef<HTMLElement | null>(null);
   const isFirstRender = useRef(true);
   const dragOccurredRef = useRef(false);
+  const lastDragTimeRef = useRef(0);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -158,6 +159,7 @@ export default function Sidebar({
       const wasClick = Math.abs(deltaX) < 4;
 
       if (!wasClick) {
+        lastDragTimeRef.current = Date.now();
         // State-aware snapping based on drag direction and relative movement (threshold: 30px)
         const dragThreshold = 30;
         let shouldCollapse = isCollapsed;
@@ -252,6 +254,19 @@ export default function Sidebar({
     <aside
       ref={asideRef}
       onClick={(e) => {
+        // Prevent toggling the sidebar when clicking navigation links or buttons
+        const target = e.target as HTMLElement;
+        if (target.closest("a") || target.closest("button")) {
+          return;
+        }
+        if (Date.now() - lastDragTimeRef.current < 200) {
+          dragOccurredRef.current = false;
+          return;
+        }
+        if (dragOccurredRef.current) {
+          dragOccurredRef.current = false;
+          return;
+        }
         if (isCollapsed && toggleSidebar) {
           toggleSidebar();
         }
@@ -266,7 +281,7 @@ export default function Sidebar({
           setIsSidebarHovered(false);
         }
       }}
-      className={`transition-[width] duration-300 ease-in-out ${
+      className={`main-sidebar transition-[width] duration-300 ease-in-out ${
         isCollapsed ? "cursor-pointer" : ""
       }`}
       style={{
@@ -279,20 +294,34 @@ export default function Sidebar({
         left: 0,
         height: "100vh",
         width: "var(--sidebar-width)",
-        background: "var(--color-sidebar-bg)",
-        overflow: "visible",
-        borderRight: `1px solid ${
-          isCollapsed && isSidebarHovered
-            ? "var(--color-border-hover)"
-            : "var(--color-sidebar-border)"
-        }`,
+        background: "#000000",
+        borderRight: "none",
         borderRadius: 0,
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        boxShadow: isCollapsed && isSidebarHovered
-          ? "4px 0 24px rgba(0, 0, 0, 0.08)"
-          : "1px 0 5px rgba(0, 0, 0, 0.02)",
-      }}
+        boxShadow: "none",
+        // CSS custom property overrides for dark theme children inside the sidebar
+        "--color-sidebar-bg": "#000000",
+        "--color-sidebar-border": "rgba(255, 255, 255, 0.08)",
+        "--color-sidebar-active-bg": "rgba(255, 255, 255, 0.10)",
+        "--color-sidebar-active-border": "rgba(255, 255, 255, 0.16)",
+        "--color-sidebar-active-text": "#ffffff",
+        "--color-sidebar-text": "#94a3b8",
+        "--color-sidebar-hover-bg": "rgba(255, 255, 255, 0.05)",
+        "--color-fg": "#ffffff",
+        "--color-fg-muted": "#94a3b8",
+        "--color-fg-subtle": "#64748b",
+        "--color-border": "rgba(255, 255, 255, 0.08)",
+        "--color-border-hover": "rgba(255, 255, 255, 0.16)",
+        "--color-input-bg": "rgba(255, 255, 255, 0.06)",
+        "--color-input-border": "rgba(255, 255, 255, 0.1)",
+        "--color-btn-primary-bg": "#ffffff",
+        "--color-btn-primary-text": "#000000",
+        "--color-avatar-bg": "rgba(255, 255, 255, 0.12)",
+        "--color-avatar-border": "rgba(255, 255, 255, 0.15)",
+        "--color-usage-fill": "rgba(255, 255, 255, 0.7)",
+        "--color-usage-track": "rgba(255, 255, 255, 0.08)",
+        "--logo-filter": "invert(1)",
+        "--logo-blend": "screen",
+      } as React.CSSProperties}
     >
       {/* Header: Logo + theme toggle + sidebar collapse */}
       <div className={`px-4 pt-5 pb-4 flex ${isCollapsed ? "flex-col items-center gap-2" : "items-center justify-between"}`}>
@@ -424,7 +453,10 @@ export default function Sidebar({
           title={`${planName} plan: ${usageCount} / ${usageLimit} (${Math.round(usagePct)}%)${
             userState === "trialing" && daysRemaining !== null ? ` · Trial: ${daysRemaining}d left` : ""
           }`}
-          onClick={() => router.push("/dashboard/settings")}
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push("/dashboard/settings");
+          }}
         >
           <span className="text-[9px] font-bold uppercase tracking-wider text-center" style={{ color: "var(--color-fg-muted)" }}>
             {planName[0]}
@@ -573,11 +605,14 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Hover handle on the separation border to expand/retract */}
       <div
         onMouseDown={handleMouseDown}
         onClick={(e) => {
           e.stopPropagation();
+          if (Date.now() - lastDragTimeRef.current < 200) {
+            dragOccurredRef.current = false;
+            return;
+          }
           if (dragOccurredRef.current) {
             dragOccurredRef.current = false;
             return;
@@ -595,20 +630,7 @@ export default function Sidebar({
           zIndex: 9999,
         }}
         title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        <div 
-          style={{
-            position: "absolute",
-            top: 0,
-            bottom: 0,
-            left: "50%",
-            width: "2px",
-            transform: "translateX(-50%)",
-            backgroundColor: "var(--color-border-hover)",
-          }}
-          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-        />
-      </div>
+      />
     </aside>
   );
 }

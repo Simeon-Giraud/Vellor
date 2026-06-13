@@ -514,4 +514,39 @@ a:hover .logo-svg {
   transform-origin: left;
 }
 
+/* Force Sidebar to always be in dark mode with a completely black background */
+.main-sidebar {
+  background-color: #000000 !important;
+  transition: width 300ms ease-in-out !important;
+  
+  --color-sidebar-bg: #000000 !important;
+  --color-sidebar-border: rgba(255, 255, 255, 0.08) !important;
+  --color-sidebar-active-bg: rgba(255, 255, 255, 0.10) !important;
+  --color-sidebar-active-border: rgba(255, 255, 255, 0.16) !important;
+  --color-sidebar-active-text: #ffffff !important;
+  --color-sidebar-text: #94a3b8 !important;
+  --color-sidebar-hover-bg: rgba(255, 255, 255, 0.05) !important;
+  
+  --color-fg: #ffffff !important;
+  --color-fg-muted: #94a3b8 !important;
+  --color-fg-subtle: #64748b !important;
+  --color-border: rgba(255, 255, 255, 0.08) !important;
+  --color-border-hover: rgba(255, 255, 255, 0.16) !important;
+  
+  --color-input-bg: rgba(255, 255, 255, 0.06) !important;
+  --color-input-border: rgba(255, 255, 255, 0.1) !important;
+  
+  --color-btn-primary-bg: #ffffff !important;
+  --color-btn-primary-text: #000000 !important;
+  
+  --color-avatar-bg: rgba(255, 255, 255, 0.12) !important;
+  --color-avatar-border: rgba(255, 255, 255, 0.15) !important;
+  
+  --color-usage-fill: rgba(255, 255, 255, 0.7) !important;
+  --color-usage-track: rgba(255, 255, 255, 0.08) !important;
+  
+  --logo-filter: invert(1) !important;
+  --logo-blend: screen !important;
+}
+
 

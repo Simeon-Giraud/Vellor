@@ -56,9 +56,9 @@ export default function DashboardLayoutWrapper({
 
   return (
     <div 
-      className="min-h-screen flex" 
+      className="h-screen flex overflow-hidden" 
       style={{ 
-        background: "var(--color-surface)", 
+        background: "#000000", 
         color: "var(--color-fg)",
         "--sidebar-width": isMounted ? (isCollapsed ? "72px" : "240px") : "240px"
       } as React.CSSProperties}
@@ -76,12 +76,18 @@ export default function DashboardLayoutWrapper({
         trialEnd={trialEnd}
       />
 
-      {/* Main content area — aligned next to the docked sidebar with dynamic margin */}
+      {/* Main content area — aligned next to the docked sidebar with dynamic margin & rounded left corners */}
       <div 
-        className="flex-1 min-h-screen flex flex-col relative dashboard-main-content transition-[margin-left] duration-300 ease-in-out"
+        className="flex-1 h-screen flex flex-col relative dashboard-main-content transition-[margin-left,border-radius] duration-300 ease-in-out"
         style={{ 
           marginLeft: "var(--sidebar-width)",
-          "--sidebar-offset": "var(--sidebar-width)"
+          "--sidebar-offset": "var(--sidebar-width)",
+          background: "var(--color-surface)",
+          borderTopLeftRadius: "24px",
+          borderBottomLeftRadius: "24px",
+          overflowY: "auto",
+          overflowX: "hidden",
+          boxShadow: "-8px 0 32px rgba(0, 0, 0, 0.08)"
         } as React.CSSProperties}
       >
         {userState === "demo" && <DemoBanner />}

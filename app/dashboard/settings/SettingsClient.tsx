@@ -399,64 +399,6 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
           {/* TAB 3: PREFERENCES */}
           {activeTab === "preferences" && (
             <div className="space-y-6">
-              {/* Theme Preferences */}
-              <div className="dash-card rounded-2xl p-6 md:p-8">
-                <h3 className="text-lg font-semibold tracking-tight mb-2 text-[var(--color-fg)]">Theme Settings</h3>
-                <p className="text-sm text-[var(--color-fg-muted)] mb-6">Select your preferred user interface color scheme.</p>
-                
-                <div className="flex flex-col sm:flex-row gap-4">
-                  {/* Light */}
-                  <button
-                    onClick={() => setTheme("light")}
-                    className="flex-1 flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-[160ms] active:scale-[0.98]"
-                    style={{
-                      background: theme === "light" ? "var(--color-surface-3)" : "var(--color-surface-2)",
-                      borderColor: theme === "light" ? "var(--color-fg)" : "var(--color-border)",
-                    }}
-                  >
-                    <div className="w-10 h-10 rounded-lg border border-black/10 flex flex-col gap-1 p-1.5 overflow-hidden shrink-0 bg-[#f5f5f7]">
-                      <div className="bg-white h-1.5 rounded-sm" />
-                      <div className="bg-[#e5e5e7] h-1 rounded-sm w-[70%]" />
-                      <div className="bg-[#e5e5e7] h-1 rounded-sm w-[50%]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[var(--color-fg)]">Light theme</p>
-                      <p className="text-xs text-[var(--color-fg-muted)]">Clean editorial style</p>
-                    </div>
-                    {theme === "light" && (
-                      <svg className="ml-auto shrink-0 text-[var(--color-fg)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M20 6 9 17l-5-5" />
-                      </svg>
-                    )}
-                  </button>
-
-                  {/* Dark */}
-                  <button
-                    onClick={() => setTheme("dark")}
-                    className="flex-1 flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-[160ms] active:scale-[0.98]"
-                    style={{
-                      background: theme === "dark" ? "var(--color-surface-3)" : "var(--color-surface-2)",
-                      borderColor: theme === "dark" ? "var(--color-fg)" : "var(--color-border)",
-                    }}
-                  >
-                    <div className="w-10 h-10 rounded-lg border border-white/10 flex flex-col gap-1 p-1.5 overflow-hidden shrink-0 bg-[#111118]">
-                      <div className="bg-[#1a1a24] h-1.5 rounded-sm" />
-                      <div className="bg-[#22222e] h-1 rounded-sm w-[70%]" />
-                      <div className="bg-[#22222e] h-1 rounded-sm w-[50%]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[var(--color-fg)]">Dark theme</p>
-                      <p className="text-xs text-[var(--color-fg-muted)]">Easy eye strain relief</p>
-                    </div>
-                    {theme === "dark" && (
-                      <svg className="ml-auto shrink-0 text-[var(--color-fg)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M20 6 9 17l-5-5" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              </div>
-
               {/* Notification Toggles */}
               <div className="dash-card rounded-2xl p-6 md:p-8">
                 <h3 className="text-lg font-semibold tracking-tight mb-2 text-[var(--color-fg)]">Notification Preferences</h3>
