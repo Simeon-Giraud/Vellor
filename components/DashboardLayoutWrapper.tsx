@@ -14,6 +14,7 @@ interface DashboardLayoutWrapperProps {
   projectCount: number;
   userState: string;
   trialEnd: string | null;
+  hasSeenWelcome: boolean;
   children: React.ReactNode;
 }
 
@@ -24,6 +25,7 @@ export default function DashboardLayoutWrapper({
   projectCount,
   userState,
   trialEnd,
+  hasSeenWelcome,
   children,
 }: DashboardLayoutWrapperProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -90,10 +92,12 @@ export default function DashboardLayoutWrapper({
           boxShadow: "-8px 0 32px rgba(0, 0, 0, 0.08)"
         } as React.CSSProperties}
       >
-        {userState === "demo" && <DemoBanner />}
-        {userState === "past_due" && <PastDueBanner />}
-        {userState === "canceled" && <CanceledOverlay />}
+        {userState === "demo" && hasSeenWelcome && <DemoBanner />}
+        {userState === "past_due" && hasSeenWelcome && <PastDueBanner />}
+        {userState === "canceled" && hasSeenWelcome && <CanceledOverlay />}
         {children}
+        {/* Bottom spacer to prevent content from touching the bottom edge of the screen */}
+        {hasSeenWelcome && <div className="h-16 shrink-0 w-full" />}
       </div>
     </div>
   );

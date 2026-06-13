@@ -28,6 +28,7 @@ export default async function DashboardLayout({
   let planName = "Starter";
   let trialEnd: string | null = null;
   let projectCount = 0;
+  let hasSeenWelcome = true;
 
   try {
     const user = await prisma.user.findUnique({
@@ -35,6 +36,7 @@ export default async function DashboardLayout({
       select: {
         stripePriceId: true,
         trialEndsAt: true,
+        hasSeenWelcome: true,
         _count: {
           select: { projects: true },
         },
@@ -44,6 +46,7 @@ export default async function DashboardLayout({
     if (user) {
       trialEnd = user.trialEndsAt ? user.trialEndsAt.toISOString() : null;
       projectCount = user._count.projects;
+      hasSeenWelcome = user.hasSeenWelcome;
 
       // Determine plan name from price ID
       const priceId = user.stripePriceId;
@@ -71,6 +74,7 @@ export default async function DashboardLayout({
       projectCount={projectCount}
       userState={userState}
       trialEnd={trialEnd}
+      hasSeenWelcome={hasSeenWelcome}
     >
       <Suspense><DashboardNotice /></Suspense>
       {children}
