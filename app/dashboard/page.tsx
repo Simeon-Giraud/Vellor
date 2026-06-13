@@ -5,10 +5,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { getHistoryCutoff } from "@/lib/usage";
+import { PLANS } from "@/lib/plans";
+import { getProjectDetailData } from "@/lib/projects";
+import ProjectDetailClient from "./projects/[id]/ProjectDetailClient";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import TrendChart from "@/components/TrendChart";
-import DashboardNotice from "@/components/DashboardNotice";
 
 export const metadata: Metadata = { title: "Dashboard — Vellor" };
 
@@ -51,49 +52,96 @@ async function getDashboardData(supabaseId: string) {
   try {
     const user = await prisma.user.findUnique({
       where: { supabaseId },
-      select: { id: true },
+      select: { id: true, stripePriceId: true, subscriptionStatus: true },
     });
 
     if (!user) return null;
 
-    const cutoff = await getHistoryCutoff(supabaseId);
+    let plan: typeof PLANS[keyof typeof PLANS] = PLANS.starter;
+    if (user.subscriptionStatus !== "inactive") {
+      if (user.stripePriceId === process.env.STRIPE_PRO_PRICE_ID) plan = PLANS.pro;
+      else if (user.stripePriceId === process.env.STRIPE_GROWTH_PRICE_ID) plan = PLANS.growth;
+    }
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - plan.dataHistoryDays);
 
-    const projects = await prisma.project.findMany({
-      where: { userId: user.id },
-      include: {
-        prompts: {
-          include: {
-            results: {
-              where: { createdAt: { gte: cutoff } },
-              orderBy: { createdAt: "desc" },
-            },
-          },
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    const [projects, allRecentResults, enginesUsed, recentRuns] = await Promise.all([
+      prisma.project.findMany({
+        where: { userId: user.id },
+        select: {
+          id: true,
+          domain: true,
+          status: true,
+          competitors: true,
+          prompts: {
+            select: {
+              id: true,
+              results: {
+                where: { createdAt: { gte: cutoff } },
+                orderBy: { createdAt: "desc" },
+                select: {
+                  id: true,
+                  brandMentioned: true,
+                  createdAt: true,
+                }
+              }
+            }
+          }
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.promptResult.findMany({
+        where: {
+          prompt: { project: { userId: user.id } },
+          createdAt: { gte: fourteenDaysAgo },
+        },
+        select: {
+          createdAt: true,
+          brandMentioned: true,
+        },
+      }),
+      prisma.promptResult.findMany({
+        where: { prompt: { project: { userId: user.id } } },
+        select: { engine: true },
+        distinct: ["engine"],
+      }),
+      prisma.promptResult.findMany({
+        where: { 
+          prompt: { project: { userId: user.id } },
+          createdAt: { gte: cutoff }
+        },
+        select: {
+          engine: true,
+          brandMentioned: true,
+          mentionPosition: true,
+          createdAt: true,
+          prompt: { select: { text: true } }
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+    ]);
 
-    const totalResults = await prisma.promptResult.count({
-      where: { 
-        prompt: { project: { userId: user.id } },
-        createdAt: { gte: cutoff }
-      },
-    });
+    let totalResults = 0;
+    let mentionedResults = 0;
+    let promptsRun = 0;
 
-    const promptsRun = await prisma.prompt.count({
-      where: {
-        project: { userId: user.id },
-        results: { some: { createdAt: { gte: cutoff } } },
-      },
-    });
-
-    const mentionedResults = await prisma.promptResult.count({
-      where: {
-        prompt: { project: { userId: user.id } },
-        brandMentioned: true,
-        createdAt: { gte: cutoff }
-      },
-    });
+    for (const p of projects) {
+      for (const pr of p.prompts) {
+        if (pr.results.length > 0) {
+          promptsRun++;
+        }
+        totalResults += pr.results.length;
+        for (const r of pr.results) {
+          if (r.brandMentioned) {
+            mentionedResults++;
+          }
+        }
+      }
+    }
 
     const avgMentionRate = totalResults > 0
       ? Math.round((mentionedResults / totalResults) * 1000) / 10
@@ -102,21 +150,12 @@ async function getDashboardData(supabaseId: string) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const recentResults = await prisma.promptResult.findMany({
-      where: {
-        prompt: { project: { userId: user.id } },
-        createdAt: { gte: sevenDaysAgo },
-      },
-      select: { createdAt: true, brandMentioned: true },
-      orderBy: { createdAt: "asc" },
-    });
-
     const dailyData: { day: string; rate: number; total: number; mentioned: number }[] = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const dayStr = date.toISOString().slice(0, 10);
-      const dayResults = recentResults.filter(
+      const dayResults = allRecentResults.filter(
         (r) => r.createdAt.toISOString().slice(0, 10) === dayStr
       );
       const dayMentioned = dayResults.filter((r) => r.brandMentioned).length;
@@ -128,21 +167,14 @@ async function getDashboardData(supabaseId: string) {
       });
     }
 
-    const thisWeekRate = avgMentionRate;
-    const prevWeekResults = await prisma.promptResult.findMany({
-      where: {
-        prompt: { project: { userId: user.id } },
-        createdAt: {
-          gte: new Date(new Date().setDate(new Date().getDate() - 14)),
-          lt: sevenDaysAgo,
-        },
-      },
-      select: { brandMentioned: true },
+    const prevWeekResults = allRecentResults.filter(r => {
+      const d = new Date(r.createdAt);
+      return d >= fourteenDaysAgo && d < sevenDaysAgo;
     });
     const prevTotal = prevWeekResults.length;
     const prevMentioned = prevWeekResults.filter((r) => r.brandMentioned).length;
     const prevRate = prevTotal > 0 ? Math.round((prevMentioned / prevTotal) * 1000) / 10 : 0;
-    const weeklyDelta = Math.round((thisWeekRate - prevRate) * 10) / 10;
+    const weeklyDelta = Math.round((avgMentionRate - prevRate) * 10) / 10;
 
     const projectStats = projects.map((p) => {
       const allResults = p.prompts.flatMap((pr) => pr.results);
@@ -151,9 +183,12 @@ async function getDashboardData(supabaseId: string) {
         ? Math.round((pMentioned / allResults.length) * 1000) / 10
         : 0;
 
-      const thisWeekProjectResults = allResults.filter((r) => r.createdAt >= sevenDaysAgo);
+      const thisWeekProjectResults = allResults.filter((r) => new Date(r.createdAt) >= sevenDaysAgo);
       const prevWeekProjectResults = allResults.filter(
-        (r) => r.createdAt < sevenDaysAgo && r.createdAt >= new Date(new Date().setDate(new Date().getDate() - 14))
+        (r) => {
+          const d = new Date(r.createdAt);
+          return d < sevenDaysAgo && d >= fourteenDaysAgo;
+        }
       );
       const twRate = thisWeekProjectResults.length > 0
         ? (thisWeekProjectResults.filter((r) => r.brandMentioned).length / thisWeekProjectResults.length) * 100
@@ -172,25 +207,9 @@ async function getDashboardData(supabaseId: string) {
         mentionRate: pRate,
         trend: delta >= 0 ? "up" as const : "down" as const,
         trendValue: `${delta >= 0 ? "+" : ""}${delta}%`,
-        lastRun: lastResult ? getRelativeTime(lastResult.createdAt) : "Never",
+        lastRun: lastResult ? getRelativeTime(new Date(lastResult.createdAt)) : "Never",
         status: p.status,
       };
-    });
-
-    const enginesUsed = await prisma.promptResult.findMany({
-      where: { prompt: { project: { userId: user.id } } },
-      select: { engine: true },
-      distinct: ["engine"],
-    });
-
-    const recentRuns = await prisma.promptResult.findMany({
-      where: { 
-        prompt: { project: { userId: user.id } },
-        createdAt: { gte: cutoff }
-      },
-      include: { prompt: { select: { text: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 10,
     });
 
     return {
@@ -207,10 +226,11 @@ async function getDashboardData(supabaseId: string) {
         engine: r.engine === "CHATGPT" ? "ChatGPT" : r.engine === "GEMINI" ? "Gemini" : "Perplexity",
         mentioned: r.brandMentioned,
         position: r.mentionPosition,
-        time: getRelativeTime(r.createdAt),
+        time: getRelativeTime(new Date(r.createdAt)),
       })),
     };
-  } catch {
+  } catch (err) {
+    console.error("[getDashboardData] Error:", err);
     return null;
   }
 }
@@ -228,7 +248,11 @@ function getRelativeTime(date: Date): string {
 
 import WelcomeScreen from "./WelcomeScreen";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ notice?: string }>;
+}) {
   const dbUser = await getCurrentDbUser();
   const userId = dbUser?.supabaseId;
   if (!userId) redirect("/");
@@ -244,11 +268,30 @@ export default async function DashboardPage() {
 
   const data = await getDashboardData(userId);
 
+  // If there's exactly 1 project, render the project details directly under /dashboard
+  if (data && data.totalProjects === 1 && data.projects[0]) {
+    const projectDetailData = await getProjectDetailData(data.projects[0].id, dbUser.supabaseId);
+    if (projectDetailData) {
+      return (
+        <ProjectDetailClient
+          project={projectDetailData.project}
+          prompts={projectDetailData.prompts}
+          chartData={projectDetailData.chartData}
+          competitorData={projectDetailData.competitorData}
+          planLimit={projectDetailData.planLimit}
+          planName={projectDetailData.planName}
+          maxCompetitors={projectDetailData.maxCompetitors}
+          myTrend={projectDetailData.myTrend}
+          isDashboardRoot={true}
+        />
+      );
+    }
+  }
+
   // Empty state
   if (!data || data.totalProjects === 0) {
     return (
       <div className="flex-1 flex flex-col">
-        <Suspense><DashboardNotice /></Suspense>
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center max-w-sm animate-fade-in-up">
             <div
@@ -281,8 +324,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex-1">
-      <Suspense><DashboardNotice /></Suspense>
-
       {/* Header */}
       <header
         className="sticky top-0 z-20 px-6 md:px-8 py-4 flex items-center justify-between backdrop-blur-xl border-b"

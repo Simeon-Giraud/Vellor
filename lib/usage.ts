@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { PLANS } from "./plans";
+import { cache } from "react";
 
-export async function getUserPlan(supabaseUserId: string) {
+export const getUserPlan = cache(async (supabaseUserId: string) => {
   const user = await prisma.user.findUnique({
     where: { supabaseId: supabaseUserId },
     select: { stripePriceId: true, subscriptionStatus: true }
@@ -13,7 +14,7 @@ export async function getUserPlan(supabaseUserId: string) {
   if (user.stripePriceId === process.env.STRIPE_GROWTH_PRICE_ID) return PLANS.growth;
   
   return PLANS.starter;
-}
+});
 
 export async function canCreateProject(supabaseUserId: string): Promise<boolean> {
   const plan = await getUserPlan(supabaseUserId);

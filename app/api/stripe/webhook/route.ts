@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+import { sendTrialExpiryEmail } from '@/lib/email'
 import Stripe from 'stripe'
 
 
@@ -95,11 +96,30 @@ export async function POST(req: Request) {
       case 'customer.subscription.trial_will_end': {
         const sub = event.data.object as Stripe.Subscription
         const customerId = sub.customer as string
+        const trialEnd = sub.trial_end ? sub.trial_end * 1000 : Date.now() + 3 * 24 * 60 * 60 * 1000
+        const trialEndsAt = new Date(trialEnd)
+
         await prisma.user.updateMany({
           where: { stripeCustomerId: customerId },
-          data: { trialEndsAt: new Date(sub.trial_end ? sub.trial_end * 1000 : Date.now() + 3 * 24 * 60 * 60 * 1000) },
+          data: { trialEndsAt },
         })
-        // TODO: Trigger a notification (e.g., email) to the user that their trial is ending
+
+        // Find the user to get their email and preferences
+        const user = await prisma.user.findFirst({
+          where: { stripeCustomerId: customerId },
+          include: { preferences: true },
+        })
+
+        if (user && user.email) {
+          if (!user.preferences || user.preferences.emailAlerts) {
+            const daysLeft = Math.ceil((trialEnd - Date.now()) / (1000 * 3600 * 24))
+            const daysCount = daysLeft > 0 ? daysLeft : 3
+            await sendTrialExpiryEmail(user.email, daysCount)
+          } else {
+            console.log(`[webhook] User ${user.email} disabled trial expiry email alerts.`)
+          }
+        }
+
         console.log(`[webhook] Trial ending soon for customer ${customerId}`)
         break
       }

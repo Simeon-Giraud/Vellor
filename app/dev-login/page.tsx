@@ -81,8 +81,8 @@ function DevLoginClient() {
           position: absolute;
           inset: 0;
           background:
-            radial-gradient(ellipse 60% 40% at 50% 0%, rgba(120, 80, 255, 0.12) 0%, transparent 60%),
-            radial-gradient(ellipse 40% 30% at 80% 80%, rgba(80, 140, 255, 0.06) 0%, transparent 50%);
+            radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255, 255, 255, 0.04) 0%, transparent 60%),
+            radial-gradient(ellipse 40% 30% at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
           pointer-events: none;
         }
 
@@ -214,9 +214,9 @@ function DevLoginClient() {
         }
 
         input[type="password"]:focus {
-          border-color: rgba(139,92,246,0.5);
-          background: rgba(255,255,255,0.07);
-          box-shadow: 0 0 0 3px rgba(139,92,246,0.12);
+          border-color: rgba(255, 255, 255, 0.35);
+          background: rgba(255, 255, 255, 0.07);
+          box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
         }
 
         .input-error input[type="password"] {
@@ -240,21 +240,23 @@ function DevLoginClient() {
         button[type="submit"] {
           width: 100%;
           padding: 12px;
-          background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+          background: #fff;
           border: none;
           border-radius: 10px;
           font-size: 14px;
           font-weight: 500;
           font-family: inherit;
-          color: #fff;
+          color: #080808;
           cursor: pointer;
-          transition: opacity 0.2s, transform 0.1s;
+          transition: background-color 0.2s, opacity 0.2s, transform 0.1s;
           position: relative;
           overflow: hidden;
-          box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 0 4px 12px rgba(109,40,217,0.3);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 4px 12px rgba(255, 255, 255, 0.05);
         }
 
-        button[type="submit"]:hover:not(:disabled) { opacity: 0.9; }
+        button[type="submit"]:hover:not(:disabled) {
+          background: #eaeaea;
+        }
         button[type="submit"]:active:not(:disabled) { transform: scale(0.985); }
         button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
 

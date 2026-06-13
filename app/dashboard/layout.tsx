@@ -3,10 +3,11 @@ import { getCurrentDbUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
-import TrialBanner from "@/components/TrialBanner";
 import DemoBanner from "@/components/DemoBanner";
 import { getUserState } from "@/lib/userState";
 import { getUserUsage } from "@/lib/usage";
+import { Suspense } from "react";
+import DashboardNotice from "@/components/DashboardNotice";
 
 import DashboardLayoutWrapper from "@/components/DashboardLayoutWrapper";
 
@@ -71,6 +72,7 @@ export default async function DashboardLayout({
       userState={userState}
       trialEnd={trialEnd}
     >
+      <Suspense><DashboardNotice /></Suspense>
       {children}
     </DashboardLayoutWrapper>
   );

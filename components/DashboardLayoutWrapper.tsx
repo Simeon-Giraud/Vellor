@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import DemoBanner from "./DemoBanner";
 
-import TrialBanner from "./TrialBanner";
 import PastDueBanner from "./PastDueBanner";
 import CanceledOverlay from "./CanceledOverlay";
 
@@ -50,8 +49,20 @@ export default function DashboardLayoutWrapper({
     localStorage.setItem("sidebar-collapsed", "true");
   };
 
+  const expandSidebar = () => {
+    setIsCollapsed(false);
+    localStorage.setItem("sidebar-collapsed", "false");
+  };
+
   return (
-    <div className="min-h-screen flex" style={{ background: "var(--color-surface)", color: "var(--color-fg)" }}>
+    <div 
+      className="min-h-screen flex" 
+      style={{ 
+        background: "var(--color-surface)", 
+        color: "var(--color-fg)",
+        "--sidebar-width": isMounted ? (isCollapsed ? "72px" : "240px") : "240px"
+      } as React.CSSProperties}
+    >
       <Sidebar
         usageCount={usageCount}
         usageLimit={usageLimit}
@@ -60,18 +71,20 @@ export default function DashboardLayoutWrapper({
         isCollapsed={isCollapsed}
         toggleSidebar={toggleSidebar}
         collapseSidebar={collapseSidebar}
+        expandSidebar={expandSidebar}
+        userState={userState}
+        trialEnd={trialEnd}
       />
 
-      {/* Main content area — stretches behind sidebar with dynamic padding */}
+      {/* Main content area — aligned next to the docked sidebar with dynamic margin */}
       <div 
-        className="flex-1 min-h-screen flex flex-col relative dashboard-main-content transition-[padding-left] duration-300 ease-in-out"
+        className="flex-1 min-h-screen flex flex-col relative dashboard-main-content transition-[margin-left] duration-300 ease-in-out"
         style={{ 
-          paddingLeft: isMounted ? (isCollapsed ? "104px" : "272px") : "272px",
-          "--sidebar-offset": isMounted ? (isCollapsed ? "104px" : "272px") : "272px"
+          marginLeft: "var(--sidebar-width)",
+          "--sidebar-offset": "var(--sidebar-width)"
         } as React.CSSProperties}
       >
         {userState === "demo" && <DemoBanner />}
-        {userState === "trialing" && <TrialBanner trialEnd={trialEnd} />}
         {userState === "past_due" && <PastDueBanner />}
         {userState === "canceled" && <CanceledOverlay />}
         {children}

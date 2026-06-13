@@ -514,18 +514,4 @@ a:hover .logo-svg {
   transform-origin: left;
 }
 
-/* ── Dashboard elements stretching behind the floating sidebar ── */
-.dashboard-main-content header.sticky {
-  margin-left: calc(-1 * var(--sidebar-offset, 0px)) !important;
-  width: calc(100% + var(--sidebar-offset, 0px)) !important;
-  padding-left: calc(var(--sidebar-offset, 0px) + 1.5rem) !important;
-  transition: margin-left 300ms ease-in-out, 
-              padding-left 300ms ease-in-out, 
-              width 300ms ease-in-out;
-}
 
-@media (min-width: 768px) {
-  .dashboard-main-content header.sticky {
-    padding-left: calc(var(--sidebar-offset, 0px) + 2rem) !important;
-  }
-}

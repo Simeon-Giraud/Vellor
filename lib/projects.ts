@@ -1,11 +1,5 @@
-import { getCurrentDbUser } from "@/lib/auth";
-import { redirect, notFound } from "next/navigation";
-import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getHistoryCutoff, getUserPlan } from "@/lib/usage";
-import ProjectDetailClient from "./ProjectDetailClient";
-
-export const metadata: Metadata = { title: "Project Details — Vellor" };
 
 const ENGINE_LABELS: Record<string, string> = {
   CHATGPT: "ChatGPT",
@@ -13,43 +7,26 @@ const ENGINE_LABELS: Record<string, string> = {
   PERPLEXITY: "Perplexity",
 };
 
-export default async function ProjectDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const dbUser = await getCurrentDbUser();
-  const userId = dbUser?.supabaseId;
-  if (!dbUser || !userId) redirect("/");
+export async function getProjectDetailData(projectId: string, supabaseUserId: string) {
+  const cutoff = await getHistoryCutoff(supabaseUserId);
+  const plan = await getUserPlan(supabaseUserId);
 
-  const { id } = await params;
-
-  let project;
-  let plan;
-  try {
-    const cutoff = await getHistoryCutoff(userId);
-    plan = await getUserPlan(userId);
-
-    project = await prisma.project.findFirst({
-      where: { id, userId: dbUser.id },
-      include: {
-        prompts: {
-          include: {
-            results: {
-              where: { createdAt: { gte: cutoff } },
-              orderBy: { createdAt: "desc" },
-            },
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, user: { supabaseId: supabaseUserId } },
+    include: {
+      prompts: {
+        include: {
+          results: {
+            where: { createdAt: { gte: cutoff } },
+            orderBy: { createdAt: "desc" },
           },
-          orderBy: { createdAt: "desc" },
         },
+        orderBy: { createdAt: "desc" },
       },
-    });
-  } catch (error) {
-    console.error("[ProjectPage] Database error:", error);
-    project = null;
-  }
+    },
+  });
 
-  if (!project || !plan) notFound();
+  if (!project) return null;
 
   // Compute stats for charts
   const allResults = project.prompts.flatMap((p) => p.results);
@@ -144,16 +121,14 @@ export default async function ProjectDetailPage({
     })),
   }));
 
-  return (
-    <ProjectDetailClient
-      project={serializedProject}
-      prompts={serializedPrompts}
-      chartData={chartData}
-      competitorData={competitorData}
-      planLimit={plan.maxPromptsPerProject}
-      planName={plan.name}
-      maxCompetitors={plan.maxCompetitors}
-      myTrend={myTrend}
-    />
-  );
+  return {
+    project: serializedProject,
+    prompts: serializedPrompts,
+    chartData,
+    competitorData,
+    planLimit: plan.maxPromptsPerProject,
+    planName: plan.name,
+    maxCompetitors: plan.maxCompetitors,
+    myTrend,
+  };
 }

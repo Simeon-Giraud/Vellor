@@ -28,6 +28,9 @@ async function processTrialExpiries() {
   const users = await prisma.user.findMany({
     where: {
       stripeSubscriptionId: { not: null },
+    },
+    include: {
+      preferences: true,
     }
   });
   
@@ -35,6 +38,12 @@ async function processTrialExpiries() {
   
   for (const user of users) {
     if (!user.trialEndsAt) continue;
+    
+    // Respect email alert preference
+    if (user.preferences && !user.preferences.emailAlerts) {
+      console.log(`[CronWorker] Skipping trial expiry email for ${user.email} (disabled in preferences)`);
+      continue;
+    }
     
     const timeDiff = user.trialEndsAt.getTime() - now.getTime();
     const daysUntilExpiry = Math.ceil(timeDiff / (1000 * 3600 * 24));
@@ -50,7 +59,11 @@ async function processTrialExpiries() {
 async function processWeeklyDigests() {
   const projects = await prisma.project.findMany({
     include: {
-      user: true,
+      user: {
+        include: {
+          preferences: true,
+        }
+      },
       prompts: {
         include: { results: { take: 1, orderBy: { createdAt: "desc" } } }
       }
@@ -59,6 +72,13 @@ async function processWeeklyDigests() {
 
   for (const project of projects) {
     if (!project.user.email) continue;
+    
+    // Respect weekly summary preference
+    const preferences = project.user.preferences;
+    if (preferences && !preferences.weeklySummary) {
+      console.log(`[CronWorker] Skipping weekly digest email for ${project.user.email} (disabled in preferences)`);
+      continue;
+    }
     
     const summaryHtml = `<p>Your project has ${project.prompts.length} tracked prompts.</p>`;
     const projectName = project.brandName || project.domain;

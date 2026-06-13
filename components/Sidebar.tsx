@@ -72,6 +72,9 @@ interface SidebarProps {
   isCollapsed?: boolean;
   toggleSidebar?: () => void;
   collapseSidebar?: () => void;
+  expandSidebar?: () => void;
+  userState?: string;
+  trialEnd?: string | null;
 }
 
 export default function Sidebar({
@@ -82,16 +85,118 @@ export default function Sidebar({
   isCollapsed = false,
   toggleSidebar,
   collapseSidebar,
+  expandSidebar,
+  userState = "demo",
+  trialEnd = null,
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
   const [userProfile, setUserProfile] = useState<{name: string, email: string} | null>(null);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+  const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const retractTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const asideRef = useRef<HTMLElement | null>(null);
+  const isFirstRender = useRef(true);
+  const dragOccurredRef = useRef(false);
 
-  // Auto-retract sidebar when navigating to a new route
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const aside = asideRef.current;
+    if (!aside) return;
+
+    const wrapper = aside.parentElement;
+    if (!wrapper) return;
+
+    const mainContent = document.querySelector(".dashboard-main-content") as HTMLElement;
+    const startWidth = aside.offsetWidth;
+    let newWidth = startWidth;
+
+    dragOccurredRef.current = false;
+
+    // Temporarily disable transitions for instant response during drag
+    aside.style.transition = "none";
+    if (mainContent) {
+      mainContent.style.transition = "none";
+    }
+
+    // Disable text selection during drag
+    document.body.style.userSelect = "none";
+    document.body.style.webkitUserSelect = "none";
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      if (Math.abs(deltaX) >= 4) {
+        dragOccurredRef.current = true;
+      }
+      newWidth = Math.max(72, Math.min(320, startWidth + deltaX));
+      
+      wrapper.style.setProperty("--sidebar-width", `${newWidth}px`);
+    };
+
+    const handleMouseUp = (upEvent: MouseEvent) => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+
+      // Restore transitions and user select styles
+      aside.style.transition = "";
+      if (mainContent) {
+        mainContent.style.transition = "";
+      }
+
+      // Force style reflow to guarantee transitions are registered in sync by the layout engine
+      aside.offsetHeight;
+      if (mainContent) {
+        mainContent.offsetHeight;
+      }
+
+      document.body.style.userSelect = "";
+      document.body.style.webkitUserSelect = "";
+
+      const deltaX = upEvent.clientX - startX;
+      const wasClick = Math.abs(deltaX) < 4;
+
+      if (!wasClick) {
+        // State-aware snapping based on drag direction and relative movement (threshold: 30px)
+        const dragThreshold = 30;
+        let shouldCollapse = isCollapsed;
+
+        if (isCollapsed) {
+          // If currently collapsed, expand to 240px if dragged to the right by more than threshold
+          if (deltaX > dragThreshold) {
+            shouldCollapse = false;
+          }
+        } else {
+          // If currently extended, collapse to 72px if dragged to the left by more than threshold
+          if (deltaX < -dragThreshold) {
+            shouldCollapse = true;
+          }
+        }
+
+        const targetWidth = shouldCollapse ? 72 : 240;
+
+        // Set elements to their target snaps so they transition smoothly
+        wrapper.style.setProperty("--sidebar-width", `${targetWidth}px`);
+
+        if (shouldCollapse) {
+          if (collapseSidebar) collapseSidebar();
+        } else {
+          if (expandSidebar) expandSidebar();
+        }
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  // Auto-retract sidebar when navigating to a new route (ignore initial mount)
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     if (!isCollapsed && collapseSidebar) {
       collapseSidebar();
     }
@@ -119,6 +224,13 @@ export default function Sidebar({
     loadUser();
   }, [supabase]);
 
+  useEffect(() => {
+    if (trialEnd) {
+      const remaining = Math.max(0, Math.ceil((new Date(trialEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+      setDaysRemaining(remaining);
+    }
+  }, [trialEnd]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push("/sign-in");
@@ -138,6 +250,7 @@ export default function Sidebar({
 
   return (
     <aside
+      ref={asideRef}
       onClick={(e) => {
         if (isCollapsed && toggleSidebar) {
           toggleSidebar();
@@ -146,46 +259,39 @@ export default function Sidebar({
       onMouseEnter={() => {
         if (isCollapsed) {
           setIsSidebarHovered(true);
-        } else {
-          if (retractTimeoutRef.current) {
-            clearTimeout(retractTimeoutRef.current);
-            retractTimeoutRef.current = null;
-          }
         }
       }}
       onMouseLeave={() => {
         if (isCollapsed) {
           setIsSidebarHovered(false);
-        } else {
-          if (retractTimeoutRef.current) {
-            clearTimeout(retractTimeoutRef.current);
-          }
-          retractTimeoutRef.current = setTimeout(() => {
-            if (collapseSidebar) collapseSidebar();
-          }, 4000);
         }
       }}
-      className={`fixed z-30 flex flex-col transition-all duration-300 ease-in-out ${
+      className={`transition-[width] duration-300 ease-in-out ${
         isCollapsed ? "cursor-pointer" : ""
       }`}
       style={{
-        top: "16px",
-        bottom: "16px",
-        left: "16px",
-        width: isCollapsed ? "72px" : "240px",
+        position: "fixed",
+        zIndex: 100,
+        display: "flex",
+        flexDirection: "column",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        height: "100vh",
+        width: "var(--sidebar-width)",
         background: "var(--color-sidebar-bg)",
-        border: `1px solid ${
+        overflow: "visible",
+        borderRight: `1px solid ${
           isCollapsed && isSidebarHovered
             ? "var(--color-border-hover)"
             : "var(--color-sidebar-border)"
         }`,
-        borderRadius: "24px",
+        borderRadius: 0,
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         boxShadow: isCollapsed && isSidebarHovered
-          ? "0 12px 40px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.04)"
-          : "0 8px 30px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)",
-        transform: isCollapsed && isSidebarHovered ? "scale(1.015)" : "scale(1)",
+          ? "4px 0 24px rgba(0, 0, 0, 0.08)"
+          : "1px 0 5px rgba(0, 0, 0, 0.02)",
       }}
     >
       {/* Header: Logo + theme toggle + sidebar collapse */}
@@ -315,7 +421,9 @@ export default function Sidebar({
             background: "var(--color-input-bg)",
             border: "1px solid var(--color-border)",
           }}
-          title={`${planName} plan: ${usageCount} / ${usageLimit} (${Math.round(usagePct)}%)`}
+          title={`${planName} plan: ${usageCount} / ${usageLimit} (${Math.round(usagePct)}%)${
+            userState === "trialing" && daysRemaining !== null ? ` · Trial: ${daysRemaining}d left` : ""
+          }`}
           onClick={() => router.push("/dashboard/settings")}
         >
           <span className="text-[9px] font-bold uppercase tracking-wider text-center" style={{ color: "var(--color-fg-muted)" }}>
@@ -365,20 +473,27 @@ export default function Sidebar({
             />
           </div>
 
-          {planName !== "Pro" && (
-            <Link
-              href="/dashboard/settings"
-              className="mt-3.5 flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-[12px] font-semibold transition-all duration-[160ms] ease-out active:scale-[0.96]"
-              style={{
-                background: "var(--color-btn-primary-bg)",
-                color: "var(--color-btn-primary-text)",
-              }}
-            >
-              Upgrade
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M7 17L17 7M17 7H7M17 7V17" />
-              </svg>
-            </Link>
+          {userState === "trialing" && daysRemaining !== null ? (
+            <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] font-medium" style={{ color: "var(--color-fg-muted)" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 animate-pulse" />
+              Trial: {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} left
+            </p>
+          ) : (
+            planName !== "Pro" && (
+              <Link
+                href="/dashboard/settings"
+                className="mt-3.5 flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-[12px] font-semibold transition-all duration-[160ms] ease-out active:scale-[0.96]"
+                style={{
+                  background: "var(--color-btn-primary-bg)",
+                  color: "var(--color-btn-primary-text)",
+                }}
+              >
+                Upgrade
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 17L17 7M17 7H7M17 7V17" />
+                </svg>
+              </Link>
+            )
           )}
 
           {isWarning && planName === "Pro" && (
@@ -456,6 +571,43 @@ export default function Sidebar({
             </button>
           </div>
         )}
+      </div>
+
+      {/* Hover handle on the separation border to expand/retract */}
+      <div
+        onMouseDown={handleMouseDown}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (dragOccurredRef.current) {
+            dragOccurredRef.current = false;
+            return;
+          }
+          if (toggleSidebar) toggleSidebar();
+        }}
+        className="group"
+        style={{
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          right: "-6px",
+          width: "12px",
+          cursor: "ew-resize",
+          zIndex: 9999,
+        }}
+        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        <div 
+          style={{
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: "50%",
+            width: "2px",
+            transform: "translateX(-50%)",
+            backgroundColor: "var(--color-border-hover)",
+          }}
+          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        />
       </div>
     </aside>
   );

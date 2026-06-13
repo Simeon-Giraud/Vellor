@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
+import { cache } from 'react'
 
 export type UserState =
   | 'demo'      // signed up, no card, mock data only
@@ -37,7 +38,7 @@ async function syncSubscriptionWithStripe(supabaseId: string, stripeCustomerId: 
   return null
 }
 
-export async function getUserState(supabaseId: string): Promise<UserState> {
+export const getUserState = cache(async (supabaseId: string): Promise<UserState> => {
   const user = await prisma.user.findUnique({
     where: { supabaseId },
     select: {
@@ -65,4 +66,4 @@ export async function getUserState(supabaseId: string): Promise<UserState> {
   if (status === 'canceled') return 'canceled'
   
   return 'demo'
-}
+})

@@ -40,6 +40,7 @@ interface ProjectDetailClientProps {
   planName: string;
   maxCompetitors: number;
   myTrend: number;
+  isDashboardRoot?: boolean;
 }
 
 const ENGINE_LABELS: Record<string, string> = {
@@ -111,6 +112,7 @@ export default function ProjectDetailClient({
   planName,
   maxCompetitors,
   myTrend,
+  isDashboardRoot = false,
 }: ProjectDetailClientProps) {
   const router = useRouter();
   const [project, setProject] = useState<Project>(initialProject);
@@ -467,13 +469,15 @@ RECOMMENDATIONS:
         style={{ background: "var(--color-header-bg)", borderColor: "var(--color-header-border)" }}
       >
         <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/projects"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] transition-[background-color,color] duration-[160ms] ease-out"
-            style={{ background: "var(--color-surface-2)" }}
-          >
-            <IconBack />
-          </Link>
+          {!isDashboardRoot && (
+            <Link
+              href="/dashboard/projects"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] transition-[background-color,color] duration-[160ms] ease-out"
+              style={{ background: "var(--color-surface-2)" }}
+            >
+              <IconBack />
+            </Link>
+          )}
           <div>
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot" />

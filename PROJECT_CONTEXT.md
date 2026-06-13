@@ -136,6 +136,9 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
   - Background scheduler in `cronWorker.ts` registering daily midnight checks repeatable job to trigger plan-based prompt runs (weekly/every 3 days/daily).
   - Main dashboard UI with trend charts and recent runs.
   - Supabase Row Level Security (RLS) policies implemented on all database tables (`users`, `user_preferences`, `projects`, `prompts`, `prompt_results`, `_prisma_migrations`).
+  - Email sending service via **Resend** (with mock fallback in development and preferences checks).
+  - Trial expiry notifications and weekly email digest trigger logic (respecting user preferences).
+  - Test email API route at `/api/settings/test-email`.
 - **Partially implemented**:
   - The core AI tracking is structured but uses `setTimeout` and hardcoded strings for the real API calls (marked with TODOs).
   - Background workers exist (`generateWorker`, `promptWorker`, `cronWorker`) but the actual queue consumption logic relies on the mocked/partially complete AI functions.
@@ -145,12 +148,10 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
   - The Reports feature (`/app/dashboard/reports/page.tsx` exists but is minimal).
 - **Planned but not started yet**:
   - GDPR compliance (legally required — France/EU): privacy policy, cookie consent banner, data export, account deletion. Plan to use Iubenda.
-  - Email sending service (not yet chosen — candidates: Resend, SendGrid): needed for weekly reports and trial expiry notifications.
   - Rate limiting on AI routes using Upstash Redis + `@upstash/ratelimit`.
   - Sentry error monitoring.
   - Annual billing option (2 months free).
   - Referral program.
-  - Weekly email digest reports.
   - Slack notifications for mention rate drops.
   - Shareable public report URLs.
   - Chrome extension.
@@ -185,12 +186,19 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
 - **Naming Conventions**: `camelCase` for variables and functions, `PascalCase` for React components. Files are named consistently (e.g., `userState.ts`, `WelcomeScreen.tsx`).
 
 ## 13. Installed Skills
-List the Antigravity skills installed and when to use each:
-- **UI-UX-PRO-MAX** → all UI work, layout, spacing, hierarchy
-- **taste-skill** → visual design decisions, color, typography
-- **Emile Kowalski** → animations, micro-interactions, loading states
-- **Stripe docs** → all Stripe integration work
-- **Supabase MCP** → direct database inspection and queries
+List of active local skills in this project and when to use each:
+- [ui-ux-pro-max](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/ui-ux-pro-max/SKILL.md) → all UI work, layout, spacing, hierarchy
+- [design-taste-frontend](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/design-taste-frontend/SKILL.md) → visual design decisions, color, typography
+- [emil-design-eng](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/emil-design-eng/SKILL.md) → animations, micro-interactions, loading states
+- [high-end-visual-design](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/high-end-visual-design/SKILL.md) → premium agency-grade visual design standards
+- [minimalist-ui](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/minimalist-ui/SKILL.md) → clean layouts, typography contrast, muted palettes
+- [redesign-existing-projects](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/redesign-existing-projects/SKILL.md) → upgrading existing views/components to premium standards
+- [stripe-best-practices](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/stripe-best-practices/SKILL.md) → general Stripe integration rules
+- [stripe-projects](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/stripe-projects/SKILL.md) → Stripe setup and developer workflow
+- [upgrade-stripe](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/upgrade-stripe/SKILL.md) → Stripe API upgrades and compatibility
+- [supabase](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/supabase/SKILL.md) → Supabase schema, client, and authentication best practices
+- [supabase-postgres-best-practices](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/supabase-postgres-best-practices/SKILL.md) → database schema and query optimization
+- [full-output-enforcement](file:///Users/Simeon/Documents/Website/Vellor/.agents/skills/full-output-enforcement/SKILL.md) → ensures complete, unabridged code output generation
 
 ## 14. Important Notes & Gotchas
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` to the client.
