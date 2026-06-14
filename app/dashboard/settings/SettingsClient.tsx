@@ -24,7 +24,7 @@ interface SettingsClientProps {
   };
 }
 
-type TabId = "profile" | "billing" | "preferences" | "developer" | "danger";
+type TabId = "profile" | "billing" | "preferences" | "danger";
 
 export default function SettingsClient({ profile, plan, preferences: initialPrefs }: SettingsClientProps) {
   const router = useRouter();
@@ -124,41 +124,14 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
     }
   };
 
-  // API Key Access
-  const [keyVisible, setKeyVisible] = useState(false);
-  const [copiedKey, setCopiedKey] = useState(false);
-  const [apiKey, setApiKey] = useState("vellor_live_a1b2c3d4e5f6g7h8i9j0");
-  const displayKey = keyVisible ? apiKey : "vellor_live_••••••••••••••••";
-
-  const handleCopyKey = () => {
-    navigator.clipboard.writeText(apiKey);
-    setCopiedKey(true);
-    setTimeout(() => setCopiedKey(false), 2000);
-  };
-
   // Modals visibility state
   const [showManageAccountModal, setShowManageAccountModal] = useState(false);
-  const [showRegenModal, setShowRegenModal] = useState(false);
   const [showDeleteProjectsModal, setShowDeleteProjectsModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
 
   // Modal Inputs for confirmation validation
   const [deleteProjectsConfirmText, setDeleteProjectsConfirmText] = useState("");
   const [deleteAccountConfirmEmail, setDeleteAccountConfirmEmail] = useState("");
-
-  // Actions with custom feedback
-  const [regenLoading, setRegenLoading] = useState(false);
-  const handleRegenKey = async () => {
-    setRegenLoading(true);
-    // Simulate API Key generation delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    const randomHex = Array.from({ length: 20 }, () =>
-      Math.floor(Math.random() * 16).toString(16)
-    ).join("");
-    setApiKey(`vellor_live_${randomHex}`);
-    setRegenLoading(false);
-    setShowRegenModal(false);
-  };
 
   const [deleteProjectsLoading, setDeleteProjectsLoading] = useState(false);
   const handleDeleteProjects = async () => {
@@ -231,17 +204,6 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="3" />
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>
-      ),
-    },
-    {
-      id: "developer" as TabId,
-      label: "API Access",
-      desc: "Access credentials and regenerate key token",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="16 18 22 12 16 6" />
-          <polyline points="8 6 2 12 8 18" />
         </svg>
       ),
     },
@@ -640,58 +602,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
             </div>
           )}
 
-          {/* TAB 4: API ACCESS */}
-          {activeTab === "developer" && (
-            <div className="space-y-6">
-              <div className="dash-card rounded-2xl p-6 md:p-8">
-                <h3 className="text-lg font-semibold tracking-tight mb-2 text-[var(--color-fg)]">Developer API Access</h3>
-                <p className="text-sm text-[var(--color-fg-muted)] mb-6">Integrate GEO visibility analytics directly into your custom pipeline trackers.</p>
-                
-                <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                  <div className="relative flex-1">
-                    <input
-                      type="text"
-                      readOnly
-                      value={displayKey}
-                      className="w-full rounded-lg py-2.5 pl-4 pr-12 font-mono text-xs focus:outline-none border bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-fg)]"
-                    />
-                    <button
-                      onClick={() => setKeyVisible(!keyVisible)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] transition-colors"
-                      aria-label="Toggle visibility"
-                    >
-                      {keyVisible ? (
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
-                      ) : (
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                      )}
-                    </button>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleCopyKey}
-                      className="px-4 py-2.5 rounded-lg border text-xs font-semibold transition-[background-color,transform] duration-[160ms] ease-out active:scale-[0.97] bg-[var(--color-surface-2)] border-[var(--color-border)] hover:bg-[var(--color-surface-3)] text-[var(--color-fg)]"
-                    >
-                      {copiedKey ? "Copied!" : "Copy key"}
-                    </button>
-                    <button
-                      onClick={() => setShowRegenModal(true)}
-                      className="px-4 py-2.5 rounded-lg border text-xs font-semibold transition-[background-color,transform] duration-[160ms] ease-out active:scale-[0.97] bg-[var(--color-surface-2)] border-[var(--color-border)] hover:bg-[var(--color-surface-3)] text-[var(--color-fg)]"
-                    >
-                      Regenerate
-                    </button>
-                  </div>
-                </div>
 
-                <div className="p-4 rounded-xl border bg-[var(--color-surface-2)]/40 border-[var(--color-border)]">
-                  <h4 className="text-xs font-bold text-[var(--color-fg)] uppercase tracking-wide mb-2">Security warning</h4>
-                  <p className="text-xs text-[var(--color-fg-muted)] leading-relaxed">
-                    Treat your API token with extreme confidentiality. Do not store it in client-side repositories or public codebases. If compromised, regenerate the key instantly to invalidate all external requests.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* TAB 5: DANGER ZONE */}
           {activeTab === "danger" && (
@@ -771,41 +682,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
         </div>
       )}
 
-      {/* CUSTOM MODAL 2: REGENERATE KEY CONFIRMATION */}
-      {showRegenModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
-          <div className="dash-card max-w-md w-full p-6 mx-4 rounded-2xl shadow-2xl animate-fade-in-up border border-[var(--color-border)] bg-[var(--color-sidebar-bg)] backdrop-blur-lg">
-            <h4 className="text-lg font-bold text-[var(--color-fg)] mb-3 flex items-center gap-2">
-              <svg className="text-amber-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-              Regenerate API Key?
-            </h4>
-            <p className="text-xs text-[var(--color-fg-muted)] leading-relaxed mb-6">
-              This will immediately invalidate your active API key. Any external services or integrations using your old credentials will encounter authentication failures immediately. This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowRegenModal(false)}
-                disabled={regenLoading}
-                className="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-[160ms] ease-out border border-[var(--color-border)] hover:bg-[var(--color-surface-2)] text-[var(--color-fg)] active:scale-[0.97] disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleRegenKey}
-                disabled={regenLoading}
-                className="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-[160ms] ease-out bg-[var(--color-fg)] text-[var(--color-bg)] hover:opacity-90 active:scale-[0.97] flex items-center gap-2 disabled:opacity-50"
-              >
-                {regenLoading && <span className="w-3.5 h-3.5 border-2 rounded-full animate-spin border-transparent border-t-current" />}
-                {regenLoading ? "Regenerating..." : "Confirm Regeneration"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* CUSTOM MODAL 3: DELETE ALL PROJECTS CONFIRMATION */}
       {showDeleteProjectsModal && (
