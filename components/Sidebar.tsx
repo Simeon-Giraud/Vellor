@@ -331,7 +331,7 @@ export default function Sidebar({
           setIsSidebarHovered(false);
         }
       }}
-      className={`main-sidebar hidden md:flex transition-[width] duration-300 ease-in-out ${
+      className={`main-sidebar hidden md:flex transition-[width] duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
         isCollapsed ? "cursor-pointer" : ""
       }`}
       style={{
@@ -377,21 +377,19 @@ export default function Sidebar({
       <div className={`px-4 pt-5 pb-4 flex ${isCollapsed ? "flex-col items-center gap-2" : "items-center justify-between"}`}>
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
           <Logo className="w-10 h-10 transition-transform duration-[160ms] ease-out group-active:scale-[0.95]" />
-          {!isCollapsed && (
-            <div className="flex items-center gap-2">
-              <span
-                className="text-[15px] font-semibold tracking-tight whitespace-nowrap"
-                style={{ color: "var(--color-fg)" }}
-              >
-                Vellor
+          <div className={`flex items-center gap-2 transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${isCollapsed ? "opacity-0 max-w-0 scale-95 pointer-events-none overflow-hidden" : "opacity-100 max-w-[120px] scale-100"}`}>
+            <span
+              className="text-[15px] font-semibold tracking-tight whitespace-nowrap"
+              style={{ color: "var(--color-fg)" }}
+            >
+              Vellor
+            </span>
+            {userState === "demo" && (
+              <span className="text-[9px] font-bold bg-white/10 text-white px-1.5 py-0.5 rounded-md border border-white/15 uppercase tracking-wider">
+                Demo
               </span>
-              {userState === "demo" && (
-                <span className="text-[9px] font-bold bg-white/10 text-white px-1.5 py-0.5 rounded-md border border-white/15 uppercase tracking-wider">
-                  Demo
-                </span>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </Link>
 
         {/* Controls: collapse chevron */}
@@ -426,7 +424,7 @@ export default function Sidebar({
       </div>
 
       {/* Nav */}
-      <nav className={`flex-1 ${isCollapsed ? "px-2" : "px-3"} py-2 space-y-1.5 overflow-y-auto`}>
+      <nav className={`flex-1 px-3 py-2 space-y-1.5 overflow-y-auto`}>
         {visibleNavItems.map((item) => {
           const active = isActive(item.href);
           return (
@@ -434,8 +432,8 @@ export default function Sidebar({
               key={item.href}
               href={item.href}
               title={isCollapsed ? item.label : undefined}
-              className={`flex items-center rounded-xl text-[13px] font-medium transition-[background-color,color,transform] duration-[160ms] ease-out active:scale-[0.97] ${
-                isCollapsed ? "justify-center w-10 h-10 mx-auto" : "gap-3 px-3 py-2.5"
+              className={`flex items-center rounded-xl text-[13px] font-medium transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97] ${
+                isCollapsed ? "w-10 h-10 px-[11px] mx-auto" : "w-full h-10 px-3"
               }`}
               style={{
                 background: active ? "var(--color-sidebar-active-bg)" : "transparent",
@@ -456,14 +454,18 @@ export default function Sidebar({
               }}
             >
               <span className="shrink-0 flex items-center justify-center">{item.icon}</span>
-              {!isCollapsed && <span>{item.label}</span>}
+              <span className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] whitespace-nowrap overflow-hidden ${
+                isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[160px] ml-3"
+              }`}>
+                {item.label}
+              </span>
             </Link>
           );
         })}
       </nav>
 
       {/* Bottom nav */}
-      <div className={`px-2 pb-2 space-y-1.5`}>
+      <div className={`px-3 pb-2 space-y-1.5`}>
         {BOTTOM_ITEMS.map((item) => {
           const active = isActive(item.href);
           return (
@@ -471,8 +473,8 @@ export default function Sidebar({
               key={item.href}
               href={item.href}
               title={isCollapsed ? item.label : undefined}
-              className={`flex items-center rounded-xl text-[13px] font-medium transition-[background-color,color,transform] duration-[160ms] ease-out active:scale-[0.97] ${
-                isCollapsed ? "justify-center w-10 h-10 mx-auto" : "gap-3 px-3 py-2.5"
+              className={`flex items-center rounded-xl text-[13px] font-medium transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97] ${
+                isCollapsed ? "w-10 h-10 px-[11px] mx-auto" : "w-full h-10 px-3"
               }`}
               style={{
                 background: active ? "var(--color-sidebar-active-bg)" : "transparent",
@@ -493,159 +495,165 @@ export default function Sidebar({
               }}
             >
               <span className="shrink-0 flex items-center justify-center">{item.icon}</span>
-              {!isCollapsed && <span>{item.label}</span>}
+              <span className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] whitespace-nowrap overflow-hidden ${
+                isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[160px] ml-3"
+              }`}>
+                {item.label}
+              </span>
             </Link>
           );
         })}
       </div>
 
       {/* Usage card */}
-      {isCollapsed ? (
-        userState === "demo" ? (
-          <Link
-            href="/pricing?trial=true"
-            className="mx-3 mb-3 p-2 rounded-xl flex flex-col items-center gap-2 group cursor-pointer relative border border-white/[0.06] active:scale-[0.95] transition-transform"
-            style={{
-              background: "rgba(255, 255, 255, 0.02)",
-            }}
-            title="Demo Mode: Click to start free trial"
-          >
-            <span className="w-2 h-2 rounded-full bg-amber-500 pulse-dot-yellow" />
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-400">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-            </svg>
-          </Link>
-        ) : (
-          <div
-            className="mx-3 mb-3 p-2 rounded-xl flex flex-col items-center gap-2 group cursor-pointer relative"
-            style={{
-              background: "var(--color-input-bg)",
-              border: "1px solid var(--color-border)",
-            }}
-            title={`${planName} plan: ${usageCount} / ${usageLimit} (${Math.round(usagePct)}%)${
-              userState === "trialing" && daysRemaining !== null ? ` · Trial: ${daysRemaining}d left` : ""
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              router.push("/dashboard/settings");
-            }}
-          >
-            <span className="text-[9px] font-bold uppercase tracking-wider text-center" style={{ color: "var(--color-fg-muted)" }}>
-              {planName[0]}
-            </span>
-            
-            <div className="w-2.5 h-16 bg-[var(--color-sidebar-border)] rounded-full overflow-hidden relative">
-              <div
-                className="absolute bottom-0 left-0 right-0 rounded-full transition-all duration-300"
-                style={{
-                  height: `${usagePct}%`,
-                  background: isWarning ? "#f59e0b" : "var(--color-usage-fill)",
-                }}
-              />
-            </div>
-            
-            <span className="text-[10px] font-mono font-medium" style={{ color: isWarning ? "#f59e0b" : "var(--color-fg-muted)" }}>
-              {Math.round(usagePct)}%
-            </span>
-          </div>
-        )
-      ) : (
-        userState === "demo" ? (
-          <div
-            className="mx-3 mb-3 px-3 py-3.5 rounded-xl border border-white/[0.06] animate-fade-in"
-            style={{
-              background: "rgba(255, 255, 255, 0.02)",
-            }}
-          >
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 pulse-dot-yellow" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-400">
-                Demo Mode
-              </span>
-            </div>
-            <p className="text-[11px] leading-relaxed mb-3 text-slate-400">
-              Start your free trial to run real AI visibility checks.
-            </p>
-            <Link
-              href="/pricing?trial=true"
-              className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-[12px] font-semibold bg-white hover:bg-zinc-200 text-black transition-all duration-[160ms] ease-out active:scale-[0.96] shadow-sm cursor-pointer"
-            >
-              Start Free Trial
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-black">
-                <path d="M5 12h14M12 5l7 7-7 7" />
+      <div 
+        className={`mx-3 mb-3 rounded-xl border transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] relative overflow-hidden ${
+          isCollapsed ? "p-2" : "px-3 py-3"
+        }`}
+        style={{
+          background: userState === "demo" ? "rgba(255, 255, 255, 0.02)" : "var(--color-input-bg)",
+          borderColor: userState === "demo" ? "rgba(255, 255, 255, 0.06)" : "var(--color-border)",
+        }}
+      >
+        {/* Click overlay when collapsed */}
+        {isCollapsed && (
+          <Link 
+            href={userState === "demo" ? "/pricing?trial=true" : "/dashboard/settings"}
+            className="absolute inset-0 z-10 cursor-pointer"
+            title={userState === "demo" ? "Demo Mode: Click to start free trial" : `${planName} plan: ${usageCount} / ${usageLimit}`}
+          />
+        )}
+
+        {/* Collapsed content */}
+        <div className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col items-center gap-2 ${
+          isCollapsed ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none absolute inset-x-2 inset-y-2"
+        }`}>
+          {userState === "demo" ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-amber-500 pulse-dot-yellow" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-400">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
               </svg>
-            </Link>
-          </div>
-        ) : (
-          <div
-            className="mx-3 mb-3 px-3 py-3 rounded-xl"
-            style={{
-              background: "var(--color-input-bg)",
-              border: "1px solid var(--color-border)",
-            }}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--color-fg-muted)" }}>
-                {planName} plan
+            </>
+          ) : (
+            <>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-center" style={{ color: "var(--color-fg-muted)" }}>
+                {planName[0]}
               </span>
-              <span
-                className="text-[11px] font-mono font-medium"
-                style={{ color: isWarning ? "#f59e0b" : "var(--color-fg-muted)" }}
-              >
-                {usageCount} / {usageLimit}
-              </span>
-            </div>
-            <div className="usage-track">
-              <div
-                className="usage-fill"
-                style={{
-                  width: `${usagePct}%`,
-                  background: isWarning ? "#f59e0b" : "var(--color-usage-fill)",
-                }}
-              />
-            </div>
-
-            {userState === "trialing" && daysRemaining !== null ? (
-              <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] font-medium" style={{ color: "var(--color-fg-muted)" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 animate-pulse" />
-                Trial: {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} left
-              </p>
-            ) : (
-              planName !== "Pro" && (
-                <Link
-                  href="/dashboard/settings"
-                  className="mt-3.5 flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-[12px] font-semibold transition-all duration-[160ms] ease-out active:scale-[0.96]"
+              
+              <div className="w-2.5 h-16 bg-[var(--color-sidebar-border)] rounded-full overflow-hidden relative">
+                <div
+                  className="absolute bottom-0 left-0 right-0 rounded-full transition-all duration-300"
                   style={{
-                    background: "var(--color-btn-primary-bg)",
-                    color: "var(--color-btn-primary-text)",
+                    height: `${usagePct}%`,
+                    background: isWarning ? "#f59e0b" : "var(--color-usage-fill)",
                   }}
-                >
-                  Upgrade
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M7 17L17 7M17 7H7M17 7V17" />
-                  </svg>
-                </Link>
-              )
-            )}
+                />
+              </div>
+              
+              <span className="text-[10px] font-mono font-medium" style={{ color: isWarning ? "#f59e0b" : "var(--color-fg-muted)" }}>
+                {Math.round(usagePct)}%
+              </span>
+            </>
+          )}
+        </div>
 
-            {isWarning && planName === "Pro" && (
-              <p className="text-[10px] mt-1.5 text-center" style={{ color: "#f59e0b" }}>
-                Approaching limit — check settings
+        {/* Expanded content */}
+        <div className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+          !isCollapsed ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none absolute inset-x-3 inset-y-3"
+        }`}>
+          {userState === "demo" ? (
+            <div>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 pulse-dot-yellow" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-400">
+                  Demo Mode
+                </span>
+              </div>
+              <p className="text-[11px] leading-relaxed mb-3 text-slate-400">
+                Start your free trial to run real AI visibility checks.
               </p>
-            )}
-          </div>
-        )
-      )}
+              <Link
+                href="/pricing?trial=true"
+                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-[12px] font-semibold bg-white hover:bg-zinc-200 text-black transition-all duration-[160ms] ease-out active:scale-[0.96] shadow-sm cursor-pointer"
+              >
+                Start Free Trial
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-black">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          ) : (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--color-fg-muted)" }}>
+                  {planName} plan
+                </span>
+                <span
+                  className="text-[11px] font-mono font-medium"
+                  style={{ color: isWarning ? "#f59e0b" : "var(--color-fg-muted)" }}
+                >
+                  {usageCount} / {usageLimit}
+                </span>
+              </div>
+              <div className="usage-track">
+                <div
+                  className="usage-fill"
+                  style={{
+                    width: `${usagePct}%`,
+                    background: isWarning ? "#f59e0b" : "var(--color-usage-fill)",
+                  }}
+                />
+              </div>
+
+              {userState === "trialing" && daysRemaining !== null ? (
+                <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] font-medium" style={{ color: "var(--color-fg-muted)" }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 animate-pulse" />
+                  Trial: {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} left
+                </p>
+              ) : (
+                planName !== "Pro" && (
+                  <Link
+                    href="/dashboard/settings"
+                    className="mt-3.5 flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-[12px] font-semibold transition-all duration-[160ms] ease-out active:scale-[0.96]"
+                    style={{
+                      background: "var(--color-btn-primary-bg)",
+                      color: "var(--color-btn-primary-text)",
+                    }}
+                  >
+                    Upgrade
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 17L17 7M17 7H7M17 7V17" />
+                    </svg>
+                  </Link>
+                )
+              )}
+
+              {isWarning && planName === "Pro" && (
+                <p className="text-[10px] mt-1.5 text-center" style={{ color: "#f59e0b" }}>
+                  Approaching limit — check settings
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* User row */}
       <div className="px-3 pb-4">
-        {isCollapsed ? (
-          <div
-            className="p-2 rounded-xl border border-white/[0.06] flex flex-col items-center gap-2.5 animate-fade-in"
-            style={{
-              background: "rgba(255, 255, 255, 0.02)",
-            }}
-          >
+        <div 
+          className={`rounded-xl border transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] relative overflow-hidden ${
+            isCollapsed ? "p-2" : "p-2.5"
+          }`}
+          style={{
+            background: "rgba(255, 255, 255, 0.02)",
+            borderColor: "rgba(255, 255, 255, 0.06)",
+          }}
+        >
+          {/* Collapsed content */}
+          <div className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col items-center gap-2.5 ${
+            isCollapsed ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none absolute inset-x-2 inset-y-2"
+          }`}>
             <Link
               href="/dashboard/settings"
               className="transition-all active:scale-[0.95] hover:opacity-80 shrink-0"
@@ -665,13 +673,11 @@ export default function Sidebar({
               {icons.logout}
             </button>
           </div>
-        ) : (
-          <div
-            className="p-2.5 rounded-xl border border-white/[0.06] flex items-center gap-3 animate-fade-in"
-            style={{
-              background: "rgba(255, 255, 255, 0.02)",
-            }}
-          >
+
+          {/* Expanded content */}
+          <div className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center justify-between gap-3 ${
+            !isCollapsed ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none absolute inset-x-2.5 inset-y-2.5"
+          }`}>
             <Link
               href="/dashboard/settings"
               className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
@@ -697,7 +703,7 @@ export default function Sidebar({
               {icons.logout}
             </button>
           </div>
-        )}
+        </div>
       </div>
 
       <div

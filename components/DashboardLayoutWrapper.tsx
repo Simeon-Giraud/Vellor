@@ -90,7 +90,7 @@ export default function DashboardLayoutWrapper({
 
       {/* Main content area — aligned next to the docked sidebar with dynamic margin & rounded left corners */}
       <div 
-        className="flex-1 h-screen flex flex-col relative dashboard-main-content transition-[margin-left,border-radius] duration-300 ease-in-out"
+        className="flex-1 h-screen flex flex-col relative dashboard-main-content transition-[margin-left,border-radius] duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
         style={{ 
           marginLeft: "var(--sidebar-width)",
           "--sidebar-offset": "var(--sidebar-width)",
