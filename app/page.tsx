@@ -64,12 +64,11 @@ export default async function HomePage() {
       {/* ── Nav ── */}
       <div style={{ position: "fixed", top: 16, left: 0, right: 0, zIndex: 50, padding: "0 16px" }}>
         <nav
-          className="nav-pill"
+          className="nav-pill px-4 py-2 md:px-5 md:py-2.5"
           style={{
             maxWidth: 960,
             margin: "0 auto",
             borderRadius: 980,
-            padding: "10px 20px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -391,7 +390,7 @@ export default async function HomePage() {
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           {/* Step 1 */}
           <div className="card-white" style={{ padding: 40, display: "flex", flexDirection: "column", gap: 20 }}>
@@ -602,13 +601,12 @@ export default async function HomePage() {
             ].map((e) => (
               <div
                 key={e.name}
-                className="card-white"
+                className={`card-white ${e.offset ? "ml-0 md:ml-8" : ""}`}
                 style={{
                   padding: "18px 22px",
                   display: "flex",
                   alignItems: "center",
                   gap: 16,
-                  marginLeft: e.offset ? 32 : 0,
                   cursor: "default",
                 }}
               >

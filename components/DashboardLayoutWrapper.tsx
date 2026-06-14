@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import DemoBanner from "./DemoBanner";
+import MobileHeader from "./MobileHeader";
 
 import PastDueBanner from "./PastDueBanner";
 import CanceledOverlay from "./CanceledOverlay";
@@ -65,6 +66,15 @@ export default function DashboardLayoutWrapper({
         "--sidebar-width": isMounted ? (isCollapsed ? "72px" : "240px") : "240px"
       } as React.CSSProperties}
     >
+      <MobileHeader
+        usageCount={usageCount}
+        usageLimit={usageLimit}
+        planName={planName}
+        projectCount={projectCount}
+        userState={userState}
+        trialEnd={trialEnd}
+      />
+
       <Sidebar
         usageCount={usageCount}
         usageLimit={usageLimit}

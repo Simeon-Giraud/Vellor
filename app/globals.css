@@ -549,4 +549,18 @@ a:hover .logo-svg {
   --logo-blend: screen !important;
 }
 
+/* Mobile responsive dashboard overrides */
+@media (max-width: 767px) {
+  .dashboard-main-content {
+    margin-left: 0 !important;
+    border-top-left-radius: 24px !important;
+    border-top-right-radius: 24px !important;
+    border-bottom-left-radius: 0 !important;
+    box-shadow: none !important;
+    padding-top: 0 !important;
+    margin-top: 64px !important;
+    height: calc(100vh - 64px) !important;
+  }
+}
+
 

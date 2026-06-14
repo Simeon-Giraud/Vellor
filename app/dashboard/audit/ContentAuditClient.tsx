@@ -67,7 +67,7 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
       </div>
 
       <div className="bg-[#1C1C1C] border border-[#2E2E2E] rounded-2xl p-6 mb-8 shadow-sm">
-        <form onSubmit={handleAudit} className="flex gap-4">
+        <form onSubmit={handleAudit} className="flex flex-col sm:flex-row gap-4">
           <input
             type="text"
             value={url}
@@ -79,7 +79,7 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
           <button
             type="submit"
             disabled={isAuditing || !url}
-            className="bg-white text-black font-semibold px-8 py-3 rounded-xl hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            className="bg-white text-black font-semibold px-8 py-3 rounded-xl hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             {isAuditing ? (
               <>

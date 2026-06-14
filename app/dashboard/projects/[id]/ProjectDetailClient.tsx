@@ -712,34 +712,38 @@ RECOMMENDATIONS:
                     return (
                       <div
                         key={p.id}
-                        className="md:grid md:grid-cols-[1fr_120px_120px_120px] gap-4 px-6 py-4 items-center border-b last:border-b-0"
+                        className="flex flex-col md:grid md:grid-cols-[1fr_120px_120px_120px] gap-3 md:gap-4 px-6 py-4 items-stretch md:items-center border-b last:border-b-0"
                         style={{ borderColor: "var(--color-border)" }}
                       >
-                        <p className="text-xs text-[var(--color-fg)] mb-2 md:mb-0 leading-relaxed font-medium">{p.text}</p>
+                        <p className="text-xs text-[var(--color-fg)] mb-1 md:mb-0 leading-relaxed font-medium">{p.text}</p>
 
-                        {["ChatGPT", "Gemini", "Perplexity"].map((engine) => {
-                          const result = resultsByEngine[engine];
-                          if (!result) {
+                        <div className="grid grid-cols-3 gap-2 mt-1 md:mt-0 md:contents">
+                          {["ChatGPT", "Gemini", "Perplexity"].map((engine) => {
+                            const result = resultsByEngine[engine];
+                            if (!result) {
+                              return (
+                                <div key={engine} className="flex flex-col md:flex-row items-center justify-center gap-1 bg-zinc-100/50 dark:bg-zinc-800/10 md:bg-transparent md:dark:bg-transparent rounded-lg py-2 md:p-0 border border-black/[0.03] dark:border-white/[0.02] md:border-none">
+                                  <span className="text-[9px] uppercase tracking-wider text-[var(--color-fg-muted)] md:hidden mb-0.5">{engine}</span>
+                                  <span className="text-[11px] text-[var(--color-fg-muted)]">—</span>
+                                </div>
+                              );
+                            }
                             return (
-                              <div key={engine} className="flex items-center justify-center">
-                                <span className="text-[11px] text-[var(--color-fg-muted)]">—</span>
+                              <div key={engine} className="flex flex-col md:flex-row items-center justify-center gap-1 bg-zinc-100/50 dark:bg-zinc-800/10 md:bg-transparent md:dark:bg-transparent rounded-lg py-2 md:p-0 border border-black/[0.03] dark:border-white/[0.02] md:border-none">
+                                <span className="text-[9px] uppercase tracking-wider text-[var(--color-fg-muted)] md:hidden mb-1">{engine}</span>
+                                {result.brandMentioned ? (
+                                  <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/12 text-emerald-400 border border-emerald-500/15 font-semibold">
+                                    <IconCheck /> #{result.mentionPosition}
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full bg-red-500/8 text-red-400 border border-red-500/12">
+                                    <IconX /> Miss
+                                  </span>
+                                )}
                               </div>
                             );
-                          }
-                          return (
-                            <div key={engine} className="flex items-center justify-center">
-                              {result.brandMentioned ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/12 text-emerald-400 border border-emerald-500/15 font-semibold">
-                                  <IconCheck /> #{result.mentionPosition}
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full bg-red-500/8 text-red-400 border border-red-500/12">
-                                  <IconX /> Miss
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
+                          })}
+                        </div>
                       </div>
                     );
                   })
@@ -785,7 +789,7 @@ RECOMMENDATIONS:
             </div>
 
             {/* Custom Prompt Form */}
-            <form onSubmit={handleAddPrompt} className="dash-card p-6 rounded-2xl border flex gap-3">
+            <form onSubmit={handleAddPrompt} className="dash-card p-4 sm:p-6 rounded-2xl border flex flex-col sm:flex-row gap-3">
               <input
                 type="text"
                 value={newPromptText}
@@ -798,7 +802,7 @@ RECOMMENDATIONS:
               <button
                 type="submit"
                 disabled={isAddingPrompt || !newPromptText.trim()}
-                className="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed shrink-0 w-full sm:w-auto"
                 style={{ background: "var(--color-fg)", color: "var(--color-bg)" }}
               >
                 {isAddingPrompt ? "Adding..." : "+ Add"}
@@ -878,7 +882,7 @@ RECOMMENDATIONS:
               </div>
 
               {/* Add competitor form */}
-              <form onSubmit={handleAddCompetitor} className="flex gap-3 max-w-md">
+              <form onSubmit={handleAddCompetitor} className="flex flex-col sm:flex-row gap-3 max-w-md">
                 <input
                   type="text"
                   value={newCompetitor}
@@ -891,7 +895,7 @@ RECOMMENDATIONS:
                 <button
                   type="submit"
                   disabled={isAddingCompetitor || !newCompetitor.trim()}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-[0.97] disabled:opacity-50 shrink-0"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.97] disabled:opacity-50 shrink-0 w-full sm:w-auto"
                   style={{ background: "var(--color-fg)", color: "var(--color-bg)" }}
                 >
                   {isAddingCompetitor ? "Adding..." : "+ Add"}

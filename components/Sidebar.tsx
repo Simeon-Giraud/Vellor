@@ -331,13 +331,13 @@ export default function Sidebar({
           setIsSidebarHovered(false);
         }
       }}
-      className={`main-sidebar transition-[width] duration-300 ease-in-out ${
+      className={`main-sidebar hidden md:flex transition-[width] duration-300 ease-in-out ${
         isCollapsed ? "cursor-pointer" : ""
       }`}
       style={{
         position: "fixed",
         zIndex: 100,
-        display: "flex",
+        display: undefined,
         flexDirection: "column",
         top: 0,
         bottom: 0,

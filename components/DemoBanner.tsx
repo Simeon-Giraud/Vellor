@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function DemoBanner() {
   return (
-    <div className="mx-6 md:mx-8 mt-6 p-4 bg-purple-50 border border-purple-100 rounded-2xl flex items-center justify-between animate-fade-in-down">
+    <div className="mx-6 md:mx-8 mt-6 p-4 bg-purple-50 border border-purple-100 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in-down">
       <div className="flex items-center gap-2.5">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-purple-600 shrink-0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
