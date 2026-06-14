@@ -87,17 +87,17 @@ export default function DashboardLayoutWrapper({
           background: "var(--color-surface)",
           borderTopLeftRadius: "24px",
           borderBottomLeftRadius: "24px",
-          overflowY: "auto",
-          overflowX: "hidden",
+          overflow: "hidden",
           boxShadow: "-8px 0 32px rgba(0, 0, 0, 0.08)"
         } as React.CSSProperties}
       >
-        {userState === "demo" && hasSeenWelcome && <DemoBanner />}
         {userState === "past_due" && hasSeenWelcome && <PastDueBanner />}
         {userState === "canceled" && hasSeenWelcome && <CanceledOverlay />}
-        {children}
-        {/* Bottom spacer to prevent content from touching the bottom edge of the screen */}
-        {hasSeenWelcome && <div className="h-16 shrink-0 w-full" />}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col">
+          {children}
+          {/* Bottom spacer to prevent content from touching the bottom edge of the screen */}
+          {hasSeenWelcome && <div className="h-16 shrink-0 w-full" />}
+        </div>
       </div>
     </div>
   );
