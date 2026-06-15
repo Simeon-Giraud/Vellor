@@ -214,7 +214,7 @@ List of active local skills in this project and when to use each:
 ## 15. Demo Mode UI Flow
 Document the complete onboarding UI states:
 - **New user** (`hasSeenWelcome: false`) → full-page welcome screen with feature highlights and single CTA.
-- **Demo user** → persistent purple gradient banner top of every dashboard page, never dismissible.
+- **Demo user** → persistent light purple banner at the top of every dashboard page, never dismissible.
 - **Trialing user** → amber banner showing days remaining, turns red within 2 days of expiry.
 - **Past due user** → red banner blocking new prompt runs.
 - **Canceled user** → full-page overlay blocking dashboard, shows resubscribe plans.
