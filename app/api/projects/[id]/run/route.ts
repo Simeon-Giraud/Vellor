@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canRunPrompts } from "@/lib/usage";
 import { rateLimit } from "@/lib/rateLimit";
+import { getUserState } from "@/lib/userState";
 
 export const dynamic = "force-dynamic";
 
@@ -19,15 +20,25 @@ export async function POST(
   }
 
   const { id } = await params;
+  const userState = await getUserState(userId);
 
   // Rate limiting
-  const { success } = await rateLimit.limit(userId);
-  if (!success) {
+  let rateLimitSuccess = true;
+  if (process.env.NEXT_PUBLIC_USE_MOCK_AI !== "true" && userState !== "demo") {
+    try {
+      const { success } = await rateLimit.limit(userId);
+      rateLimitSuccess = success;
+    } catch (err) {
+      console.warn("[API] Rate limiter error (Upstash Redis probably not configured):", err);
+    }
+  }
+
+  if (!rateLimitSuccess) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   try {
-    if (!(await canRunPrompts(userId))) {
+    if (userState !== "demo" && !(await canRunPrompts(userId))) {
       return NextResponse.json({
         error: 'Usage limit reached',
         message: 'Upgrade your plan to run more prompts'
@@ -52,24 +63,46 @@ export async function POST(
     });
 
 
-    if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true") {
-      const { executeAndSaveMockResults } = await import("@/lib/ai/mockExecutor");
-      for (const prompt of project.prompts) {
-        await executeAndSaveMockResults(
-          prompt.id,
-          prompt.text,
-          project.domain,
-          project.competitors
-        );
-      }
-
+    if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true" || userState === "demo") {
+      // Set status to running
       await prisma.project.update({
         where: { id },
-        data: { lastRunAt: new Date() },
+        data: { status: "running" },
+      });
+
+      // Execute mock run asynchronously with a delay
+      (async () => {
+        // Sleep for 5 seconds to simulate API calls
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
+        const { executeAndSaveMockResults } = await import("@/lib/ai/mockExecutor");
+        for (const prompt of project.prompts) {
+          await executeAndSaveMockResults(
+            prompt.id,
+            prompt.text,
+            project.domain,
+            project.competitors
+          );
+        }
+
+        await prisma.project.update({
+          where: { id },
+          data: { 
+            status: "active", 
+            lastRunAt: new Date() 
+          },
+        });
+      })().catch((err) => {
+        console.error("Mock execution background error:", err);
+        // Fallback to active state on error
+        prisma.project.update({
+          where: { id },
+          data: { status: "active" },
+        }).catch(() => {});
       });
 
       return NextResponse.json({
-        queued: false,
+        queued: true,
         executedMock: true,
         promptCount: project.prompts.length,
       });

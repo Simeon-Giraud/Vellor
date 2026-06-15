@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProjectCharts from "@/components/ProjectCharts";
@@ -118,6 +118,72 @@ export default function ProjectDetailClient({
   const [project, setProject] = useState<Project>(initialProject);
   const [prompts, setPrompts] = useState<Prompt[]>(initialPrompts);
   const [competitorData, setCompetitorData] = useState(initialCompetitorData);
+  
+  useEffect(() => {
+    setProject(initialProject);
+    setPrompts(initialPrompts);
+    setCompetitorData(initialCompetitorData);
+  }, [initialProject, initialPrompts, initialCompetitorData]);
+
+  const [isQueueRunning, setIsQueueRunning] = useState(false);
+  const [runStep, setRunStep] = useState(0);
+
+  const RUN_STEPS = [
+    "Connecting to AI engine APIs...",
+    "Querying ChatGPT (GPT-4o) on prompts...",
+    "Querying Google Gemini 1.5 Pro...",
+    "Analyzing Perplexity Search citations...",
+    "Calculating brand share of voice & saving results..."
+  ];
+
+  const checkQueueStatus = async () => {
+    try {
+      const res = await fetch(`/api/projects/${project.id}?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setIsQueueRunning(data.isRunning);
+        return data.isRunning;
+      }
+    } catch (err) {
+      console.warn("Failed to check queue status:", err);
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    checkQueueStatus();
+  }, []);
+
+  useEffect(() => {
+    if (!isQueueRunning) {
+      setRunStep(0);
+      return;
+    }
+
+    const stepInterval = setInterval(() => {
+      setRunStep((prev) => {
+        if (prev < RUN_STEPS.length - 1) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 1000);
+
+    const checkInterval = setInterval(async () => {
+      const running = await checkQueueStatus();
+      if (!running) {
+        showStatus("AI analysis completed. Charts updated!", "success");
+        router.refresh();
+      }
+    }, 4000);
+
+    return () => {
+      clearInterval(stepInterval);
+      clearInterval(checkInterval);
+    };
+  }, [isQueueRunning]);
   
   const [activeTab, setActiveTab] = useState<"overview" | "prompts" | "competitors" | "audit" | "reports">("overview");
 
@@ -480,11 +546,21 @@ RECOMMENDATIONS:
           )}
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot" />
+              {isQueueRunning ? (
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" title="AI analysis running in background..." />
+              ) : (
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot" />
+              )}
               <h1 className="text-lg font-bold tracking-tight text-[var(--color-fg)]">{project.domain}</h1>
             </div>
-            <p className="text-[10px] text-[var(--color-fg-muted)] mt-0.5">
-              Plan: {planName} · {project.brandName || "No brand name"} · {project.industry || "No industry"}
+            <p className="text-[10px] text-[var(--color-fg-muted)] mt-0.5 flex items-center flex-wrap gap-x-2">
+              <span>Plan: {planName} · {project.brandName || "No brand name"} · {project.industry || "No industry"}</span>
+              {isQueueRunning && (
+                <span className="text-amber-400 font-semibold inline-flex items-center gap-1.5 bg-amber-500/5 px-2 py-0.5 rounded border border-amber-500/10 font-mono">
+                  <span className="w-1 h-1 rounded-full bg-amber-400 animate-ping inline-block shrink-0" />
+                  {RUN_STEPS[runStep]}
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -513,7 +589,22 @@ RECOMMENDATIONS:
             <IconTrash /> Delete
           </button>
 
-          <RunButton projectId={project.id} />
+          <RunButton 
+            projectId={project.id} 
+            disabled={isQueueRunning}
+            onRunSuccess={async () => {
+              showStatus("Prompts run initiated.", "success");
+              setIsQueueRunning(true);
+              const running = await checkQueueStatus();
+              if (!running) {
+                // If mock AI completed instantly
+                router.refresh();
+              }
+            }} 
+            onRunError={(msg) => {
+              showStatus(msg, "error");
+            }}
+          />
         </div>
       </header>
 
@@ -576,7 +667,7 @@ RECOMMENDATIONS:
             { id: "overview", label: "Overview" },
             { id: "prompts", label: "AI Prompts" },
             { id: "competitors", label: "Competitors" },
-            { id: "audit", label: "GEO Audit" },
+            { id: "audit", label: "Page Audit" },
             { id: "reports", label: "Reports & Exports" },
           ].map((t) => (
             <button

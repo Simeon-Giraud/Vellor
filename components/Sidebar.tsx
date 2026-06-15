@@ -52,17 +52,34 @@ const icons = {
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
     </svg>
   ),
+  alerts: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  ),
+  whats_new: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v1M12 20v1M4.22 4.22l.7.7M18.36 18.36l.71.71M3 12h1M20 12h1M4.22 19.78l.7-.7M18.36 5.64l.71-.71M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+    </svg>
+  ),
 };
 
-type NavItem = { label: string; href: string; icon: React.ReactNode; requiresProjects?: boolean };
+type NavItem = { label: string; href: string; icon: React.ReactNode; requiresProjects?: boolean; hasIndicator?: boolean };
 
-const NAV_ITEMS: NavItem[] = [
+const MAIN_ITEMS: NavItem[] = [
   { label: "Overview",    href: "/dashboard",             icon: icons.dashboard },
   { label: "Projects",    href: "/dashboard/projects",    icon: icons.projects },
 ];
 
-const BOTTOM_ITEMS: NavItem[] = [
-  { label: "Settings", href: "/dashboard/settings", icon: icons.settings },
+const TOOLS_ITEMS: NavItem[] = [
+  { label: "GEO Audit",   href: "/dashboard/audit",       icon: icons.audit, requiresProjects: true },
+  { label: "Alerts",      href: "/dashboard/alerts",      icon: icons.alerts, requiresProjects: true },
+];
+
+const ACCOUNT_ITEMS: NavItem[] = [
+  { label: "Settings",    href: "/dashboard/settings",    icon: icons.settings },
+  { label: "What's New",  href: "/dashboard/whats-new",   icon: icons.whats_new, hasIndicator: true },
 ];
 
 interface SidebarProps {
@@ -151,8 +168,16 @@ export default function Sidebar({
 
     dragOccurredRef.current = false;
 
+    // Add dragging class to disable transitions for 1:1 cursor tracking
+    aside.classList.add("is-dragging");
+    wrapper.classList.add("is-dragging");
+    if (mainContent) {
+      mainContent.classList.add("is-dragging");
+    }
+
     // Temporarily disable transitions for instant response during drag
     aside.style.transition = "none";
+    wrapper.style.transition = "none";
     if (mainContent) {
       mainContent.style.transition = "none";
     }
@@ -169,14 +194,56 @@ export default function Sidebar({
       newWidth = Math.max(72, Math.min(320, startWidth + deltaX));
       
       wrapper.style.setProperty("--sidebar-width", `${newWidth}px`);
+
+      // Real-time JS calculation during dragging for standard-compliant values
+      const textOpacity = Math.max(0, Math.min(1, (newWidth - 130) / 50));
+      const textMaxWidth = textOpacity * 160;
+      const expandedOpacity = Math.max(0, Math.min(1, (newWidth - 140) / 40));
+      const collapsedOpacity = Math.max(0, Math.min(1, (130 - newWidth) / 40));
+      const linkPx = 12 + Math.max(0, Math.min(3, (130 - newWidth) * 0.0517));
+      const cardPadding = 12 - Math.max(0, Math.min(4, (120 - newWidth) * 0.0833));
+
+      aside.style.setProperty("--sidebar-text-opacity", String(textOpacity));
+      aside.style.setProperty("--sidebar-text-max-width", `${textMaxWidth}px`);
+      aside.style.setProperty("--sidebar-expanded-opacity", String(expandedOpacity));
+      aside.style.setProperty("--sidebar-collapsed-opacity", String(collapsedOpacity));
+      aside.style.setProperty("--sidebar-link-px", `${linkPx}px`);
+      aside.style.setProperty("--sidebar-card-padding", `${cardPadding}px`);
+
+      // Dynamically center header logo during drag
+      const header = aside.querySelector(".sidebar-header") as HTMLElement;
+      if (header) {
+        header.style.justifyContent = newWidth < 130 ? "center" : "space-between";
+      }
     };
 
     const handleMouseUp = (upEvent: MouseEvent) => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
 
+      // Clean up drag overrides so state transitions take over
+      aside.style.removeProperty("--sidebar-text-opacity");
+      aside.style.removeProperty("--sidebar-text-max-width");
+      aside.style.removeProperty("--sidebar-expanded-opacity");
+      aside.style.removeProperty("--sidebar-collapsed-opacity");
+      aside.style.removeProperty("--sidebar-link-px");
+      aside.style.removeProperty("--sidebar-card-padding");
+
+      const header = aside.querySelector(".sidebar-header") as HTMLElement;
+      if (header) {
+        header.style.removeProperty("justify-content");
+      }
+
+      // Remove dragging class to restore smooth transitions
+      aside.classList.remove("is-dragging");
+      wrapper.classList.remove("is-dragging");
+      if (mainContent) {
+        mainContent.classList.remove("is-dragging");
+      }
+
       // Restore transitions and user select styles
       aside.style.transition = "";
+      wrapper.style.transition = "";
       if (mainContent) {
         mainContent.style.transition = "";
       }
@@ -296,9 +363,61 @@ export default function Sidebar({
     return pathname.startsWith(href);
   };
 
-  const visibleNavItems = NAV_ITEMS.filter(
-    (item) => !item.requiresProjects || projectCount > 0
-  );
+  const renderNavItem = (item: NavItem) => {
+    const active = isActive(item.href);
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        title={isCollapsed ? item.label : undefined}
+        className="flex items-center rounded-xl text-[13px] font-medium transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97] h-10 relative group"
+        style={{
+          background: active ? "var(--color-sidebar-active-bg)" : "transparent",
+          border: `1px solid ${active ? "var(--color-sidebar-active-border)" : "transparent"}`,
+          color: active ? "var(--color-sidebar-active-text)" : "var(--color-sidebar-text)",
+          justifyContent: "flex-start",
+          paddingLeft: "var(--sidebar-link-px)",
+          paddingRight: "var(--sidebar-link-px)",
+        }}
+        onMouseEnter={(e) => {
+          if (!active) {
+            (e.currentTarget as HTMLAnchorElement).style.background = "var(--color-sidebar-hover-bg)";
+            (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-fg)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!active) {
+            (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
+            (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-sidebar-text)";
+          }
+        }}
+      >
+        <span className="shrink-0 flex items-center justify-center w-[18px] relative">
+          {item.icon}
+          {item.hasIndicator && (
+            <span className="absolute -top-1 -right-1.5 w-2 h-2 bg-blue-500 rounded-full border-2 border-[var(--color-sidebar-bg)] shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+          )}
+        </span>
+        <span
+          style={{
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            maxWidth: "var(--sidebar-text-max-width)",
+            opacity: "var(--sidebar-text-opacity)",
+            marginLeft: "calc(var(--sidebar-text-opacity) * 12px)",
+            transition: "max-width 320ms cubic-bezier(0.32,0.72,0,1), opacity 320ms ease, margin-left 320ms cubic-bezier(0.32,0.72,0,1)",
+            pointerEvents: "none",
+          }}
+          className="flex items-center justify-between w-full"
+        >
+          {item.label}
+          {item.hasIndicator && (
+            <span className="shrink-0 w-1.5 h-1.5 bg-blue-500 rounded-full ml-2 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+          )}
+        </span>
+      </Link>
+    );
+  };
 
   return (
     <aside
@@ -348,6 +467,14 @@ export default function Sidebar({
         borderRight: "none",
         borderRadius: 0,
         boxShadow: "none",
+        // CSS custom properties driven by React state when not dragging
+        "--sidebar-text-opacity": isCollapsed ? 0 : 1,
+        "--sidebar-text-max-width": isCollapsed ? "0px" : "160px",
+        "--sidebar-expanded-opacity": isCollapsed ? 0 : 1,
+        "--sidebar-collapsed-opacity": isCollapsed ? 1 : 0,
+        "--sidebar-link-mx": isCollapsed ? "4px" : "0px",
+        "--sidebar-link-px": isCollapsed ? "15px" : "12px",
+        "--sidebar-card-padding": isCollapsed ? "8px" : "12px",
         // CSS custom property overrides for dark theme children inside the sidebar
         "--color-sidebar-bg": "#000000",
         "--color-sidebar-border": "rgba(255, 255, 255, 0.08)",
@@ -373,11 +500,34 @@ export default function Sidebar({
         "--logo-blend": "screen",
       } as React.CSSProperties}
     >
-      {/* Header: Logo + theme toggle + sidebar collapse */}
-      <div className={`px-4 pt-5 pb-4 flex ${isCollapsed ? "flex-col items-center gap-2" : "items-center justify-between"}`}>
-        <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-          <Logo className="w-10 h-10 transition-transform duration-[160ms] ease-out group-active:scale-[0.95]" />
-          <div className={`flex items-center gap-2 transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${isCollapsed ? "opacity-0 max-w-0 scale-95 pointer-events-none overflow-hidden" : "opacity-100 max-w-[120px] scale-100"}`}>
+      {/* Header: Logo + collapse button */}
+      <div 
+        className="px-4 pt-5 pb-4 flex items-center sidebar-header"
+        style={{
+          justifyContent: isCollapsed ? "center" : "space-between",
+        }}
+      >
+        <Link 
+          href="/" 
+          className="flex items-center group shrink-0 min-w-0"
+          style={{
+            gap: "calc(var(--sidebar-text-opacity) * 10px)",
+          }}
+        >
+          <Logo className="w-10 h-10 shrink-0 transition-transform duration-[160ms] ease-out group-active:scale-[0.95]" />
+          <div 
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              overflow: "hidden",
+              maxWidth: "var(--sidebar-text-max-width)",
+              opacity: "var(--sidebar-text-opacity)",
+              transition: "max-width 320ms cubic-bezier(0.32,0.72,0,1), opacity 320ms ease",
+              pointerEvents: isCollapsed ? "none" : "auto",
+              flexShrink: 0,
+            }}
+          >
             <span
               className="text-[15px] font-semibold tracking-tight whitespace-nowrap"
               style={{ color: "var(--color-fg)" }}
@@ -385,21 +535,21 @@ export default function Sidebar({
               Vellor
             </span>
             {userState === "demo" && (
-              <span className="text-[9px] font-bold bg-white/10 text-white px-1.5 py-0.5 rounded-md border border-white/15 uppercase tracking-wider">
+              <span className="text-[9px] font-bold bg-white/10 text-white px-1.5 py-0.5 rounded-md border border-white/15 uppercase tracking-wider whitespace-nowrap shrink-0">
                 Demo
               </span>
             )}
           </div>
         </Link>
 
-        {/* Controls: collapse chevron */}
-        <div className="flex items-center shrink-0">
+        {/* Collapse chevron */}
+        <div className="flex items-center shrink-0 sidebar-header-controls">
           <button
             onClick={(e) => {
               e.stopPropagation();
               toggleSidebar && toggleSidebar();
             }}
-            className="p-1.5 rounded-lg border hover:bg-[var(--color-sidebar-hover-bg)] transition-all duration-300 active:scale-[0.93] shrink-0 animate-fade-in"
+            className="p-1.5 rounded-lg border hover:bg-[var(--color-sidebar-hover-bg)] transition-all duration-300 active:scale-[0.93] shrink-0"
             style={{
               color: "var(--color-fg-muted)",
               borderColor: "var(--color-sidebar-border)",
@@ -415,7 +565,10 @@ export default function Sidebar({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={`transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`}
+              style={{
+                transition: "transform 300ms cubic-bezier(0.32,0.72,0,1)",
+                transform: isCollapsed ? "rotate(180deg)" : "rotate(0deg)",
+              }}
             >
               <polyline points="15 18 9 12 15 6" />
             </svg>
@@ -424,146 +577,116 @@ export default function Sidebar({
       </div>
 
       {/* Nav */}
-      <nav className={`flex-1 px-3 py-2 space-y-1.5 overflow-y-auto`}>
-        {visibleNavItems.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={isCollapsed ? item.label : undefined}
-              className={`flex items-center rounded-xl text-[13px] font-medium transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97] ${
-                isCollapsed ? "w-10 h-10 px-[11px] mx-auto" : "w-full h-10 px-3"
-              }`}
-              style={{
-                background: active ? "var(--color-sidebar-active-bg)" : "transparent",
-                border: `1px solid ${active ? "var(--color-sidebar-active-border)" : "transparent"}`,
-                color: active ? "var(--color-sidebar-active-text)" : "var(--color-sidebar-text)",
-              }}
-              onMouseEnter={(e) => {
-                if (!active) {
-                  (e.currentTarget as HTMLAnchorElement).style.background = "var(--color-sidebar-hover-bg)";
-                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-fg)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!active) {
-                  (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-sidebar-text)";
-                }
-              }}
-            >
-              <span className="shrink-0 flex items-center justify-center">{item.icon}</span>
-              <span className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] whitespace-nowrap overflow-hidden ${
-                isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[160px] ml-3"
-              }`}>
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
+      <nav className="flex-1 px-3 py-2 overflow-y-auto" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        {/* Main Section */}
+        <div className="space-y-1">
+          {MAIN_ITEMS.map(renderNavItem)}
+        </div>
 
-      {/* Bottom nav */}
-      <div className={`px-3 pb-2 space-y-1.5`}>
-        {BOTTOM_ITEMS.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={isCollapsed ? item.label : undefined}
-              className={`flex items-center rounded-xl text-[13px] font-medium transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97] ${
-                isCollapsed ? "w-10 h-10 px-[11px] mx-auto" : "w-full h-10 px-3"
-              }`}
+        {/* Tools Section */}
+        {projectCount > 0 && (
+          <div className="space-y-1 relative">
+            <div 
+              className="flex items-center px-3 mb-1"
               style={{
-                background: active ? "var(--color-sidebar-active-bg)" : "transparent",
-                border: `1px solid ${active ? "var(--color-sidebar-active-border)" : "transparent"}`,
-                color: active ? "var(--color-sidebar-active-text)" : "var(--color-sidebar-text)",
-              }}
-              onMouseEnter={(e) => {
-                if (!active) {
-                  (e.currentTarget as HTMLAnchorElement).style.background = "var(--color-sidebar-hover-bg)";
-                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-fg)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!active) {
-                  (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                  (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-sidebar-text)";
-                }
+                opacity: "var(--sidebar-expanded-opacity)",
+                height: "calc(var(--sidebar-expanded-opacity) * 16px)",
+                overflow: "hidden",
+                transition: "height 320ms ease, opacity 320ms ease"
               }}
             >
-              <span className="shrink-0 flex items-center justify-center">{item.icon}</span>
-              <span className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] whitespace-nowrap overflow-hidden ${
-                isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[160px] ml-3"
-              }`}>
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-fg-subtle)]">Tools</span>
+            </div>
+            {/* Divider when collapsed */}
+            <div 
+              className="mx-4 my-2 border-t"
+              style={{
+                borderColor: "var(--color-sidebar-border)",
+                opacity: "var(--sidebar-collapsed-opacity)",
+                display: isCollapsed ? "block" : "none",
+              }}
+            />
+            {TOOLS_ITEMS.map(renderNavItem)}
+          </div>
+        )}
+
+        {/* Account Section */}
+        <div className="space-y-1 relative">
+           <div 
+              className="flex items-center px-3 mb-1"
+              style={{
+                opacity: "var(--sidebar-expanded-opacity)",
+                height: "calc(var(--sidebar-expanded-opacity) * 16px)",
+                overflow: "hidden",
+                transition: "height 320ms ease, opacity 320ms ease"
+              }}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-fg-subtle)]">Account</span>
+            </div>
+            {/* Divider when collapsed */}
+            <div 
+              className="mx-4 my-2 border-t"
+              style={{
+                borderColor: "var(--color-sidebar-border)",
+                opacity: "var(--sidebar-collapsed-opacity)",
+                display: isCollapsed ? "block" : "none",
+              }}
+            />
+          {ACCOUNT_ITEMS.map(renderNavItem)}
+        </div>
+      </nav>
 
       {/* Usage card */}
       <div 
-        className={`mx-3 mb-3 rounded-xl border transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] relative overflow-hidden ${
-          isCollapsed ? "p-2" : "px-3 py-3"
+        onClick={(e) => {
+          if (isCollapsed) {
+            e.stopPropagation();
+            router.push(userState === "demo" ? "/pricing?trial=true" : "/dashboard/settings");
+          }
+        }}
+        className={`mx-3 mb-3 rounded-xl border transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+          isCollapsed ? "cursor-pointer hover:bg-white/[0.04] active:scale-[0.98]" : ""
         }`}
         style={{
           background: userState === "demo" ? "rgba(255, 255, 255, 0.02)" : "var(--color-input-bg)",
           borderColor: userState === "demo" ? "rgba(255, 255, 255, 0.06)" : "var(--color-border)",
+          padding: "var(--sidebar-card-padding)",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        {/* Click overlay when collapsed */}
-        {isCollapsed && (
-          <Link 
-            href={userState === "demo" ? "/pricing?trial=true" : "/dashboard/settings"}
-            className="absolute inset-0 z-10 cursor-pointer"
-            title={userState === "demo" ? "Demo Mode: Click to start free trial" : `${planName} plan: ${usageCount} / ${usageLimit}`}
-          />
-        )}
-
-        {/* Collapsed content */}
-        <div className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col items-center gap-2 ${
-          isCollapsed ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none absolute inset-x-2 inset-y-2"
-        }`}>
-          {userState === "demo" ? (
-            <>
+        {userState === "demo" ? (
+          <div className="relative">
+            {/* Collapsed Demo View */}
+            <div
+              style={{
+                opacity: "var(--sidebar-collapsed-opacity)",
+                maxHeight: "calc(var(--sidebar-collapsed-opacity) * 45px)",
+                overflow: "hidden",
+                transition: "max-height 320ms cubic-bezier(0.32,0.72,0,1), opacity 320ms ease",
+                pointerEvents: isCollapsed ? "auto" : "none",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
               <span className="w-2 h-2 rounded-full bg-amber-500 pulse-dot-yellow" />
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-400">
                 <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
               </svg>
-            </>
-          ) : (
-            <>
-              <span className="text-[9px] font-bold uppercase tracking-wider text-center" style={{ color: "var(--color-fg-muted)" }}>
-                {planName[0]}
-              </span>
-              
-              <div className="w-2.5 h-16 bg-[var(--color-sidebar-border)] rounded-full overflow-hidden relative">
-                <div
-                  className="absolute bottom-0 left-0 right-0 rounded-full transition-all duration-300"
-                  style={{
-                    height: `${usagePct}%`,
-                    background: isWarning ? "#f59e0b" : "var(--color-usage-fill)",
-                  }}
-                />
-              </div>
-              
-              <span className="text-[10px] font-mono font-medium" style={{ color: isWarning ? "#f59e0b" : "var(--color-fg-muted)" }}>
-                {Math.round(usagePct)}%
-              </span>
-            </>
-          )}
-        </div>
+            </div>
 
-        {/* Expanded content */}
-        <div className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          !isCollapsed ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none absolute inset-x-3 inset-y-3"
-        }`}>
-          {userState === "demo" ? (
-            <div>
+            {/* Expanded Demo View */}
+            <div
+              style={{
+                opacity: "var(--sidebar-expanded-opacity)",
+                maxHeight: "calc(var(--sidebar-expanded-opacity) * 150px)",
+                overflow: "hidden",
+                transition: "max-height 320ms cubic-bezier(0.32,0.72,0,1), opacity 320ms ease",
+                pointerEvents: isCollapsed ? "none" : "auto",
+              }}
+            >
               <div className="flex items-center gap-1.5 mb-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 pulse-dot-yellow" />
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-400">
@@ -575,7 +698,7 @@ export default function Sidebar({
               </p>
               <Link
                 href="/pricing?trial=true"
-                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-[12px] font-semibold bg-white hover:bg-zinc-200 text-black transition-all duration-[160ms] ease-out active:scale-[0.96] shadow-sm cursor-pointer"
+                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-[12px] font-semibold bg-white hover:bg-zinc-200 text-black transition-all duration-[160ms] ease-out active:scale-[0.96] shadow-sm"
               >
                 Start Free Trial
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-black">
@@ -583,8 +706,50 @@ export default function Sidebar({
                 </svg>
               </Link>
             </div>
-          ) : (
-            <div>
+          </div>
+        ) : (
+          <div className="relative">
+            {/* Collapsed Paid View */}
+            <div
+              style={{
+                opacity: "var(--sidebar-collapsed-opacity)",
+                maxHeight: "calc(var(--sidebar-collapsed-opacity) * 110px)",
+                overflow: "hidden",
+                transition: "max-height 320ms cubic-bezier(0.32,0.72,0,1), opacity 320ms ease",
+                pointerEvents: isCollapsed ? "auto" : "none",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <span className="text-[9px] font-bold uppercase tracking-wider text-center" style={{ color: "var(--color-fg-muted)" }}>
+                {planName[0]}
+              </span>
+              <div className="w-2.5 h-14 bg-[var(--color-sidebar-border)] rounded-full overflow-hidden relative">
+                <div
+                  className="absolute bottom-0 left-0 right-0 rounded-full transition-all duration-300"
+                  style={{
+                    height: `${usagePct}%`,
+                    background: isWarning ? "#f59e0b" : "var(--color-usage-fill)",
+                  }}
+                />
+              </div>
+              <span className="text-[10px] font-mono font-medium" style={{ color: isWarning ? "#f59e0b" : "var(--color-fg-muted)" }}>
+                {Math.round(usagePct)}%
+              </span>
+            </div>
+
+            {/* Expanded Paid View */}
+            <div
+              style={{
+                opacity: "var(--sidebar-expanded-opacity)",
+                maxHeight: "calc(var(--sidebar-expanded-opacity) * 140px)",
+                overflow: "hidden",
+                transition: "max-height 320ms cubic-bezier(0.32,0.72,0,1), opacity 320ms ease",
+                pointerEvents: isCollapsed ? "none" : "auto",
+              }}
+            >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--color-fg-muted)" }}>
                   {planName} plan
@@ -635,76 +800,94 @@ export default function Sidebar({
                 </p>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* User row */}
       <div className="px-3 pb-4">
         <div 
-          className={`rounded-xl border transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] relative overflow-hidden ${
-            isCollapsed ? "p-2" : "p-2.5"
-          }`}
+          className="rounded-xl border transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
           style={{
             background: "rgba(255, 255, 255, 0.02)",
             borderColor: "rgba(255, 255, 255, 0.06)",
+            padding: "calc(var(--sidebar-card-padding) * 0.83) var(--sidebar-card-padding)",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          {/* Collapsed content */}
-          <div className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col items-center gap-2.5 ${
-            isCollapsed ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none absolute inset-x-2 inset-y-2"
-          }`}>
-            <Link
-              href="/dashboard/settings"
-              className="transition-all active:scale-[0.95] hover:opacity-80 shrink-0"
-              title={`${userProfile?.name || "Account"} (${userProfile?.email || ""})`}
-            >
-              {renderAvatar(userProfile?.avatarUrl, userProfile?.name || "A", "w-8 h-8 text-xs")}
-            </Link>
-            <div className="w-full h-px bg-white/[0.08]" />
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSignOut();
+          <div className="relative">
+            {/* Collapsed User View */}
+            <div
+              style={{
+                opacity: "var(--sidebar-collapsed-opacity)",
+                maxHeight: "calc(var(--sidebar-collapsed-opacity) * 85px)",
+                overflow: "hidden",
+                transition: "max-height 320ms cubic-bezier(0.32,0.72,0,1), opacity 320ms ease",
+                pointerEvents: isCollapsed ? "auto" : "none",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "8px",
               }}
-              className="p-1.5 rounded-lg transition-colors shrink-0 active:scale-[0.95] text-slate-400 hover:text-white hover:bg-white/[0.06]"
-              title="Sign out"
             >
-              {icons.logout}
-            </button>
-          </div>
+              <Link
+                href="/dashboard/settings"
+                className="transition-all active:scale-[0.95] hover:opacity-80 shrink-0"
+                title={`${userProfile?.name || "Account"} (${userProfile?.email || ""})`}
+              >
+                {renderAvatar(userProfile?.avatarUrl, userProfile?.name || "A", "w-8 h-8 text-xs")}
+              </Link>
+              <div className="w-full h-px bg-white/[0.08]" />
+              <button
+                onClick={(e) => { e.stopPropagation(); handleSignOut(); }}
+                className="p-1.5 rounded-lg transition-colors active:scale-[0.95] text-slate-400 hover:text-white hover:bg-white/[0.06] shrink-0"
+                title="Sign out"
+              >
+                {icons.logout}
+              </button>
+            </div>
 
-          {/* Expanded content */}
-          <div className={`transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center justify-between gap-3 ${
-            !isCollapsed ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none absolute inset-x-2.5 inset-y-2.5"
-          }`}>
-            <Link
-              href="/dashboard/settings"
-              className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
-            >
-              {renderAvatar(userProfile?.avatarUrl, userProfile?.name || "Account", "w-8 h-8 text-sm")}
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium truncate" style={{ color: "var(--color-fg)" }}>
-                  {userProfile?.name || "Account"}
-                </p>
-                <p className="text-[11px] truncate" style={{ color: "var(--color-fg-muted)" }}>
-                  {userProfile?.email || ""}
-                </p>
-              </div>
-            </Link>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSignOut();
+            {/* Expanded User View */}
+            <div
+              style={{
+                opacity: "var(--sidebar-expanded-opacity)",
+                maxHeight: "calc(var(--sidebar-expanded-opacity) * 45px)",
+                overflow: "hidden",
+                transition: "max-height 320ms cubic-bezier(0.32,0.72,0,1), opacity 320ms ease",
+                pointerEvents: isCollapsed ? "none" : "auto",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "12px",
               }}
-              className="p-1.5 rounded-lg transition-colors shrink-0 active:scale-[0.95] text-slate-400 hover:text-white hover:bg-white/[0.06]"
-              title="Sign out"
             >
-              {icons.logout}
-            </button>
+              <Link
+                href="/dashboard/settings"
+                className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+              >
+                {renderAvatar(userProfile?.avatarUrl, userProfile?.name || "Account", "w-8 h-8 text-sm")}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium truncate" style={{ color: "var(--color-fg)" }}>
+                    {userProfile?.name || "Account"}
+                  </p>
+                  <p className="text-[11px] truncate" style={{ color: "var(--color-fg-muted)" }}>
+                    {userProfile?.email || ""}
+                  </p>
+                </div>
+              </Link>
+              <button
+                onClick={(e) => { e.stopPropagation(); handleSignOut(); }}
+                className="p-1.5 rounded-lg transition-colors shrink-0 active:scale-[0.95] text-slate-400 hover:text-white hover:bg-white/[0.06]"
+                title="Sign out"
+              >
+                {icons.logout}
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
 
       <div
         onMouseDown={handleMouseDown}

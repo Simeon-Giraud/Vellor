@@ -240,6 +240,15 @@ The same tracking prompts are run for both the user’s domain and each competit
   - To prevent snap-back and click propagation, a timestamp debouncer (`lastDragTimeRef`) is used.
   - If the sidebar is collapsed, navigation clicks on the icons change pages without expanding the sidebar (`target.closest("a")` and `target.closest("button")` checks in the aside `onClick` handler).
   - There are no visible vertical borders/divider lines on the sidebar or its hover handle.
+  - Animations and cross-fades of child elements (logo text, badges, nav labels, usage cards, user row) are controlled by CSS custom variables on the `<aside>` element.
+  - When not dragging, these variables are statically mapped to React `isCollapsed` state, allowing children to transition smoothly using CSS transitions.
+  - During dragging, transitions are disabled (`.is-dragging`) and these variables are recalculated in real-time in JavaScript (`mousemove`) and set as inline properties for 1:1 cursor tracking. On `mouseup`, the inline property overrides are cleared, letting React-state CSS transitions take over for the snap.
+  - The logo header centers itself when collapsed using `justifyContent: isCollapsed ? "center" : "space-between"` (with a dynamic `mousemove` threshold at `130px` during drag) and is offset-free thanks to an animated flex gap (`calc(var(--sidebar-text-opacity) * 10px)`).
+- **Sidebar Navigation & Structure**:
+  - The sidebar is organized into logical groups: "Main" (Dashboard, Projects), "Tools" (Page Audit, Alerts), and "Account" (Settings, What's New).
+  - The "Tools" section is only visible to users who have created at least one project.
+  - The "What's New" item features a dynamic visual indicator dot to draw attention to updates.
+  - Section headers fade gracefully during sidebar collapse and expand, driven by CSS variables `var(--sidebar-expanded-opacity)` and `var(--sidebar-collapsed-opacity)`.
 - **Profile Customization & Real-time Sync**:
   - Profile metadata (`fullName` and `avatarUrl`) is editable under the settings profile tab, updating both Prisma via `/api/settings/profile` and Supabase Auth metadata.
   - Avatars support 6 premium gradient presets or a custom image URL.

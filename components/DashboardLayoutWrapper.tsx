@@ -59,7 +59,7 @@ export default function DashboardLayoutWrapper({
 
   return (
     <div 
-      className="h-screen flex overflow-hidden" 
+      className="h-screen flex overflow-hidden dashboard-layout-root" 
       style={{ 
         background: "#000000", 
         color: "var(--color-fg)",

@@ -4,13 +4,16 @@ import { useState } from "react";
 
 interface RunButtonProps {
   projectId: string;
+  onRunSuccess?: () => void;
+  onRunError?: (msg: string) => void;
+  disabled?: boolean;
 }
 
-export default function RunButton({ projectId }: RunButtonProps) {
+export default function RunButton({ projectId, onRunSuccess, onRunError, disabled }: RunButtonProps) {
   const [state, setState] = useState<"idle" | "loading" | "success">("idle");
 
   const handleRun = async () => {
-    if (state !== "idle") return;
+    if (state !== "idle" || disabled) return;
     setState("loading");
 
     try {
@@ -19,11 +22,22 @@ export default function RunButton({ projectId }: RunButtonProps) {
       });
       if (res.ok) {
         setState("success");
+        onRunSuccess?.();
         setTimeout(() => setState("idle"), 2500);
       } else {
+        const text = await res.text().catch(() => "");
+        let msg = "Failed to run prompts.";
+        try {
+          const errorData = JSON.parse(text);
+          msg = errorData.message || errorData.error || msg;
+        } catch {
+          msg = `Server Error (${res.status}): ${text.slice(0, 100)}`;
+        }
+        onRunError?.(msg);
         setState("idle");
       }
-    } catch {
+    } catch (err: any) {
+      onRunError?.(`Network Error: ${err.message || "Failed to run prompts."}`);
       setState("idle");
     }
   };
@@ -41,16 +55,16 @@ export default function RunButton({ projectId }: RunButtonProps) {
   return (
     <button
       onClick={handleRun}
-      disabled={state === "loading"}
+      disabled={state === "loading" || disabled}
       className={`
         inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
         transition-[transform,background-color,opacity] duration-[160ms] ease-out
         active:scale-[0.97] cursor-pointer
-        ${state === "loading" ? "opacity-80" : ""}
+        ${state === "loading" || disabled ? "opacity-80 cursor-not-allowed" : ""}
       `}
       style={state === "success" ? successStyle : idleStyle}
     >
-      {state === "loading" && (
+      {(state === "loading" || (state === "idle" && disabled)) && (
         <span
           className="w-3.5 h-3.5 border-2 rounded-full animate-spin"
           style={{
@@ -59,7 +73,7 @@ export default function RunButton({ projectId }: RunButtonProps) {
           }}
         />
       )}
-      {state === "idle" && (
+      {state === "idle" && !disabled && (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <path d="M8 5v14l11-7z" />
         </svg>
@@ -69,7 +83,7 @@ export default function RunButton({ projectId }: RunButtonProps) {
           <path d="M20 6 9 17l-5-5" />
         </svg>
       )}
-      {state === "idle" ? "Run prompts" : state === "loading" ? "Queuing..." : "Queued"}
+      {state === "idle" ? (disabled ? "Running..." : "Run prompts") : state === "loading" ? "Queuing..." : "Queued"}
     </button>
   );
 }

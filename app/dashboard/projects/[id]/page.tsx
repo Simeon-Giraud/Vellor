@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getHistoryCutoff, getUserPlan } from "@/lib/usage";
+import { getUserState } from "@/lib/userState";
 import ProjectDetailClient from "./ProjectDetailClient";
 
 export const metadata: Metadata = { title: "Project Details — Vellor" };
@@ -21,6 +22,8 @@ export default async function ProjectDetailPage({
   const dbUser = await getCurrentDbUser();
   const userId = dbUser?.supabaseId;
   if (!dbUser || !userId) redirect("/");
+
+  const userState = await getUserState(userId);
 
   const { id } = await params;
 
@@ -151,7 +154,7 @@ export default async function ProjectDetailPage({
       chartData={chartData}
       competitorData={competitorData}
       planLimit={plan.maxPromptsPerProject}
-      planName={plan.name}
+      planName={userState === "demo" ? "Demo" : plan.name}
       maxCompetitors={plan.maxCompetitors}
       myTrend={myTrend}
     />

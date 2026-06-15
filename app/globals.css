@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@property --sidebar-width {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 240px;
+}
+
+.dashboard-layout-root {
+  transition: --sidebar-width 320ms cubic-bezier(0.32, 0.72, 0, 1) !important;
+}
+
 /* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
@@ -517,7 +527,7 @@ a:hover .logo-svg {
 /* Force Sidebar to always be in dark mode with a completely black background */
 .main-sidebar {
   background-color: #000000 !important;
-  transition: width 320ms cubic-bezier(0.32, 0.72, 0, 1) !important;
+  transition: width 320ms cubic-bezier(0.32, 0.72, 0, 1), --sidebar-width 320ms cubic-bezier(0.32, 0.72, 0, 1) !important;
   
   --color-sidebar-bg: #000000 !important;
   --color-sidebar-border: rgba(255, 255, 255, 0.08) !important;
@@ -549,6 +559,25 @@ a:hover .logo-svg {
   --logo-blend: screen !important;
 }
 
+/* Container query setup for responsive sidebar layouts */
+.main-sidebar {
+  container-type: inline-size;
+}
+
+/* Narrow (collapsed): hide collapse button */
+@container (max-width: 130px) {
+  .sidebar-header-controls {
+    display: none !important;
+  }
+}
+
+/* Wide (expanded): show collapse button */
+@container (min-width: 131px) {
+  .sidebar-header-controls {
+    display: block !important;
+  }
+}
+
 /* Mobile responsive dashboard overrides */
 @media (max-width: 767px) {
   .dashboard-main-content {
@@ -558,9 +587,15 @@ a:hover .logo-svg {
     border-bottom-left-radius: 0 !important;
     box-shadow: none !important;
     padding-top: 0 !important;
-    margin-top: 64px !important;
-    height: calc(100vh - 64px) !important;
+    margin-top: 80px !important;
+    height: calc(100vh - 80px) !important;
   }
+}
+
+/* Disable transitions entirely during drag for 1:1 cursor tracking */
+.is-dragging,
+.is-dragging * {
+  transition: none !important;
 }
 
 
