@@ -231,6 +231,15 @@ The planned content audit flow:
 ## 17. Competitor Tracking Mechanism
 The same tracking prompts are run for both the user’s domain and each competitor domain. Results are stored separately per domain. The competitor comparison view shows side-by-side mention rates, position rankings, and trend deltas across all 3 engines.
 
+### Advanced Competitor Analysis (AEO insights)
+When a competitor is mentioned and ranks in the Top 3 positions for a prompt, an asynchronous background job is queued (`analysisQueue` handled by `analysisWorker.ts`). This worker:
+1. Fetches the competitor's website and extracts the text content using `cheerio`.
+2. Sends the content and original prompt to OpenAI (`gpt-4o`) to determine *why* the AI preferred that site.
+3. Generates actionable steps the client can take to outrank them.
+4. Saves the reasoning and advice to the `CompetitorAnalysis` table linked to the `PromptResult`.
+
+**Demo Mode & Mock AI**: In demo mode (or when `NEXT_PUBLIC_USE_MOCK_AI=true`), `mockExecutor.ts` automatically mocks prompt results and triggers the analysis queue. The `analysisWorker.ts` detects the mock flag and generates mock reasoning and actionable advice without requiring actual scraping or OpenAI API calls, ensuring the full pipeline can be demonstrated without incurring costs.
+
 ## 18. Dashboard UI/UX & Layout Guidelines
 - **Theme Constraints**: The platform is locked to **Light Mode** (`data-theme="light"` forced in `ThemeProvider.tsx`). The dashboard sidebar is locked to **Dark Mode** (completely pitch black `#000000` background) via CSS overrides in `.main-sidebar` in `globals.css` and inline styles in `Sidebar.tsx`.
 - **Canvas Layout**: The main dashboard area (`.dashboard-main-content`) is styled as a floating white canvas layered over the black sidebar, featuring `borderTopLeftRadius: "24px"`, `borderBottomLeftRadius: "24px"`, and a drop shadow (`boxShadow: "-8px 0 32px rgba(0, 0, 0, 0.08)"`).

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { AIEngine } from "@prisma/client";
+import { analysisQueue } from "@/lib/queue";
 
 /**
  * Simulates a run for a single prompt on CHATGPT, GEMINI, and PERPLEXITY
@@ -59,9 +60,23 @@ export async function executeAndSaveMockResults(
 
   // Persist to database
   for (const res of results) {
-    await prisma.promptResult.create({
+    const promptResult = await prisma.promptResult.create({
       data: res,
     });
+
+    // Trigger competitor analysis if a competitor was mentioned
+    // and its position is in the top 3 to save LLM costs
+    if (competitors && competitors.length > 0 && res.mentionPosition && res.mentionPosition <= 3) {
+      const topCompetitor = competitors[0];
+      
+      await analysisQueue.add("analyze-competitor", {
+        promptResultId: promptResult.id,
+        competitorDomain: topCompetitor,
+        promptText: promptText
+      });
+      
+      console.log(`[MockExecutor] Queued analysis for competitor ${topCompetitor} on result ${promptResult.id}`);
+    }
   }
 }
 

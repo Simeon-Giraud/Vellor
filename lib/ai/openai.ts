@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 
 const apiKey = process.env.OPENAI_API_KEY || "";
-const openai = new OpenAI({ apiKey });
+export const openai = new OpenAI({ apiKey });
 
 export async function runOpenAI(promptText: string): Promise<string> {
   if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true" || !apiKey) {

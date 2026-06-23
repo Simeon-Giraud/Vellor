@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserPlan } from "@/lib/usage";
 import { promptQueue } from "@/lib/queue";
+import { getUserState } from "@/lib/userState";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +29,22 @@ export async function GET(
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
+    const userState = await getUserState(userId);
+
     // Check if there are active/waiting/delayed jobs for this project OR if status is running/generating
     let isRunning = project.status === "running" || project.status === "generating";
+
+    // Auto-recovery: If stuck in running/generating for too long, reset it
+    const threshold = userState === "demo" ? 30 * 1000 : 120 * 1000;
+    if (isRunning && (Date.now() - new Date(project.updatedAt).getTime() > threshold)) {
+      console.log(`[API] Resetting stuck project status for ${id} (current status: ${project.status})`);
+      await prisma.project.update({
+        where: { id },
+        data: { status: "active" }
+      });
+      project.status = "active";
+      isRunning = false;
+    }
     if (!isRunning && process.env.NEXT_PUBLIC_USE_MOCK_AI !== "true") {
       try {
         const client = promptQueue.client;

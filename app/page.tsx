@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentDbUser } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { Pricing } from "@/components/Pricing";
 
 const ENGINE_COLORS: Record<string, string> = {
   ChatGPT: "#10a37f",
@@ -387,7 +388,8 @@ export default async function HomePage() {
       {/* ── Pricing Section ── */}
       <section
         id="pricing"
-        style={{ padding: "120px 24px", background: "var(--color-fg)", color: "var(--color-bg)", textAlign: "center", position: "relative", overflow: "hidden" }}
+        className="pricing-section"
+        style={{ padding: "120px 24px", textAlign: "center", position: "relative", overflow: "hidden" }}
       >
         {/* Glow */}
         <div
@@ -403,82 +405,7 @@ export default async function HomePage() {
           }}
         />
 
-        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <h2 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 700, letterSpacing: "-0.04em", marginBottom: 16 }}>
-            Simple, transparent pricing.
-          </h2>
-          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", lineHeight: 1.55, marginBottom: 80 }}>
-            Start optimizing your brand's AI presence today. 7-day free trial. Cancel anytime.
-          </p>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, textAlign: "left", alignItems: "center" }}>
-            
-            {/* Starter */}
-            <div className="pricing-card" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 32, padding: 40, display: "flex", flexDirection: "column" }}>
-              <h3 style={{ fontSize: 20, fontWeight: 600, color: "#fff", marginBottom: 8 }}>Starter</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 24, height: 40 }}>Perfect for solo founders and small brands</p>
-              <div style={{ marginBottom: 32 }}>
-                <span style={{ fontSize: 48, fontWeight: 700, letterSpacing: "-0.04em", color: "#fff" }}>$39</span>
-                <span style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>/mo</span>
-              </div>
-              <Link href={isSignedIn ? "/dashboard" : "/sign-up"} style={{ display: "block", textAlign: "center", padding: "14px 24px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: 999, fontSize: 15, fontWeight: 500, marginBottom: 40, textDecoration: "none" }}>
-                Get Starter
-              </Link>
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {["5 projects", "20 prompts per project", "100 runs/month", "ChatGPT, Gemini & Perplexity", "1 competitor tracked", "30-day data history", "Email alerts"].map(feature => (
-                  <div key={feature} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}><polyline points="20 6 9 17 4 12"/></svg>
-                    <span style={{ fontSize: 14, color: "rgba(255,255,255,0.8)" }}>{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Growth */}
-            <div className="pricing-card" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 32, padding: "48px 40px", display: "flex", flexDirection: "column", boxShadow: "0 0 0 1px rgba(0, 113, 227, 0.3), 0 32px 64px -16px rgba(0, 113, 227, 0.2)", position: "relative" }}>
-              <div className="badge-glow" style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(90deg, #0071e3, #00d2ff)", color: "#fff", fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 999, letterSpacing: "0.05em", textTransform: "uppercase" }}>Most Popular</div>
-              <h3 style={{ fontSize: 20, fontWeight: 600, color: "#fff", marginBottom: 8 }}>Growth</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 24, height: 40 }}>For growing teams monitoring multiple brands</p>
-              <div style={{ marginBottom: 32 }}>
-                <span style={{ fontSize: 48, fontWeight: 700, letterSpacing: "-0.04em", color: "#fff" }}>$79</span>
-                <span style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>/mo</span>
-              </div>
-              <Link href={isSignedIn ? "/dashboard" : "/sign-up"} style={{ display: "block", textAlign: "center", padding: "14px 24px", background: "#fff", color: "#000", borderRadius: 999, fontSize: 15, fontWeight: 600, marginBottom: 40, textDecoration: "none", boxShadow: "0 4px 12px rgba(255,255,255,0.2)" }}>
-                Get Growth
-              </Link>
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {["10 projects", "50 prompts per project", "500 runs/month", "ChatGPT, Gemini & Perplexity", "3 competitors tracked", "60-day data history", "Slack & email alerts"].map(feature => (
-                  <div key={feature} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span style={{ fontSize: 14, color: "#fff" }}>{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Pro */}
-            <div className="pricing-card" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 32, padding: 40, display: "flex", flexDirection: "column" }}>
-              <h3 style={{ fontSize: 20, fontWeight: 600, color: "#fff", marginBottom: 8 }}>Pro</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 24, height: 40 }}>For established brands and agencies</p>
-              <div style={{ marginBottom: 32 }}>
-                <span style={{ fontSize: 48, fontWeight: 700, letterSpacing: "-0.04em", color: "#fff" }}>$149</span>
-                <span style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>/mo</span>
-              </div>
-              <Link href={isSignedIn ? "/dashboard" : "/sign-up"} style={{ display: "block", textAlign: "center", padding: "14px 24px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: 999, fontSize: 15, fontWeight: 500, marginBottom: 40, textDecoration: "none" }}>
-                Get Pro
-              </Link>
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {["Unlimited projects", "100 prompts per project", "1,000 runs/month", "ChatGPT, Gemini & Perplexity", "Unlimited competitors tracked", "1-year data history", "Export reports (CSV/PDF)", "Priority support"].map(feature => (
-                  <div key={feature} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}><polyline points="20 6 9 17 4 12"/></svg>
-                    <span style={{ fontSize: 14, color: "rgba(255,255,255,0.8)" }}>{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>
-        </div>
+        <Pricing isSignedIn={isSignedIn} />
       </section>
 
       {/* ── Footer ── */}

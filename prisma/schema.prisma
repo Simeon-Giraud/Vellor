@@ -95,10 +95,26 @@ model PromptResult {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now()) @updatedAt
   prompt          Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  analyses        CompetitorAnalysis[]
 
   @@index([promptId])
   @@index([createdAt])
   @@map("prompt_results")
+}
+
+model CompetitorAnalysis {
+  id               String       @id @default(cuid())
+  promptResultId   String
+  competitorDomain String
+  reasoning        String       @db.Text
+  actionableAdvice String       @db.Text
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @default(now()) @updatedAt
+
+  promptResult     PromptResult @relation(fields: [promptResultId], references: [id], onDelete: Cascade)
+
+  @@index([promptResultId])
+  @@map("competitor_analyses")
 }
 
 model ProjectRun {

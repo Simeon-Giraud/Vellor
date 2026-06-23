@@ -75,14 +75,57 @@ export async function POST(
         // Sleep for 5 seconds to simulate API calls
         await new Promise((resolve) => setTimeout(resolve, 5000));
 
-        const { executeAndSaveMockResults } = await import("@/lib/ai/mockExecutor");
-        for (const prompt of project.prompts) {
-          await executeAndSaveMockResults(
-            prompt.id,
-            prompt.text,
-            project.domain,
-            project.competitors
-          );
+        if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true") {
+          const { executeAndSaveMockResults } = await import("@/lib/ai/mockExecutor");
+          for (const prompt of project.prompts) {
+            await executeAndSaveMockResults(
+              prompt.id,
+              prompt.text,
+              project.domain,
+              project.competitors
+            );
+          }
+        } else {
+          // Demo mode flow using demoData
+          const { generateDemoResults } = await import("@/lib/ai/demoData");
+          for (const prompt of project.prompts) {
+            const mockResults = generateDemoResults(prompt.text, project.domain);
+            
+            for (const r of mockResults) {
+              const promptResult = await prisma.promptResult.create({
+                data: {
+                  promptId: prompt.id,
+                  engine: r.engine,
+                  brandMentioned: r.mentioned,
+                  mentionPosition: r.position,
+                  response: r.snippet,
+                }
+              });
+
+              // Trigger competitor analysis if a competitor exists and position is top 3
+              if (project.competitors && project.competitors.length > 0 && r.position && r.position <= 3) {
+                const topCompetitor = project.competitors[0];
+                try {
+                  const { analysisQueue } = await import("@/lib/queue");
+                  // Don't await indefinitely if Redis is down
+                  Promise.race([
+                    analysisQueue.add("analyze-competitor", {
+                      promptResultId: promptResult.id,
+                      competitorDomain: topCompetitor,
+                      promptText: prompt.text
+                    }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("Redis timeout")), 2000))
+                  ]).then(() => {
+                    console.log(`[API] Queued analysis for competitor ${topCompetitor} on result ${promptResult.id} in demo mode`);
+                  }).catch(() => {
+                    console.warn("[API] Redis/BullMQ not available or timeout, skipping queue");
+                  });
+                } catch {
+                  console.warn("[API] Redis/BullMQ not available, skipping queue");
+                }
+              }
+            }
+          }
         }
 
         await prisma.project.update({

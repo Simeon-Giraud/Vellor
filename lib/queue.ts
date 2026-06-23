@@ -34,6 +34,17 @@ export const cronQueue = new Queue("cron-jobs", {
   },
 });
 
+export const analysisQueue = new Queue("analysis-runs", {
+  connection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 5000,
+    },
+  },
+});
+
 // Setup repeatable job for daily checks (running every day at midnight)
 if (typeof window === "undefined") {
   cronQueue.add(

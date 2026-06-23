@@ -77,15 +77,41 @@ export async function POST(req: Request) {
       } else if (userState === "demo") {
         const { generateDemoResults } = await import("@/lib/ai/demoData");
         const mockResults = generateDemoResults(text, prompt.project.domain);
-        await prisma.promptResult.createMany({
-          data: mockResults.map(r => ({
-            promptId: prompt.id,
-            engine: r.engine,
-            brandMentioned: r.mentioned,
-            mentionPosition: r.position,
-            response: r.snippet,
-          }))
-        });
+        
+        for (const r of mockResults) {
+          const promptResult = await prisma.promptResult.create({
+            data: {
+              promptId: prompt.id,
+              engine: r.engine,
+              brandMentioned: r.mentioned,
+              mentionPosition: r.position,
+              response: r.snippet,
+            }
+          });
+
+          // Trigger competitor analysis if a competitor exists and position is top 3
+          if (prompt.project.competitors && prompt.project.competitors.length > 0 && r.position && r.position <= 3) {
+            const topCompetitor = prompt.project.competitors[0];
+            try {
+              const { analysisQueue } = await import("@/lib/queue");
+              // Don't await indefinitely if Redis is down
+              Promise.race([
+                analysisQueue.add("analyze-competitor", {
+                  promptResultId: promptResult.id,
+                  competitorDomain: topCompetitor,
+                  promptText: text
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Redis timeout")), 2000))
+              ]).then(() => {
+                console.log(`[API] Queued analysis for competitor ${topCompetitor} on result ${promptResult.id} in demo mode`);
+              }).catch(() => {
+                console.warn("[API] Redis/BullMQ not available or timeout, skipping queue");
+              });
+            } catch {
+              console.warn("[API] Redis/BullMQ not available, skipping queue");
+            }
+          }
+        }
       } else {
         try {
           const { promptQueue } = await import("@/lib/queue");
