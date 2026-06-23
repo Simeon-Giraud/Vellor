@@ -1,8 +1,8 @@
 import { getCurrentDbUser } from "@/lib/auth";
-
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { PLANS } from "@/lib/plans";
 
 const IconPlus = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -33,10 +33,18 @@ export default async function ProjectsPage() {
 
   const user = await prisma.user.findUnique({
     where: { supabaseId: userId },
-    select: { id: true },
+    select: { id: true, stripePriceId: true, subscriptionStatus: true },
   });
 
   if (!user) redirect("/dashboard");
+
+  let plan: typeof PLANS[keyof typeof PLANS] = PLANS.starter;
+  if (user.subscriptionStatus !== "inactive") {
+    if (user.stripePriceId === process.env.STRIPE_PRO_PRICE_ID) plan = PLANS.pro;
+    else if (user.stripePriceId === process.env.STRIPE_GROWTH_PRICE_ID) plan = PLANS.growth;
+  }
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - plan.dataHistoryDays);
 
   const projects = await prisma.project.findMany({
     where: { userId: user.id },
@@ -44,8 +52,8 @@ export default async function ProjectsPage() {
       prompts: {
         include: {
           results: {
+            where: { createdAt: { gte: cutoff } },
             orderBy: { createdAt: "desc" },
-            take: 1,
           },
         },
       },
@@ -102,7 +110,7 @@ export default async function ProjectsPage() {
               {projects.map((project) => {
                 const allResults = project.prompts.flatMap(p => p.results);
                 const mentioned = allResults.filter(r => r.brandMentioned).length;
-                const rate = allResults.length > 0 ? Math.round((mentioned / allResults.length) * 100) : 0;
+                const rate = allResults.length > 0 ? Math.round((mentioned / allResults.length) * 1000) / 10 : 0;
                 const lastResult = allResults.sort((a, b) =>
                   new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                 )[0];

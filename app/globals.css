@@ -598,4 +598,133 @@ a:hover .logo-svg {
   transition: none !important;
 }
 
+/* ── Landing Page Micro-Animations ─────────────────────────────────────────── */
+
+/* Background orb slow drift */
+@keyframes orb-drift {
+  0%, 100% { transform: translateX(-50%) translateY(0px) scale(1); }
+  33%       { transform: translateX(-50%) translateY(-24px) scale(1.04); }
+  66%       { transform: translateX(-50%) translateY(12px) scale(0.97); }
+}
+.orb-drift {
+  animation: orb-drift 18s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  will-change: transform;
+}
+
+/* Hero glass card — floating oscillation (three phase-offsets) */
+@keyframes float-a {
+  0%, 100% { transform: rotate(-4deg) translateZ(20px) translateY(0px); }
+  50%       { transform: rotate(-4deg) translateZ(20px) translateY(-12px); }
+}
+@keyframes float-b {
+  0%, 100% { transform: rotate(3deg) translateZ(40px) translateY(0px); }
+  50%       { transform: rotate(3deg) translateZ(40px) translateY(-16px); }
+}
+@keyframes float-c {
+  0%, 100% { transform: translateZ(60px) translateY(0px); }
+  50%       { transform: translateZ(60px) translateY(-8px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-card-a { animation: float-a 6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; }
+  .hero-card-b { animation: float-b 7.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite 1.5s; }
+  .hero-card-c { animation: float-c 5.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite 0.8s; }
+}
+
+/* Staggered hero text entry — blur + lift combo for premium feel */
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-badge { animation: hero-fade-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: 50ms; }
+  .hero-h1    { animation: hero-fade-up 700ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: 150ms; }
+  .hero-sub   { animation: hero-fade-up 700ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: 250ms; }
+  .hero-cta   { animation: hero-fade-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: 340ms; }
+  .hero-cards { animation: hero-fade-up 800ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: 420ms; }
+}
+
+/* Scroll-triggered bento & pricing cards (toggled by IntersectionObserver) */
+.bento-card {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bento-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pricing-card {
+  opacity: 0;
+  transform: translateY(24px) scale(0.98);
+  transition:
+    opacity 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pricing-card.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.geo-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.geo-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Glow pulse on "Most Popular" badge */
+@keyframes badge-glow {
+  0%, 100% { box-shadow: 0 0 12px rgba(0, 113, 227, 0.4); }
+  50%       { box-shadow: 0 0 28px rgba(0, 113, 227, 0.75), 0 0 44px rgba(0, 210, 255, 0.3); }
+}
+.badge-glow {
+  animation: badge-glow 3s ease-in-out infinite;
+}
+
+/* Stat bar grow-in on scroll reveal */
+@keyframes stat-bar-grow {
+  from { width: 0%; }
+}
+.stat-bar-grow {
+  animation: stat-bar-grow 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Reduced motion: show everything flat, no movement */
+@media (prefers-reduced-motion: reduce) {
+  .hero-badge, .hero-h1, .hero-sub, .hero-cta, .hero-cards {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+  .bento-card, .pricing-card, .geo-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .hero-card-a, .hero-card-b, .hero-card-c,
+  .badge-glow, .orb-drift, .stat-bar-grow {
+    animation: none !important;
+  }
+}
+
+
 

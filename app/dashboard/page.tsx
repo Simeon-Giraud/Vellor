@@ -48,6 +48,7 @@ const IconEmpty = () => (
   </svg>
 );
 
+
 async function getDashboardData(supabaseId: string) {
   try {
     const user = await prisma.user.findUnique({
@@ -322,216 +323,250 @@ export default async function DashboardPage({
 
   const deltaUp = data.weeklyDelta >= 0;
 
+  // Greeting based on time of day (server-side, UTC-aware)
+  const hour = new Date().getUTCHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
+  // Today's date string
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  // Engine color map
+  const engineColors: Record<string, string> = {
+    ChatGPT: "#10a37f",
+    Gemini: "#0071e3",
+    Perplexity: "#ff6b00",
+  };
+
+  // KPI data (no accent color references)
+  const kpiTiles = [
+    { label: "Mention rate", value: data.avgMentionRate, suffix: "%", trend: deltaUp, trendLabel: `${deltaUp ? "+" : ""}${data.weeklyDelta}%` },
+    { label: "Results collected", value: data.totalResults, suffix: "", trend: null as null, trendLabel: null as null },
+    { label: "Prompts run", value: data.totalPrompts, suffix: "", trend: null as null, trendLabel: null as null },
+    { label: "Active projects", value: data.totalProjects, suffix: "", trend: null as null, trendLabel: null as null },
+  ];
+
   return (
-    <div className="flex-1">
-      {/* Header */}
+    <div className="flex-1" style={{ color: "var(--color-fg)" }}>
+
+      {/* ── Header ── */}
       <header
         className="sticky top-0 z-20 px-6 md:px-8 py-4 flex items-center justify-between backdrop-blur-xl border-b"
         style={{ background: "var(--color-header-bg)", borderColor: "var(--color-header-border)" }}
       >
-        <div>
-          <h1 className="text-xl font-bold tracking-tight" style={{ color: "var(--color-fg)" }}>Overview</h1>
-          <p className="text-xs mt-0.5" style={{ color: "var(--color-fg-muted)" }}>
-            Brand visibility across all active projects
+        <div className="fade-up">
+          <p className="text-[11px] font-medium uppercase tracking-widest mb-0.5" style={{ color: "var(--color-fg-muted)" }}>
+            {greeting}
           </p>
+          <h1 className="text-xl font-bold tracking-tight leading-none" style={{ color: "var(--color-fg)" }}>
+            Overview
+          </h1>
         </div>
-        <Link
-          href="/dashboard/projects/new"
-          id="new-project-btn"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-[transform,background-color] duration-[160ms] ease-out active:scale-[0.97] cursor-pointer"
-          style={{ background: "var(--color-btn-primary-bg)", color: "var(--color-btn-primary-text)" }}
-        >
-          <IconPlus /> New project
-        </Link>
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:block text-xs" style={{ color: "var(--color-fg-subtle)" }}>{today}</span>
+          <Link
+            href="/dashboard/projects/new"
+            id="new-project-btn"
+            className="btn-black inline-flex items-center gap-1.5"
+            style={{ fontSize: "13px", padding: "8px 16px", borderRadius: "980px" }}
+          >
+            <IconPlus /> New project
+          </Link>
+        </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-5">
 
-        {/* ─── Stats bento ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-          {/* Main KPI */}
-          <div className="md:col-span-3 dash-card px-7 py-6 animate-fade-in-up">
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--color-fg-muted)" }}>
-              Avg. mention rate
-            </p>
-            <div className="flex items-end gap-4">
-              <span className="text-5xl font-bold font-mono tracking-tighter" style={{ color: "var(--color-fg)" }}>
-                <AnimatedCounter value={data.avgMentionRate} suffix="%" />
-              </span>
-              <span
-                className="inline-flex items-center gap-1 text-sm font-medium mb-1.5"
-                style={{ color: deltaUp ? "#10b981" : "#ef4444" }}
-              >
-                <IconTrend up={deltaUp} />
-                {deltaUp ? "+" : ""}{data.weeklyDelta}% vs last week
-              </span>
-            </div>
-            <div className="mt-5 h-[100px]">
-              <TrendChart data={data.dailyData} />
-            </div>
-          </div>
-
-          {/* Results collected */}
-          <div className="md:col-span-2 dash-card px-7 py-6 flex flex-col justify-between animate-fade-in-up" style={{ animationDelay: "50ms" }}>
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-1" style={{ color: "var(--color-fg-muted)" }}>
-              Results collected
-            </p>
-            <span className="text-4xl font-bold font-mono tracking-tighter" style={{ color: "var(--color-fg)" }}>
-              <AnimatedCounter value={data.totalResults} />
-            </span>
-            <p className="text-xs mt-auto pt-3" style={{ color: "var(--color-fg-muted)" }}>
-              Across all engines and projects
-            </p>
-          </div>
-
-          {/* Three smaller stats */}
-          {[
-            { label: "Active projects", value: data.totalProjects },
-            { label: "Prompts run", value: data.totalPrompts },
-            { label: "Engines tracked", value: data.enginesTracked || 3 },
-          ].map((s, i) => (
+        {/* ── KPI row — 4 flat stat tiles ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {kpiTiles.map((tile, i) => (
             <div
-              key={s.label}
-              className="dash-card px-5 py-5 animate-fade-in-up"
-              style={{ animationDelay: `${100 + i * 50}ms` }}
+              key={tile.label}
+              className={`dash-card px-5 py-5 fade-up ${["fade-up-d1","fade-up-d2","fade-up-d3","fade-up-d4"][i]}`}
             >
-              <p className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--color-fg-muted)" }}>
-                {s.label}
+              <p className="text-[11px] font-medium mb-3" style={{ color: "var(--color-fg-muted)" }}>
+                {tile.label}
               </p>
-              <span className="text-3xl font-bold font-mono" style={{ color: "var(--color-fg)" }}>
-                <AnimatedCounter value={s.value} />
-              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold tracking-tight" style={{ color: "var(--color-fg)", lineHeight: 1 }}>
+                  <AnimatedCounter value={tile.value} suffix={tile.suffix} />
+                </span>
+                {tile.trend !== null && tile.trendLabel && (
+                  <span
+                    className="text-[11px] font-semibold"
+                    style={{ color: tile.trend ? "#10b981" : "#ef4444" }}
+                  >
+                    {tile.trendLabel}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* ─── Main content 2/3 + 1/3 ─── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-
-          {/* Projects table */}
-          <div className="dash-card overflow-hidden animate-fade-in-up" style={{ animationDelay: "200ms" }}>
-            <div
-              className="flex items-center justify-between px-6 py-4 border-b"
-              style={{ borderColor: "var(--color-border)" }}
+        {/* ── Trend chart ── */}
+        <div className="dash-card overflow-hidden fade-up fade-up-d3" style={{ display: "flex", minHeight: 160 }}>
+          <div
+            className="px-7 py-6 flex flex-col justify-center shrink-0"
+            style={{ borderRight: "1px solid var(--color-border)", minWidth: 190, maxWidth: 210 }}
+          >
+            <p className="text-[11px] font-medium mb-2" style={{ color: "var(--color-fg-muted)" }}>Avg. mention rate</p>
+            <span className="text-5xl font-bold tracking-tighter leading-none" style={{ color: "var(--color-fg)" }}>
+              <AnimatedCounter value={data.avgMentionRate} suffix="%" />
+            </span>
+            <span
+              className="text-[12px] font-medium mt-2"
+              style={{ color: deltaUp ? "#10b981" : "#ef4444" }}
             >
-              <h2 className="text-[15px] font-semibold tracking-tight" style={{ color: "var(--color-fg)" }}>Projects</h2>
+              {deltaUp ? "▲" : "▼"} {deltaUp ? "+" : ""}{data.weeklyDelta}% vs last week
+            </span>
+          </div>
+          <div className="flex-1 px-6 py-5 min-w-0" style={{ minHeight: 140 }}>
+            <TrendChart data={data.dailyData} />
+          </div>
+        </div>
+
+        {/* ── Projects + Recent runs ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
+
+          {/* Projects list */}
+          <div className="dash-card overflow-hidden fade-up fade-up-d4">
+            <div
+              className="flex items-center justify-between px-5 py-4"
+              style={{ borderBottom: "1px solid var(--color-border)" }}
+            >
+              <p className="text-[13px] font-semibold" style={{ color: "var(--color-fg)" }}>
+                Projects
+                <span className="ml-1.5 text-[11px] font-normal" style={{ color: "var(--color-fg-subtle)" }}>
+                  {data.totalProjects}
+                </span>
+              </p>
               <Link
                 href="/dashboard/projects/new"
-                className="inline-flex items-center gap-1 text-xs font-medium transition-colors duration-[160ms] text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]"
+                className="text-[12px] font-medium transition-colors duration-150"
+                style={{ color: "var(--color-fg-muted)" }}
               >
-                <IconPlus /> Add project
+                + Add
               </Link>
             </div>
 
-            <div>
-              {data.projects.map((project, i) => (
+            {data.projects.map((project, i) => {
+              const rateColor =
+                project.status === "generating"
+                  ? "var(--color-fg-muted)"
+                  : project.mentionRate >= 70
+                  ? "#10b981"
+                  : project.mentionRate >= 40
+                  ? "#f59e0b"
+                  : "#ef4444";
+
+              return (
                 <Link
                   key={project.id}
                   href={`/dashboard/projects/${project.id}`}
                   id={`project-${project.id}`}
-                  className="flex items-center gap-4 px-6 py-4 transition-[background-color] duration-[160ms] cursor-pointer group border-b last:border-b-0 hover:bg-[var(--color-sidebar-hover-bg)]"
-                  style={{ borderColor: "var(--color-border)" }}
+                  className="flex items-center gap-4 px-5 py-3.5 transition-colors duration-150 group"
+                  style={{
+                    borderBottom: i < data.projects.length - 1 ? "1px solid var(--color-border)" : undefined,
+                    textDecoration: "none",
+                    background: "transparent",
+                  }}
+                  onMouseEnter={undefined}
                 >
                   {/* Status dot */}
                   <div
-                    className={`w-2 h-2 rounded-full shrink-0 ${project.status === "generating" ? "pulse-dot-yellow" : "pulse-dot-green"}`}
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                      project.status === "generating" ? "pulse-dot-yellow" : "pulse-dot-green"
+                    }`}
                     style={{ background: project.status === "generating" ? "#f59e0b" : "#10b981" }}
                   />
+
+                  {/* Domain */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-[15px] font-semibold tracking-tight truncate" style={{ color: "var(--color-fg)" }}>
+                    <p className="text-[14px] font-semibold truncate" style={{ color: "var(--color-fg)" }}>
                       {project.domain}
                     </p>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--color-fg-muted)" }}>
-                      {project.competitorCount} competitor{project.competitorCount !== 1 ? "s" : ""} · {project.promptCount} prompts · {project.lastRun}
+                    <p className="text-[12px] mt-0.5" style={{ color: "var(--color-fg-subtle)" }}>
+                      {project.promptCount} prompt{project.promptCount !== 1 ? "s" : ""} · {project.competitorCount} competitor{project.competitorCount !== 1 ? "s" : ""} · {project.lastRun}
                     </p>
                   </div>
+
+                  {/* Rate + trend */}
                   <div className="text-right shrink-0">
                     {project.status === "generating" ? (
-                      <span className="text-xs font-medium" style={{ color: "var(--color-fg-muted)" }}>Setting up…</span>
+                      <span className="text-[12px]" style={{ color: "var(--color-fg-muted)" }}>Setting up…</span>
                     ) : (
                       <>
-                        <p
-                          className="text-lg font-bold font-mono"
-                          style={{ color: project.mentionRate >= 70 ? "#10b981" : project.mentionRate >= 40 ? "#f59e0b" : "#ef4444" }}
-                        >
+                        <p className="text-[15px] font-bold tabular-nums" style={{ color: rateColor }}>
                           {project.mentionRate}%
                         </p>
-                        <p
-                          className="text-[11px] font-mono flex items-center justify-end gap-0.5"
-                          style={{ color: project.trend === "up" ? "#10b981" : "#ef4444" }}
-                        >
-                          <IconTrend up={project.trend === "up"} />
+                        <p className="text-[11px] font-medium" style={{ color: project.trend === "up" ? "#10b981" : "#ef4444" }}>
                           {project.trendValue}
                         </p>
                       </>
                     )}
                   </div>
-                  <span style={{ color: "var(--color-fg-muted)" }}>
-                    <IconChevronRight />
-                  </span>
+
+                  <span style={{ color: "var(--color-fg-subtle)" }}><IconChevronRight /></span>
                 </Link>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
           {/* Recent runs */}
-          <div className="dash-card overflow-hidden animate-fade-in-up" style={{ animationDelay: "250ms" }}>
+          <div className="dash-card overflow-hidden fade-up fade-up-d5">
             <div
-              className="px-5 py-4 border-b"
-              style={{ borderColor: "var(--color-border)" }}
+              className="px-5 py-4"
+              style={{ borderBottom: "1px solid var(--color-border)" }}
             >
-              <h2 className="text-[15px] font-semibold tracking-tight" style={{ color: "var(--color-fg)" }}>Recent runs</h2>
+              <p className="text-[13px] font-semibold" style={{ color: "var(--color-fg)" }}>Recent runs</p>
             </div>
 
             {data.recentRuns.length === 0 ? (
-              <div className="px-5 py-12 text-center">
-                <p className="text-sm" style={{ color: "var(--color-fg-muted)" }}>No prompt runs yet.</p>
-                <p className="text-xs mt-1" style={{ color: "var(--color-fg-subtle)" }}>
-                  Run prompts from a project to see results here.
-                </p>
+              <div className="px-5 py-10 text-center">
+                <p className="text-sm" style={{ color: "var(--color-fg-muted)" }}>No runs yet.</p>
+                <p className="text-xs mt-1" style={{ color: "var(--color-fg-subtle)" }}>Run prompts from a project.</p>
               </div>
             ) : (
               <div>
-                {data.recentRuns.map((run, i) => (
-                  <div
-                    key={i}
-                    className="px-5 py-4 border-b last:border-b-0"
-                    style={{ borderColor: "var(--color-border)" }}
-                  >
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <p className="text-sm line-clamp-2 leading-snug flex-1" style={{ color: "var(--color-fg)" }}>
-                        {run.prompt}
-                      </p>
+                {data.recentRuns.map((run, i) => {
+                  const engineColor = engineColors[run.engine] ?? "var(--color-fg-muted)";
+                  return (
+                    <div
+                      key={i}
+                      className="px-4 py-3 flex items-start gap-3"
+                      style={{
+                        borderBottom: i < data.recentRuns.length - 1 ? "1px solid var(--color-border)" : undefined,
+                      }}
+                    >
+                      {/* Engine dot */}
+                      <div
+                        className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
+                        style={{ background: engineColor }}
+                        title={run.engine}
+                      />
+                      {/* Prompt + meta */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] leading-snug truncate" style={{ color: "var(--color-fg)" }}>
+                          {run.prompt}
+                        </p>
+                        <p className="text-[11px] mt-0.5" style={{ color: "var(--color-fg-subtle)" }}>
+                          {run.engine} · {run.time}
+                        </p>
+                      </div>
+                      {/* Mentioned */}
                       <span
-                        className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center"
-                        style={{
-                          background: run.mentioned ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.10)",
-                          color: run.mentioned ? "#10b981" : "#ef4444",
-                        }}
+                        className="text-[11px] font-medium shrink-0 mt-0.5"
+                        style={{ color: run.mentioned ? "#10b981" : "var(--color-fg-subtle)" }}
                       >
-                        {run.mentioned ? <IconCheck /> : <IconX />}
+                        {run.mentioned ? "✓" : "—"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span
-                        className="text-[11px] px-2 py-0.5 rounded-full font-medium"
-                        style={{
-                          background: "var(--color-input-bg)",
-                          border: "1px solid var(--color-border)",
-                          color: "var(--color-fg-muted)",
-                        }}
-                      >
-                        {run.engine}
-                      </span>
-                      <span className="text-[11px] font-mono" style={{ color: "var(--color-fg-muted)" }}>
-                        {run.mentioned ? `Position #${run.position}` : "Not mentioned"}
-                      </span>
-                      <span className="text-[11px] font-mono ml-auto" style={{ color: "var(--color-fg-subtle)" }}>
-                        {run.time}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

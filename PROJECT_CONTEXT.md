@@ -130,18 +130,18 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
 ## 10. Current State & What's Not Done Yet
 - **Fully implemented and working**:
   - Supabase Authentication and user syncing.
-  - Project creation and automated prompt generation (with mock generation paths).
+  - Project creation and automated prompt generation (with real Gemini API and mock generation paths).
+  - Core AI tracking executing real API calls against OpenAI, Gemini, and Perplexity concurrently.
   - Stripe subscription flows, webhooks, and `userState` logic.
   - Database schema, plan limits, and usage tracking (via ProjectRun on-demand run checks).
-  - Background scheduler in `cronWorker.ts` registering daily midnight checks repeatable job to trigger plan-based prompt runs (weekly/every 3 days/daily).
+  - Background workers (`generateWorker`, `promptWorker`, `cronWorker`) executing queue logic and registering daily midnight repeatable jobs to trigger plan-based prompt runs.
   - Main dashboard UI with trend charts and recent runs.
   - Supabase Row Level Security (RLS) policies implemented on all database tables (`users`, `user_preferences`, `projects`, `prompts`, `prompt_results`, `_prisma_migrations`).
   - Email sending service via **Resend** (with mock fallback in development and preferences checks).
   - Trial expiry notifications and weekly email digest trigger logic (respecting user preferences).
   - Test email API route at `/api/settings/test-email`.
 - **Partially implemented**:
-  - The core AI tracking is structured but uses `setTimeout` and hardcoded strings for the real API calls (marked with TODOs).
-  - Background workers exist (`generateWorker`, `promptWorker`, `cronWorker`) but the actual queue consumption logic relies on the mocked/partially complete AI functions.
+  - None at this time.
 
 - **Scaffolded but not wired up**:
   - The Content Audit feature (`/app/dashboard/audit/page.tsx`) just redirects back to projects.
