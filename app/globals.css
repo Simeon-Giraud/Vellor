@@ -2,15 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@property --sidebar-width {
-  syntax: '<length>';
-  inherits: true;
-  initial-value: 240px;
-}
-
-.dashboard-layout-root {
-  transition: --sidebar-width 320ms cubic-bezier(0.32, 0.72, 0, 1) !important;
-}
+/* Custom property for sidebar width, transitioned via width/margin properties */
 
 /* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
@@ -299,7 +291,7 @@ button, a, [class*="animate-"], [class*="spin"] {
 
 /* ── Section classes ── */
 .pricing-section {
-  background: #1d1d1f;
+  background: linear-gradient(to bottom, var(--color-surface) 0%, #1d1d1f 48px, #1d1d1f calc(100% - 48px), var(--color-surface) 100%);
   color: #ffffff;
   --pricing-fg: #ffffff;
   --pricing-fg-muted: #8e8e93;
@@ -307,7 +299,7 @@ button, a, [class*="animate-"], [class*="spin"] {
   --pricing-border: rgba(255, 255, 255, 0.2);
 }
 [data-theme="dark"] .pricing-section {
-  background: var(--color-surface-1);
+  background: linear-gradient(to bottom, var(--color-surface) 0%, var(--color-surface-1) 48px, var(--color-surface-1) calc(100% - 48px), var(--color-surface) 100%);
   color: var(--color-fg);
   --pricing-fg: var(--color-fg);
   --pricing-fg-muted: var(--color-fg-muted);
@@ -527,7 +519,7 @@ a:hover .logo-svg {
 /* Force Sidebar to always be in dark mode with a completely black background */
 .main-sidebar {
   background-color: #000000 !important;
-  transition: width 320ms cubic-bezier(0.32, 0.72, 0, 1), --sidebar-width 320ms cubic-bezier(0.32, 0.72, 0, 1) !important;
+  transition: width 320ms cubic-bezier(0.32, 0.72, 0, 1) !important;
   
   --color-sidebar-bg: #000000 !important;
   --color-sidebar-border: rgba(255, 255, 255, 0.08) !important;

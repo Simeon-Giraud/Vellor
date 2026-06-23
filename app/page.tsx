@@ -262,7 +262,7 @@ export default async function HomePage() {
       </section>
 
       {/* ── Why GEO Section (Typography Led) ── */}
-      <section id="why-geo" style={{ padding: "120px 24px", background: "var(--color-fg)", color: "var(--color-bg)", textAlign: "center" }}>
+      <section id="why-geo" style={{ padding: "120px 24px", background: "linear-gradient(to bottom, var(--color-surface) 0%, var(--color-fg) 48px, var(--color-fg) calc(100% - 48px), var(--color-surface) 100%)", color: "var(--color-bg)", textAlign: "center" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <p className="geo-reveal" style={{ fontSize: 14, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", marginBottom: 24 }}>
             The Paradigm Shift

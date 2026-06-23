@@ -99,36 +99,33 @@ export function Pricing({ isSignedIn }: PricingProps) {
       </div>
 
       {/* Button to toggle comparison table */}
-      <div style={{ marginTop: 56, textAlign: "center" }}>
+      <div style={{ marginTop: 40, textAlign: "center" }}>
         <button
           onClick={() => setShowTable(!showTable)}
           style={{
-            background: "rgba(255, 255, 255, 0.05)",
-            border: "1px solid rgba(255, 255, 255, 0.15)",
-            color: "#fff",
-            borderRadius: 999,
-            padding: "12px 32px",
+            background: "none",
+            border: "none",
+            color: "rgba(255, 255, 255, 0.55)",
             fontSize: 14,
             fontWeight: 500,
             cursor: "pointer",
             display: "inline-flex",
             alignItems: "center",
-            gap: 8,
-            transition: "background 0.2s, border-color 0.2s, transform 0.2s",
+            gap: 6,
+            padding: "8px 16px",
+            transition: "color 0.2s",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
-            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.25)";
+            e.currentTarget.style.color = "#fff";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.15)";
+            e.currentTarget.style.color = "rgba(255, 255, 255, 0.55)";
           }}
         >
           Compare Plans
           <svg
-            width="16"
-            height="16"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -138,6 +135,7 @@ export function Pricing({ isSignedIn }: PricingProps) {
             style={{
               transition: "transform 0.3s ease",
               transform: showTable ? "rotate(180deg)" : "rotate(0deg)",
+              opacity: 0.8,
             }}
           >
             <polyline points="6 9 12 15 18 9" />
