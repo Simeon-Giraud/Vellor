@@ -41,6 +41,7 @@ export default async function ProjectDetailPage({
             results: {
               where: { createdAt: { gte: cutoff } },
               orderBy: { createdAt: "desc" },
+              include: { citations: true },
             },
           },
           orderBy: { createdAt: "desc" },
@@ -142,8 +143,18 @@ export default async function ProjectDetailPage({
       engine: r.engine,
       response: r.response,
       brandMentioned: r.brandMentioned,
+      isCited: r.isCited,
+      sentimentScore: r.sentimentScore,
+      sentimentLabel: r.sentimentLabel,
+      sentimentNote: r.sentimentNote,
       mentionPosition: r.mentionPosition,
       createdAt: r.createdAt.toISOString(),
+      citations: r.citations.map((c) => ({
+        id: c.id,
+        citedDomain: c.citedDomain,
+        citedUrl: c.citedUrl,
+        citedTitle: c.citedTitle,
+      })),
     })),
   }));
 

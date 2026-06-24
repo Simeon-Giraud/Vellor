@@ -63,3 +63,60 @@ Return ONLY a JSON array of objects with the following format, no other text or 
     return [];
   }
 }
+
+export async function analyzeSentiment(brandName: string, textContent: string): Promise<{ score: number; label: string; note: string | null }> {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_AI === "true" || !apiKey) {
+    return {
+      score: 0.8,
+      label: "positive",
+      note: null
+    };
+  }
+
+  const prompt = `You are a sentiment analysis agent. Analyze the sentiment of references to the brand "${brandName}" in the following AI response text.
+  
+Response Text:
+${textContent.substring(0, 10000)}
+
+Grade the sentiment of "${brandName}" on a scale from -1.0 (highly negative/critical) to 1.0 (highly positive/recommending).
+Provide a label: "positive", "neutral", or "negative".
+If there are caveats (e.g. "but it's expensive", "lacks features"), summarize them in a brief note (max 15 words). Otherwise set note to null.
+
+Return ONLY a JSON object with this format, do not include markdown or other text:
+{
+  "score": 0.85,
+  "label": "positive",
+  "note": null
+}`;
+
+  try {
+    const message = await anthropic.messages.create({
+      model: "claude-3-5-haiku-20241022",
+      max_tokens: 300,
+      temperature: 0.2,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        }
+      ]
+    });
+
+    const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+    const match = responseText.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON found");
+    const sentiment = JSON.parse(match[0]);
+    return {
+      score: typeof sentiment.score === "number" ? sentiment.score : 0,
+      label: sentiment.label || "neutral",
+      note: sentiment.note || null
+    };
+  } catch (error) {
+    console.error("Claude sentiment grading error:", error);
+    return {
+      score: 0,
+      label: "neutral",
+      note: "Failed to grade sentiment."
+    };
+  }
+}

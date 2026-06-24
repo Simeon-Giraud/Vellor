@@ -8,7 +8,7 @@ export interface GeoScore {
   faqSchema: boolean;
   factDensity: boolean;
   qaStructure: boolean;
-  wordCount: boolean;
+  blufStructure: boolean;
   authorSchema: boolean;
   externalCitations: boolean;
   contentChunking: boolean;
@@ -22,7 +22,7 @@ export async function scoreGeoFactors(url: string, textContent: string): Promise
       faqSchema: false,
       factDensity: true,
       qaStructure: false,
-      wordCount: true,
+      blufStructure: true,
       authorSchema: false,
       externalCitations: true,
       contentChunking: true,
@@ -40,9 +40,9 @@ ${textContent.substring(0, 15000)}
 Score the content against these 8 factors (boolean true/false for each):
 1. directAnswer: Is there a clear, concise direct answer to the main topic within the first 50 words?
 2. faqSchema: Are there explicit FAQs? (We will infer schema presence based on clear FAQ sections).
-3. factDensity: Is the content rich in specific facts, numbers, and statistics rather than fluff?
+3. factDensity: Is the content rich in specific facts, numbers, statistics (e.g., data points/metrics every 150-200 words), and expert quotes with named attributions?
 4. qaStructure: Is the page structured with clear Questions as headings and Answers below?
-5. wordCount: Is the content substantial (appears to be >800 words)?
+5. blufStructure: Does the page follow the BLUF (Bottom Line Up Front) principle, where headings are immediately followed by a direct 1-to-2 sentence answer?
 6. authorSchema: Is an author clearly stated with credentials?
 7. externalCitations: Are there clear citations to external sources?
 8. contentChunking: Is the content broken down into easy-to-read chunks with headings, lists, and short paragraphs?
@@ -54,7 +54,7 @@ Example format:
   "faqSchema": false,
   "factDensity": true,
   "qaStructure": false,
-  "wordCount": true,
+  "blufStructure": true,
   "authorSchema": false,
   "externalCitations": true,
   "contentChunking": true,
@@ -76,7 +76,7 @@ Example format:
       faqSchema: false,
       factDensity: false,
       qaStructure: false,
-      wordCount: false,
+      blufStructure: false,
       authorSchema: false,
       externalCitations: false,
       contentChunking: false,

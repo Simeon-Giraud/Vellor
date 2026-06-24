@@ -2,6 +2,8 @@ import { Worker, Job } from "bullmq";
 import { connection, analysisQueue } from "@/lib/queue";
 import { prisma } from "@/lib/prisma";
 import { runPromptOnAllEngines } from "@/lib/ai";
+import { getUserPlan } from "@/lib/usage";
+import { analyzeSentiment } from "@/lib/ai/claude";
 
 interface PromptJobData {
   promptId: string;
@@ -9,6 +11,37 @@ interface PromptJobData {
   projectId: string;
   domain: string;
   competitors?: string[];
+}
+
+function checkIfCited(response: string, domain: string): boolean {
+  const cleanDomain = domain.replace('www.', '');
+  const escapedDomain = cleanDomain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const mdLinkRegex = new RegExp(`\\[[^\\]]*\\]\\((https?:\\/\\/[^\\)]*${escapedDomain}[^\\)]*)\\)`, 'i');
+  const rawLinkRegex = new RegExp(`https?:\\/\\/(www\\.)?${escapedDomain}`, 'i');
+  return mdLinkRegex.test(response) || rawLinkRegex.test(response);
+}
+
+function extractThirdPartyCitations(response: string, clientDomain: string, competitors: string[] = []): { url: string; domain: string; title: string }[] {
+  const citations: { url: string; domain: string; title: string }[] = [];
+  const mdLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  let match;
+  const cleanClient = clientDomain.replace('www.', '').toLowerCase();
+  const cleanCompetitors = competitors.map(c => c.replace('www.', '').toLowerCase());
+
+  while ((match = mdLinkRegex.exec(response)) !== null) {
+    const title = match[1];
+    const url = match[2];
+    try {
+      const urlObj = new URL(url);
+      const domain = urlObj.hostname.replace("www.", "").toLowerCase();
+      if (domain !== cleanClient && !cleanCompetitors.includes(domain)) {
+        citations.push({ url, domain, title });
+      }
+    } catch (e) {
+      // Ignore invalid URLs
+    }
+  }
+  return citations;
 }
 
 const promptWorker = new Worker<PromptJobData>(
@@ -19,17 +52,59 @@ const promptWorker = new Worker<PromptJobData>(
     console.log(`[Worker] Running prompt ${promptId} for domain ${domain}`);
 
     try {
+      // Fetch plan to see if user is Growth/Pro
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: { user: true }
+      });
+      const userPlan = project?.user ? await getUserPlan(project.user.supabaseId) : null;
+      const isPaidPlan = userPlan && (userPlan.name === "Growth" || userPlan.name === "Pro");
+
       const results = await runPromptOnAllEngines(promptText, domain, competitors);
 
       // Persist results to DB
       for (const result of results) {
+        const isCited = checkIfCited(result.snippet, domain);
+        
+        let sentimentScore = null;
+        let sentimentLabel = null;
+        let sentimentNote = null;
+
+        if (isPaidPlan && result.mentioned) {
+          try {
+            const brandName = project?.brandName || domain.split('.')[0];
+            const sentiment = await analyzeSentiment(brandName, result.snippet);
+            sentimentScore = sentiment.score;
+            sentimentLabel = sentiment.label;
+            sentimentNote = sentiment.note;
+          } catch (e) {
+            console.error("[Worker] Failed to analyze sentiment:", e);
+          }
+        }
+
+        // Get third party citations if on paid plan
+        const thirdPartyCitations = isPaidPlan 
+          ? extractThirdPartyCitations(result.snippet, domain, competitors)
+          : [];
+
         const promptResult = await prisma.promptResult.create({
           data: {
             promptId,
             engine: result.engine,
             response: result.snippet,
             brandMentioned: result.mentioned,
+            isCited,
+            sentimentScore,
+            sentimentLabel,
+            sentimentNote,
             mentionPosition: result.position,
+            citations: {
+              create: thirdPartyCitations.map(c => ({
+                citedDomain: c.domain,
+                citedUrl: c.url,
+                citedTitle: c.title
+              }))
+            }
           },
         });
 

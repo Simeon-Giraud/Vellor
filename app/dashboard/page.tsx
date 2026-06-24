@@ -378,16 +378,16 @@ export default async function DashboardPage({
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-5">
+      <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-8">
 
         {/* ── KPI row — 4 flat stat tiles ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {kpiTiles.map((tile, i) => (
             <div
               key={tile.label}
-              className={`dash-card px-5 py-5 fade-up ${["fade-up-d1","fade-up-d2","fade-up-d3","fade-up-d4"][i]}`}
+              className={`dash-card px-6 py-6 fade-up ${["fade-up-d1","fade-up-d2","fade-up-d3","fade-up-d4"][i]}`}
             >
-              <p className="text-[11px] font-medium mb-3" style={{ color: "var(--color-fg-muted)" }}>
+              <p className="text-[11px] font-medium mb-4" style={{ color: "var(--color-fg-muted)" }}>
                 {tile.label}
               </p>
               <div className="flex items-baseline gap-2">
@@ -408,42 +408,44 @@ export default async function DashboardPage({
         </div>
 
         {/* ── Trend chart ── */}
-        <div className="dash-card overflow-hidden fade-up fade-up-d3" style={{ display: "flex", minHeight: 160 }}>
+        <div className="dash-card overflow-hidden fade-up fade-up-d3" style={{ display: "flex", minHeight: 180 }}>
           <div
-            className="px-7 py-6 flex flex-col justify-center shrink-0"
-            style={{ borderRight: "1px solid var(--color-border)", minWidth: 190, maxWidth: 210 }}
+            className="px-8 py-6 flex flex-col justify-center shrink-0"
+            style={{ borderRight: "1px solid var(--color-border)", minWidth: 215, maxWidth: 235 }}
           >
             <p className="text-[11px] font-medium mb-2" style={{ color: "var(--color-fg-muted)" }}>Avg. mention rate</p>
             <span className="text-5xl font-bold tracking-tighter leading-none" style={{ color: "var(--color-fg)" }}>
               <AnimatedCounter value={data.avgMentionRate} suffix="%" />
             </span>
             <span
-              className="text-[12px] font-medium mt-2"
+              className="text-[12px] font-medium mt-2.5"
               style={{ color: deltaUp ? "#10b981" : "#ef4444" }}
             >
               {deltaUp ? "▲" : "▼"} {deltaUp ? "+" : ""}{data.weeklyDelta}% vs last week
             </span>
           </div>
-          <div className="flex-1 px-6 py-5 min-w-0" style={{ minHeight: 140 }}>
+          <div className="flex-1 px-8 py-6 min-w-0" style={{ minHeight: 160 }}>
             <TrendChart data={data.dailyData} />
           </div>
         </div>
 
         {/* ── Projects + Recent runs ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 md:gap-8">
 
           {/* Projects list */}
           <div className="dash-card overflow-hidden fade-up fade-up-d4">
             <div
-              className="flex items-center justify-between px-5 py-4"
+              className="flex items-center justify-between px-6 py-4.5"
               style={{ borderBottom: "1px solid var(--color-border)" }}
             >
-              <p className="text-[13px] font-semibold" style={{ color: "var(--color-fg)" }}>
-                Projects
-                <span className="ml-1.5 text-[11px] font-normal" style={{ color: "var(--color-fg-subtle)" }}>
+              <div className="flex items-center gap-2">
+                <span className="text-[13px] font-semibold" style={{ color: "var(--color-fg)" }}>
+                  Projects
+                </span>
+                <span className="text-[11px] font-normal px-2 py-0.5 rounded-full" style={{ background: "var(--color-surface-3)", color: "var(--color-fg-muted)" }}>
                   {data.totalProjects}
                 </span>
-              </p>
+              </div>
               <Link
                 href="/dashboard/projects/new"
                 className="text-[12px] font-medium transition-colors duration-150"
@@ -468,7 +470,7 @@ export default async function DashboardPage({
                   key={project.id}
                   href={`/dashboard/projects/${project.id}`}
                   id={`project-${project.id}`}
-                  className="flex items-center gap-4 px-5 py-3.5 transition-colors duration-150 group"
+                  className="flex items-center gap-5 px-6 py-4.5 transition-colors duration-150 group"
                   style={{
                     borderBottom: i < data.projects.length - 1 ? "1px solid var(--color-border)" : undefined,
                     textDecoration: "none",
@@ -489,21 +491,21 @@ export default async function DashboardPage({
                     <p className="text-[14px] font-semibold truncate" style={{ color: "var(--color-fg)" }}>
                       {project.domain}
                     </p>
-                    <p className="text-[12px] mt-0.5" style={{ color: "var(--color-fg-subtle)" }}>
+                    <p className="text-[12px] mt-1" style={{ color: "var(--color-fg-subtle)" }}>
                       {project.promptCount} prompt{project.promptCount !== 1 ? "s" : ""} · {project.competitorCount} competitor{project.competitorCount !== 1 ? "s" : ""} · {project.lastRun}
                     </p>
                   </div>
 
                   {/* Rate + trend */}
-                  <div className="text-right shrink-0">
+                  <div className="text-right shrink-0 flex flex-col gap-0.5">
                     {project.status === "generating" ? (
                       <span className="text-[12px]" style={{ color: "var(--color-fg-muted)" }}>Setting up…</span>
                     ) : (
                       <>
-                        <p className="text-[15px] font-bold tabular-nums" style={{ color: rateColor }}>
+                        <p className="text-[15px] font-bold tabular-nums leading-none" style={{ color: rateColor }}>
                           {project.mentionRate}%
                         </p>
-                        <p className="text-[11px] font-medium" style={{ color: project.trend === "up" ? "#10b981" : "#ef4444" }}>
+                        <p className="text-[11px] font-medium leading-none mt-1" style={{ color: project.trend === "up" ? "#10b981" : "#ef4444" }}>
                           {project.trendValue}
                         </p>
                       </>
@@ -519,7 +521,7 @@ export default async function DashboardPage({
           {/* Recent runs */}
           <div className="dash-card overflow-hidden fade-up fade-up-d5">
             <div
-              className="px-5 py-4"
+              className="px-6 py-4.5"
               style={{ borderBottom: "1px solid var(--color-border)" }}
             >
               <p className="text-[13px] font-semibold" style={{ color: "var(--color-fg)" }}>Recent runs</p>
@@ -537,7 +539,7 @@ export default async function DashboardPage({
                   return (
                     <div
                       key={i}
-                      className="px-4 py-3 flex items-start gap-3"
+                      className="px-6 py-4 flex items-start gap-4"
                       style={{
                         borderBottom: i < data.recentRuns.length - 1 ? "1px solid var(--color-border)" : undefined,
                       }}

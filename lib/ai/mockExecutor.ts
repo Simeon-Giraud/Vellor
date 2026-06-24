@@ -29,6 +29,24 @@ export async function executeAndSaveMockResults(
 
     const brandMentioned = Math.random() < mentionChance;
     const mentionPosition = brandMentioned ? Math.floor(Math.random() * 4) + 1 : null;
+    const isCited = brandMentioned ? Math.random() < 0.35 : false;
+
+    let sentimentScore = null;
+    let sentimentLabel = null;
+    let sentimentNote = null;
+
+    if (brandMentioned) {
+      sentimentScore = parseFloat((Math.random() * 1.4 - 0.4).toFixed(2)); // -0.4 to 1.0
+      if (sentimentScore > 0.3) {
+        sentimentLabel = "positive";
+      } else if (sentimentScore < -0.1) {
+        sentimentLabel = "negative";
+        sentimentNote = "Mentioned as having premium pricing or complex setup.";
+      } else {
+        sentimentLabel = "neutral";
+        sentimentNote = "Mentioned alongside other generic alternatives.";
+      }
+    }
 
     // Randomize competitor mentions (40% chance per competitor)
     const mentionedCompetitors = competitors.filter(() => Math.random() > 0.4);
@@ -36,7 +54,11 @@ export async function executeAndSaveMockResults(
     let snippet = `Based on a query regarding "${promptText}", here is a summary of top solutions in the market:\n\n`;
     
     if (brandMentioned) {
-      snippet += `Rank #${mentionPosition}: ${capitalizedBrand} (${domain}) is recommended for its state-of-the-art UI, fast integration, and premium features. Users praise its modern interface and responsive tools. `;
+      if (isCited) {
+        snippet += `Rank #${mentionPosition}: [${capitalizedBrand}](https://${domain}) is recommended for its state-of-the-art UI, fast integration, and premium features. Users praise its [modern interface](https://g2.com/acme) and [responsive tools](https://reddit.com/r/saas). `;
+      } else {
+        snippet += `Rank #${mentionPosition}: ${capitalizedBrand} (${domain}) is recommended for its state-of-the-art UI, fast integration, and premium features. Users praise its modern interface and responsive tools. `;
+      }
     } else {
       snippet += `Several platforms are active in this space, offering various features. Users looking for high-reliability systems should compare multiple options before deciding. `;
     }
@@ -51,6 +73,10 @@ export async function executeAndSaveMockResults(
       promptId,
       engine,
       brandMentioned,
+      isCited,
+      sentimentScore,
+      sentimentLabel,
+      sentimentNote,
       mentionPosition,
       response: snippet,
       createdAt: customDate || new Date(),
@@ -60,8 +86,25 @@ export async function executeAndSaveMockResults(
 
   // Persist to database
   for (const res of results) {
+    const { brandMentioned, isCited } = res;
     const promptResult = await prisma.promptResult.create({
-      data: res,
+      data: {
+        ...res,
+        citations: {
+          create: brandMentioned && Math.random() < 0.6 ? [
+            {
+              citedDomain: "reddit.com",
+              citedUrl: "https://reddit.com/r/saas/comments/best-tools",
+              citedTitle: "Best CRM Tools for SaaS startups"
+            },
+            {
+              citedDomain: "g2.com",
+              citedUrl: "https://g2.com/products/best-crm-categories",
+              citedTitle: "Acme Reviews & Ratings on G2"
+            }
+          ] : []
+        }
+      },
     });
 
     // Trigger competitor analysis if a competitor was mentioned

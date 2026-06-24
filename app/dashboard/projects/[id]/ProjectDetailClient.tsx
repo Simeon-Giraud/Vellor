@@ -11,8 +11,13 @@ interface PromptResult {
   engine: string;
   response: string;
   brandMentioned: boolean;
+  isCited?: boolean;
+  sentimentScore?: number | null;
+  sentimentLabel?: string | null;
+  sentimentNote?: string | null;
   mentionPosition: number | null;
   createdAt: Date | string;
+  citations?: { id: string; citedDomain: string; citedUrl: string | null; citedTitle: string | null }[];
 }
 
 interface Prompt {
@@ -503,6 +508,20 @@ RECOMMENDATIONS:
     ? Math.round((mentionedCount / allResults.length) * 1000) / 10
     : 0;
 
+  const isPaidPlan = planName === "Growth" || planName === "Pro";
+
+  // Calculate citation rate
+  const citedCount = allResults.filter((r) => r.isCited).length;
+  const citationRate = allResults.length > 0
+    ? Math.round((citedCount / allResults.length) * 1000) / 10
+    : 0;
+
+  // Calculate sentiment
+  const sentimentResults = allResults.filter((r) => r.brandMentioned && r.sentimentScore !== null && r.sentimentScore !== undefined);
+  const avgSentiment = sentimentResults.length > 0
+    ? Math.round((sentimentResults.reduce((acc, r) => acc + (r.sentimentScore || 0), 0) / sentimentResults.length) * 10) / 10
+    : null;
+
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
   return (
@@ -688,20 +707,40 @@ RECOMMENDATIONS:
         {activeTab === "overview" && (
           <div className="space-y-8 animate-fade-in-up">
             {/* Stats grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {[
                 { label: "Prompts", value: prompts.length.toString() },
                 { label: "Total results", value: allResults.length.toString() },
-                { label: "Mentioned", value: mentionedCount.toString(), color: "text-emerald-500" },
+                { label: "Mentioned", value: mentionedCount.toString(), color: "text-indigo-500" },
                 { label: "Mention rate", value: `${mentionRate}%`, color: mentionRate >= 60 ? "text-emerald-500" : "text-yellow-500" },
+                { 
+                  label: "Citation rate", 
+                  value: isPaidPlan ? `${citationRate}%` : "Upgrade", 
+                  color: isPaidPlan ? (citationRate >= 30 ? "text-emerald-500" : "text-yellow-500") : "text-indigo-600 font-semibold text-xs",
+                  isLocked: !isPaidPlan
+                },
+                { 
+                  label: "Sentiment", 
+                  value: isPaidPlan ? (avgSentiment !== null ? `${avgSentiment > 0 ? "+" : ""}${avgSentiment}` : "0.0") : "Upgrade", 
+                  color: isPaidPlan ? (avgSentiment && avgSentiment >= 0.2 ? "text-emerald-500" : avgSentiment && avgSentiment <= -0.1 ? "text-red-500" : "text-yellow-500") : "text-indigo-600 font-semibold text-xs",
+                  isLocked: !isPaidPlan
+                },
               ].map((s, i) => (
                 <div
                   key={s.label}
-                  className="dash-card rounded-2xl px-5 py-5 border"
+                  className="dash-card rounded-2xl px-5 py-5 border relative overflow-hidden"
                   style={{ borderColor: "var(--color-border)" }}
                 >
                   <p className="text-[10px] font-medium text-[var(--color-fg-muted)] uppercase tracking-widest mb-1.5">{s.label}</p>
-                  <span className={`text-2xl font-bold font-mono ${s.color || "text-[var(--color-fg)]"}`}>{s.value}</span>
+                  <div className="flex items-center gap-1.5">
+                    {s.isLocked && (
+                      <svg className="w-3.5 h-3.5 text-indigo-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      </svg>
+                    )}
+                    <span className={`text-2xl font-bold font-mono ${s.color || "text-[var(--color-fg)]"}`}>{s.value}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -766,6 +805,117 @@ RECOMMENDATIONS:
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Earned Media Target List */}
+            {isPaidPlan ? (
+              <div className="dash-card rounded-2xl overflow-hidden border">
+                <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: "var(--color-border)" }}>
+                  <h2 className="text-[14px] font-bold text-[var(--color-fg)] tracking-tight">Earned Media Target List</h2>
+                  <span className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/5 px-2 py-0.5 rounded-full border border-indigo-500/10 uppercase tracking-wider">Premium Feature</span>
+                </div>
+                <div className="p-6">
+                  <p className="text-xs text-[var(--color-fg-muted)] mb-4 leading-relaxed">
+                    AI models frequently cite third-party sources (listicles, directories, news, forums). 
+                    Here are the top external pages cited in your engine results. Target these pages to secure brand mentions.
+                  </p>
+                  
+                  {(() => {
+                    const citationsMap = new Map<string, { count: number; urls: Set<string>; titles: Set<string> }>();
+                    allResults.forEach(r => {
+                      if (r.citations) {
+                        r.citations.forEach(c => {
+                          const domain = c.citedDomain;
+                          const existing = citationsMap.get(domain) || { count: 0, urls: new Set<string>(), titles: new Set<string>() };
+                          existing.count++;
+                          if (c.citedUrl) existing.urls.add(c.citedUrl);
+                          if (c.citedTitle) existing.titles.add(c.citedTitle);
+                          citationsMap.set(domain, existing);
+                        });
+                      }
+                    });
+
+                    const sortedCitations = Array.from(citationsMap.entries())
+                      .map(([domain, data]) => ({ domain, count: data.count, urls: Array.from(data.urls), titles: Array.from(data.titles) }))
+                      .sort((a, b) => b.count - a.count)
+                      .slice(0, 5);
+
+                    if (sortedCitations.length === 0) {
+                      return (
+                        <div className="text-center py-6 text-xs text-[var(--color-fg-muted)] font-medium">
+                          No third-party citations recorded yet. Run prompts to analyze AI references.
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-4">
+                        {sortedCitations.map((item, index) => (
+                          <div key={item.domain} className="flex flex-col sm:flex-row sm:items-center justify-between border border-[var(--color-border)] rounded-xl p-4 bg-[var(--color-surface-2)]/30 hover:border-[var(--color-fg-subtle)]/50 transition-all duration-200 gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-[var(--color-fg)]">{item.domain}</span>
+                                <span className="text-[10px] text-[var(--color-fg-muted)] font-mono">Rank #{index + 1}</span>
+                              </div>
+                              {item.titles.length > 0 && (
+                                <p className="text-[11px] text-[var(--color-fg-muted)] line-clamp-1 italic">
+                                  Cited page: "{item.titles[0]}"
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4 justify-between sm:justify-end shrink-0">
+                              <span className="text-xs font-mono font-bold text-indigo-500 bg-indigo-500/5 px-2.5 py-1 rounded-lg border border-indigo-500/10">
+                                {item.count} AI Citations
+                              </span>
+                              {item.urls.length > 0 && (
+                                <a
+                                  href={item.urls[0]}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] font-bold text-[var(--color-fg)] bg-[var(--color-surface-3)] px-3 py-1.5 rounded-lg border hover:bg-[var(--color-border)] transition-colors active:scale-95"
+                                >
+                                  View Source Link
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            ) : (
+              <div className="dash-card rounded-2xl overflow-hidden border relative">
+                <div className="absolute inset-0 bg-white/70 dark:bg-black/70 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center text-center p-6">
+                  <div className="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-3">
+                    <svg className="w-5 h-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-sm font-bold text-[var(--color-fg)]">Earned Media Target List</h3>
+                  <p className="text-xs text-[var(--color-fg-muted)] mt-1.5 max-w-sm">
+                    Upgrade to Growth or Pro to see the exact third-party pages (Reddit, G2, listicles) the AI models are citing, so you can target them.
+                  </p>
+                  <Link
+                    href="/pricing"
+                    className="mt-4 text-[10px] font-bold text-white bg-indigo-600 hover:opacity-90 px-4 py-2 rounded-xl transition-all"
+                  >
+                    View Pricing Plans
+                  </Link>
+                </div>
+                <div className="px-6 py-4 border-b" style={{ borderColor: "var(--color-border)" }}>
+                  <h2 className="text-[14px] font-bold text-[var(--color-fg)] opacity-50">Earned Media Target List</h2>
+                </div>
+                <div className="p-6 opacity-30 select-none pointer-events-none">
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-12 border border-[var(--color-border)] rounded-xl bg-gray-100 dark:bg-gray-800" />
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

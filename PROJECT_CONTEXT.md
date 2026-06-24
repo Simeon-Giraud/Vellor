@@ -140,13 +140,15 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
   - Email sending service via **Resend** (with mock fallback in development and preferences checks).
   - Trial expiry notifications and weekly email digest trigger logic (respecting user preferences).
   - Test email API route at `/api/settings/test-email`.
+  - Content Audit dashboard (`/app/dashboard/audit/page.tsx`) analyzing 8 modern GEO signals (BLUF structure, fact/statistics density, etc.), scraping `dateModified` freshness tags, auditing AI crawler blockages (`robots.txt`), and generating downloadable custom `llms.txt` configurations.
+  - GEO Tracking upgrades checking link citations (`isCited`), running Claude Haiku sentiment analysis, and aggregating third-party citations for Earned Media Target lists.
 - **Partially implemented**:
   - None at this time.
 
 - **Scaffolded but not wired up**:
-  - The Content Audit feature (`/app/dashboard/audit/page.tsx`) just redirects back to projects.
   - The Reports feature (`/app/dashboard/reports/page.tsx` exists but is minimal).
 - **Planned but not started yet**:
+  - Query Fan-Out Simulation (Premium scan feature generating and analyzing 9-11 engine sub-queries).
   - GDPR compliance (legally required — France/EU): privacy policy, cookie consent banner, data export, account deletion. Plan to use Iubenda.
   - Rate limiting on AI routes using Upstash Redis + `@upstash/ratelimit`.
   - Sentry error monitoring.
@@ -223,10 +225,17 @@ Document the complete onboarding UI states:
 The planned content audit flow:
 1. Fetch user’s page URL via server-side HTTP request.
 2. Parse HTML and extract text content.
-3. Score against 8 GEO factors using Gemini Flash (free): direct answer in first 50 words, FAQ schema markup, fact density, Q&A structure, word count >800, author schema, external citations, content chunking.
-4. Compare against pages that ARE getting cited to find the delta.
-5. Pass scores + page content to Claude Sonnet to generate specific line-level rewrites.
-6. Show before/after diff with projected GEO score improvement.
+3. Score against 8 GEO factors using Gemini Flash (free): direct answer in first 50 words, FAQ schema markup, fact density (including specific numbers, statistics, and expert quotes), Q&A structure, BLUF (Bottom Line Up Front) heading structure, author schema, external citations, content chunking.
+4. Run additional technical and freshness audits:
+   - Crawler Access: Check `robots.txt` for AI user-agents and verify `llms.txt` presence. Provide automated `llms.txt` file generation for the user to download/deploy.
+   - Freshness: Parse `dateModified` meta/JSON-LD tags to flag content not updated in the last 90 days.
+5. Compare against pages that ARE getting cited to find the delta.
+6. Pass scores + page content to Claude Sonnet to generate specific line-level rewrites.
+7. Show before/after diff with projected GEO score improvement.
+8. Tier-gated Tracking upgrades (Growth/Pro only):
+   - Citations vs Mentions: Track linked citations (`isCited`) separately from simple brand mentions (`brandMentioned`).
+   - Sentiment: Run Claude Haiku sentiment scoring on AI responses (`sentimentScore` and `sentimentLabel`).
+   - Earned Media: Track third-party domains cited by AI to generate external page placement target lists.
 
 ## 17. Competitor Tracking Mechanism
 The same tracking prompts are run for both the user’s domain and each competitor domain. Results are stored separately per domain. The competitor comparison view shows side-by-side mention rates, position rankings, and trend deltas across all 3 engines.

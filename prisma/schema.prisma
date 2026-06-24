@@ -91,15 +91,34 @@ model PromptResult {
   engine          AIEngine
   response        String   @db.Text
   brandMentioned  Boolean  @default(false)
+  isCited         Boolean  @default(false)
+  sentimentScore  Float?
+  sentimentLabel  String?
+  sentimentNote   String?  @db.Text
   mentionPosition Int?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now()) @updatedAt
   prompt          Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
   analyses        CompetitorAnalysis[]
+  citations       PromptCitation[]
 
   @@index([promptId])
   @@index([createdAt])
   @@map("prompt_results")
+}
+
+model PromptCitation {
+  id             String       @id @default(cuid())
+  promptResultId String
+  citedDomain    String
+  citedUrl       String?
+  citedTitle     String?
+  createdAt      DateTime     @default(now())
+  promptResult   PromptResult @relation(fields: [promptResultId], references: [id], onDelete: Cascade)
+
+  @@index([promptResultId])
+  @@index([citedDomain])
+  @@map("prompt_citations")
 }
 
 model CompetitorAnalysis {

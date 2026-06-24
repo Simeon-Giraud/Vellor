@@ -8,6 +8,19 @@ interface ContentAuditClientProps {
   defaultDomain: string;
 }
 
+interface TechnicalAudit {
+  robotsTxtAllowed: Record<string, boolean>;
+  llmsTxtPresent: boolean;
+  generatedLlmsTxt: string;
+}
+
+interface FreshnessAudit {
+  dateModified: string | null;
+  daysSinceModified: number | null;
+  isStale: boolean;
+  freshnessLabel: string;
+}
+
 export default function ContentAuditClient({ defaultDomain }: ContentAuditClientProps) {
   const [url, setUrl] = useState(defaultDomain);
   const [isAuditing, setIsAuditing] = useState(false);
@@ -15,6 +28,8 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
   
   const [scores, setScores] = useState<GeoScore | null>(null);
   const [rewrites, setRewrites] = useState<GeoRewrite[] | null>(null);
+  const [technicalAudit, setTechnicalAudit] = useState<TechnicalAudit | null>(null);
+  const [freshnessAudit, setFreshnessAudit] = useState<FreshnessAudit | null>(null);
 
   const handleAudit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +39,8 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
     setError(null);
     setScores(null);
     setRewrites(null);
+    setTechnicalAudit(null);
+    setFreshnessAudit(null);
 
     try {
       const res = await fetch("/api/audit", {
@@ -39,6 +56,8 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
 
       setScores(data.scores);
       setRewrites(data.rewrites);
+      setTechnicalAudit(data.technicalAudit);
+      setFreshnessAudit(data.freshnessAudit);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -49,9 +68,9 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
   const scoreItems = scores ? [
     { key: "directAnswer", label: "Direct Answer in first 50 words" },
     { key: "faqSchema", label: "FAQ Schema / Sections" },
-    { key: "factDensity", label: "High Fact Density" },
+    { key: "factDensity", label: "High Fact Density & Stats" },
     { key: "qaStructure", label: "Q&A Structure" },
-    { key: "wordCount", label: "> 800 Words" },
+    { key: "blufStructure", label: "BLUF Heading Structure" },
     { key: "authorSchema", label: "Author Schema / Credentials" },
     { key: "externalCitations", label: "External Citations" },
     { key: "contentChunking", label: "Content Chunking (Readability)" },
@@ -191,6 +210,113 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* ── Technical Audits & Freshness ── */}
+      {(technicalAudit || freshnessAudit) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* Card: Technical AI Crawler Access */}
+          {technicalAudit && (
+            <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 space-y-6 fade-up">
+              <h3 className="text-[10px] uppercase tracking-widest text-[var(--color-fg-muted)] font-bold">Technical AI Crawler Access</h3>
+              <div className="space-y-3">
+                {Object.entries(technicalAudit.robotsTxtAllowed).map(([bot, allowed]) => (
+                  <div key={bot} className="flex items-center justify-between border-b border-[var(--color-border)]/50 pb-2.5 last:border-0 last:pb-0">
+                    <span className="text-[13px] font-semibold text-[var(--color-fg)]">{bot}</span>
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                      allowed 
+                        ? 'bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/25' 
+                        : 'bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/25'
+                    }`}>
+                      {allowed ? "Allowed" : "Blocked"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)]/50">
+                <span className="text-[11px] font-semibold text-[var(--color-fg-muted)]">llms.txt Standard</span>
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                  technicalAudit.llmsTxtPresent 
+                    ? 'bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/25' 
+                    : 'bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/25'
+                }`}>
+                  {technicalAudit.llmsTxtPresent ? "Present" : "Missing"}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Card: Freshness Audit */}
+          {freshnessAudit && (
+            <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 flex flex-col justify-between fade-up">
+              <div>
+                <h3 className="text-[10px] uppercase tracking-widest text-[var(--color-fg-muted)] font-bold mb-6">Content Freshness</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-[var(--color-fg)]">Last Modified Tag</span>
+                    <span className="text-xs font-semibold text-[var(--color-fg-muted)]">
+                      {freshnessAudit.dateModified 
+                        ? new Date(freshnessAudit.dateModified).toLocaleDateString(undefined, { dateStyle: 'medium' })
+                        : "Not found"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-[var(--color-fg)]">Status</span>
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                      freshnessAudit.isStale 
+                        ? 'bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/25'
+                        : freshnessAudit.daysSinceModified && freshnessAudit.daysSinceModified >= 30
+                        ? 'bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/25'
+                        : freshnessAudit.dateModified
+                        ? 'bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/25'
+                        : 'bg-[var(--color-surface-3)] text-[var(--color-fg-muted)]'
+                    }`}>
+                      {freshnessAudit.freshnessLabel}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-[var(--color-fg-muted)] mt-6 leading-relaxed">
+                {freshnessAudit.isStale 
+                  ? "⚠️ Content is older than 90 days. We strongly recommend refreshing the page content to remain contextually relevant to newer LLM indexes."
+                  : freshnessAudit.daysSinceModified && freshnessAudit.daysSinceModified >= 30
+                  ? "⚡ Content was modified more than 30 days ago. ChatGPT citations favor fresher content under 30 days."
+                  : freshnessAudit.dateModified
+                  ? "✅ Content is fresh and relevant. Keep maintaining regular updates."
+                  : "ℹ️ No dateModified tag found in schema. Adding this schema property makes it easier for AI search bots to detect updates."
+                }
+              </p>
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* ── Generated llms.txt block ── */}
+      {technicalAudit && !technicalAudit.llmsTxtPresent && (
+        <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 space-y-4 fade-up">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-[10px] uppercase tracking-widest text-[var(--color-fg-muted)] font-bold">Recommended llms.txt Configuration</h3>
+              <p className="text-xs text-[var(--color-fg-muted)] mt-1.5">
+                Copy and save this file to the root of your domain (e.g. <code>https://{url}/llms.txt</code>) to give AI models a clean summary of your website resources.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(technicalAudit.generatedLlmsTxt);
+                alert("Copied llms.txt template to clipboard!");
+              }}
+              className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:opacity-85 border border-indigo-500/20 px-3 py-1.5 rounded-xl bg-indigo-500/5 active:scale-95 transition-all"
+            >
+              Copy Template
+            </button>
+          </div>
+          <pre className="bg-[var(--color-surface-2)] p-4 rounded-xl border border-[var(--color-border)] text-xs text-[var(--color-fg)] overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed select-all">
+            {technicalAudit.generatedLlmsTxt}
+          </pre>
         </div>
       )}
 
