@@ -84,11 +84,11 @@ export default async function ProjectsPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 md:px-8 py-8">
-        <div className="dash-card overflow-hidden animate-fade-in-up">
+        <div className="fade-up">
           {projects.length === 0 ? (
-            <div className="p-20 text-center">
+            <div className="dash-card rounded-xl p-20 text-center">
               <div
-                className="mx-auto w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                className="mx-auto w-14 h-14 rounded-xl flex items-center justify-center mb-4"
                 style={{ background: "var(--color-surface-3)", color: "var(--color-fg-muted)" }}
               >
                 <IconPlus />
@@ -106,7 +106,7 @@ export default async function ProjectsPage() {
               </Link>
             </div>
           ) : (
-            <div>
+            <div className="divide-y divide-black/[0.05] dark:divide-white/[0.04]">
               {projects.map((project) => {
                 const allResults = project.prompts.flatMap(p => p.results);
                 const mentioned = allResults.filter(r => r.brandMentioned).length;
@@ -119,19 +119,18 @@ export default async function ProjectsPage() {
                   <Link
                     key={project.id}
                     href={`/dashboard/projects/${project.id}`}
-                    className="flex items-center gap-4 px-6 py-5 border-b last:border-b-0 transition-[background-color] duration-[160ms] group cursor-pointer hover:bg-[var(--color-sidebar-hover-bg)]"
-                    style={{ borderColor: "var(--color-border)" }}
+                    className="flex items-center gap-4 py-4 hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors group cursor-pointer"
                   >
                     {/* Status dot */}
                     <div
-                      className={`w-2.5 h-2.5 rounded-full shrink-0 ${project.status === "generating" ? "pulse-dot-yellow" : "pulse-dot-green"}`}
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${project.status === "generating" ? "pulse-dot-yellow" : "pulse-dot-green"}`}
                       style={{ background: project.status === "generating" ? "#f59e0b" : "#10b981" }}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-base font-semibold tracking-tight truncate" style={{ color: "var(--color-fg)" }}>
+                      <p className="text-[15px] font-bold text-[var(--color-fg)] group-hover:text-indigo-500 transition-colors">
                         {project.domain}
                       </p>
-                      <p className="text-xs mt-1" style={{ color: "var(--color-fg-muted)" }}>
+                      <p className="text-xs text-[var(--color-fg-muted)] mt-0.5">
                         {project.brandName} · {project.industry} · {project.competitors.length} competitors
                         {lastResult ? ` · ${getRelativeTime(lastResult.createdAt)}` : ""}
                       </p>
@@ -145,12 +144,12 @@ export default async function ProjectsPage() {
                       ) : (
                         <>
                           <p
-                            className="text-xl font-bold font-mono"
+                            className="text-lg font-bold font-mono"
                             style={{ color: rate >= 70 ? "#10b981" : rate >= 40 ? "#f59e0b" : "#ef4444" }}
                           >
                             {rate}%
                           </p>
-                          <p className="text-[10px] uppercase tracking-widest mt-0.5 font-mono" style={{ color: "var(--color-fg-muted)" }}>
+                          <p className="text-[9px] uppercase tracking-wider mt-0.5 font-mono text-[var(--color-fg-muted)]">
                             Mention rate
                           </p>
                         </>

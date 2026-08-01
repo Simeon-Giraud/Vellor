@@ -2,7 +2,7 @@ export default function DashboardLoading() {
   const sk = (h: string, w: string) => (
     <div className="rounded-md animate-pulse" style={{ height: h, width: w, background: "var(--color-surface-3)" }} />
   );
-  const card = "dash-card rounded-2xl";
+  const card = "dash-card rounded-xl";
 
   return (
     <div className="flex-1">

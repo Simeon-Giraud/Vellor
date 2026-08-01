@@ -257,7 +257,7 @@ export default function PromptsClient({
           </div>
         )}
 
-        <div className="dash-card rounded-2xl p-6 md:p-8">
+        <div className="dash-card rounded-xl p-5 md:p-6">
           {/* Title + plan counter */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b pb-6 mb-6 gap-4" style={{ borderColor: "var(--color-border)" }}>
             <div>
@@ -288,7 +288,7 @@ export default function PromptsClient({
           {/* Prompt list */}
           <div className="space-y-3">
             {activeProject.prompts.length === 0 ? (
-              <div className="p-10 text-center border border-dashed rounded-2xl space-y-3" style={{ background: "var(--color-surface-2)", borderColor: "var(--color-border)" }}>
+              <div className="p-6 text-center border border-dashed rounded-xl space-y-3" style={{ background: "var(--color-surface-2)", borderColor: "var(--color-border)" }}>
                 <div className="mx-auto w-10 h-10 rounded-xl border flex items-center justify-center text-[var(--color-fg-muted)]" style={{ background: "var(--color-surface-3)", borderColor: "var(--color-border)" }}>
                   <IconSparkle />
                 </div>

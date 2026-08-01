@@ -99,6 +99,10 @@ export async function POST(
                   brandMentioned: r.mentioned,
                   mentionPosition: r.position,
                   response: r.snippet,
+                  isCited: r.isCited,
+                  sentimentScore: r.sentimentScore,
+                  sentimentLabel: r.sentimentLabel,
+                  sentimentNote: r.sentimentNote,
                 }
               });
 

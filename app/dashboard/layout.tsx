@@ -3,7 +3,7 @@ import { getCurrentDbUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Sidebar from "@/components/Sidebar";
-import DemoBanner from "@/components/DemoBanner";
+
 import { getUserState } from "@/lib/userState";
 import { getUserUsage } from "@/lib/usage";
 import { Suspense } from "react";

@@ -380,23 +380,23 @@ export default async function DashboardPage({
 
       <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-8">
 
-        {/* ── KPI row — 4 flat stat tiles ── */}
+        {/* ── KPI row — 4 compact stat cards ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {kpiTiles.map((tile, i) => (
             <div
               key={tile.label}
-              className={`dash-card px-6 py-6 fade-up ${["fade-up-d1","fade-up-d2","fade-up-d3","fade-up-d4"][i]}`}
+              className={`dash-card p-4 sm:p-5 fade-up ${["fade-up-d1","fade-up-d2","fade-up-d3","fade-up-d4"][i]}`}
             >
-              <p className="text-[11px] font-medium mb-4" style={{ color: "var(--color-fg-muted)" }}>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-fg-muted)] mb-2">
                 {tile.label}
               </p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold tracking-tight" style={{ color: "var(--color-fg)", lineHeight: 1 }}>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold tracking-tight font-mono" style={{ color: "var(--color-fg)", lineHeight: 1.1 }}>
                   <AnimatedCounter value={tile.value} suffix={tile.suffix} />
                 </span>
                 {tile.trend !== null && tile.trendLabel && (
                   <span
-                    className="text-[11px] font-semibold"
+                    className="text-[10px] font-semibold"
                     style={{ color: tile.trend ? "#10b981" : "#ef4444" }}
                   >
                     {tile.trendLabel}
@@ -408,141 +408,134 @@ export default async function DashboardPage({
         </div>
 
         {/* ── Trend chart ── */}
-        <div className="dash-card overflow-hidden fade-up fade-up-d3" style={{ display: "flex", minHeight: 180 }}>
+        <div className="dash-card overflow-hidden fade-up fade-up-d3" style={{ display: "flex", minHeight: 160 }}>
           <div
-            className="px-8 py-6 flex flex-col justify-center shrink-0"
-            style={{ borderRight: "1px solid var(--color-border)", minWidth: 215, maxWidth: 235 }}
+            className="p-5 flex flex-col justify-center shrink-0"
+            style={{ borderRight: "1px solid var(--color-border)", minWidth: 195, maxWidth: 215 }}
           >
-            <p className="text-[11px] font-medium mb-2" style={{ color: "var(--color-fg-muted)" }}>Avg. mention rate</p>
-            <span className="text-5xl font-bold tracking-tighter leading-none" style={{ color: "var(--color-fg)" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-fg-muted)] mb-1">Avg. mention rate</p>
+            <span className="text-4xl font-bold tracking-tighter leading-none font-mono" style={{ color: "var(--color-fg)" }}>
               <AnimatedCounter value={data.avgMentionRate} suffix="%" />
             </span>
             <span
-              className="text-[12px] font-medium mt-2.5"
+              className="text-[11px] font-semibold mt-2"
               style={{ color: deltaUp ? "#10b981" : "#ef4444" }}
             >
               {deltaUp ? "▲" : "▼"} {deltaUp ? "+" : ""}{data.weeklyDelta}% vs last week
             </span>
           </div>
-          <div className="flex-1 px-8 py-6 min-w-0" style={{ minHeight: 160 }}>
+          <div className="flex-1 p-5 min-w-0" style={{ minHeight: 140 }}>
             <TrendChart data={data.dailyData} />
           </div>
         </div>
 
         {/* ── Projects + Recent runs ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 md:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 py-4">
 
           {/* Projects list */}
-          <div className="dash-card overflow-hidden fade-up fade-up-d4">
+          <div className="space-y-4 fade-up">
             <div
-              className="flex items-center justify-between px-6 py-4.5"
-              style={{ borderBottom: "1px solid var(--color-border)" }}
+              className="flex items-center justify-between pb-2 border-b border-black/[0.06] dark:border-white/[0.04]"
             >
               <div className="flex items-center gap-2">
-                <span className="text-[13px] font-semibold" style={{ color: "var(--color-fg)" }}>
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-fg-muted)]">
                   Projects
                 </span>
-                <span className="text-[11px] font-normal px-2 py-0.5 rounded-full" style={{ background: "var(--color-surface-3)", color: "var(--color-fg-muted)" }}>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/[0.05] dark:bg-white/[0.05] text-[var(--color-fg-muted)]">
                   {data.totalProjects}
                 </span>
               </div>
               <Link
                 href="/dashboard/projects/new"
-                className="text-[12px] font-medium transition-colors duration-150"
-                style={{ color: "var(--color-fg-muted)" }}
+                className="text-xs font-semibold text-indigo-500 hover:text-indigo-600 transition-colors"
               >
-                + Add
+                + Add Project
               </Link>
             </div>
 
-            {data.projects.map((project, i) => {
-              const rateColor =
-                project.status === "generating"
-                  ? "var(--color-fg-muted)"
-                  : project.mentionRate >= 70
-                  ? "#10b981"
-                  : project.mentionRate >= 40
-                  ? "#f59e0b"
-                  : "#ef4444";
+            <div className="divide-y divide-black/[0.05] dark:divide-white/[0.04]">
+              {data.projects.map((project) => {
+                const rateColor =
+                  project.status === "generating"
+                    ? "var(--color-fg-muted)"
+                    : project.mentionRate >= 70
+                    ? "#10b981"
+                    : project.mentionRate >= 40
+                    ? "#f59e0b"
+                    : "#ef4444";
 
-              return (
-                <Link
-                  key={project.id}
-                  href={`/dashboard/projects/${project.id}`}
-                  id={`project-${project.id}`}
-                  className="flex items-center gap-5 px-6 py-4.5 transition-colors duration-150 group"
-                  style={{
-                    borderBottom: i < data.projects.length - 1 ? "1px solid var(--color-border)" : undefined,
-                    textDecoration: "none",
-                    background: "transparent",
-                  }}
-                  onMouseEnter={undefined}
-                >
-                  {/* Status dot */}
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                      project.status === "generating" ? "pulse-dot-yellow" : "pulse-dot-green"
-                    }`}
-                    style={{ background: project.status === "generating" ? "#f59e0b" : "#10b981" }}
-                  />
+                return (
+                  <Link
+                    key={project.id}
+                    href={`/dashboard/projects/${project.id}`}
+                    id={`project-${project.id}`}
+                    className="flex items-center gap-4 py-3 hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors group"
+                    style={{
+                      textDecoration: "none",
+                    }}
+                    onMouseEnter={undefined}
+                  >
+                    {/* Status dot */}
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        project.status === "generating" ? "pulse-dot-yellow" : "pulse-dot-green"
+                      }`}
+                      style={{ background: project.status === "generating" ? "#f59e0b" : "#10b981" }}
+                    />
 
-                  {/* Domain */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-semibold truncate" style={{ color: "var(--color-fg)" }}>
-                      {project.domain}
-                    </p>
-                    <p className="text-[12px] mt-1" style={{ color: "var(--color-fg-subtle)" }}>
-                      {project.promptCount} prompt{project.promptCount !== 1 ? "s" : ""} · {project.competitorCount} competitor{project.competitorCount !== 1 ? "s" : ""} · {project.lastRun}
-                    </p>
-                  </div>
+                    {/* Domain */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-bold text-[var(--color-fg)] group-hover:text-indigo-500 transition-colors">
+                        {project.domain}
+                      </p>
+                      <p className="text-[11px] text-[var(--color-fg-subtle)] mt-0.5">
+                        {project.promptCount} prompt{project.promptCount !== 1 ? "s" : ""} · {project.competitorCount} competitor{project.competitorCount !== 1 ? "s" : ""} · {project.lastRun}
+                      </p>
+                    </div>
 
-                  {/* Rate + trend */}
-                  <div className="text-right shrink-0 flex flex-col gap-0.5">
-                    {project.status === "generating" ? (
-                      <span className="text-[12px]" style={{ color: "var(--color-fg-muted)" }}>Setting up…</span>
-                    ) : (
-                      <>
-                        <p className="text-[15px] font-bold tabular-nums leading-none" style={{ color: rateColor }}>
-                          {project.mentionRate}%
-                        </p>
-                        <p className="text-[11px] font-medium leading-none mt-1" style={{ color: project.trend === "up" ? "#10b981" : "#ef4444" }}>
-                          {project.trendValue}
-                        </p>
-                      </>
-                    )}
-                  </div>
+                    {/* Rate + trend */}
+                    <div className="text-right shrink-0 flex flex-col gap-0.5">
+                      {project.status === "generating" ? (
+                        <span className="text-[11px] text-[var(--color-fg-muted)]">Setting up…</span>
+                      ) : (
+                        <>
+                          <p className="text-xs font-bold tabular-nums leading-none" style={{ color: rateColor }}>
+                            {project.mentionRate}%
+                          </p>
+                          <p className="text-[10px] font-semibold leading-none mt-1" style={{ color: project.trend === "up" ? "#10b981" : "#ef4444" }}>
+                            {project.trendValue}
+                          </p>
+                        </>
+                      )}
+                    </div>
 
-                  <span style={{ color: "var(--color-fg-subtle)" }}><IconChevronRight /></span>
-                </Link>
-              );
-            })}
+                    <span style={{ color: "var(--color-fg-subtle)" }}><IconChevronRight /></span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
           {/* Recent runs */}
-          <div className="dash-card overflow-hidden fade-up fade-up-d5">
+          <div className="space-y-4 fade-up">
             <div
-              className="px-6 py-4.5"
-              style={{ borderBottom: "1px solid var(--color-border)" }}
+              className="pb-2 border-b border-black/[0.06] dark:border-white/[0.04]"
             >
-              <p className="text-[13px] font-semibold" style={{ color: "var(--color-fg)" }}>Recent runs</p>
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-fg-muted)]">Recent runs</span>
             </div>
 
             {data.recentRuns.length === 0 ? (
-              <div className="px-5 py-10 text-center">
-                <p className="text-sm" style={{ color: "var(--color-fg-muted)" }}>No runs yet.</p>
-                <p className="text-xs mt-1" style={{ color: "var(--color-fg-subtle)" }}>Run prompts from a project.</p>
+              <div className="py-6 text-center">
+                <p className="text-xs text-[var(--color-fg-muted)]">No runs yet.</p>
               </div>
             ) : (
-              <div>
+              <div className="divide-y divide-black/[0.05] dark:divide-white/[0.04]">
                 {data.recentRuns.map((run, i) => {
                   const engineColor = engineColors[run.engine] ?? "var(--color-fg-muted)";
                   return (
                     <div
                       key={i}
-                      className="px-6 py-4 flex items-start gap-4"
-                      style={{
-                        borderBottom: i < data.recentRuns.length - 1 ? "1px solid var(--color-border)" : undefined,
-                      }}
+                      className="py-3 flex items-start gap-3"
                     >
                       {/* Engine dot */}
                       <div
@@ -552,16 +545,16 @@ export default async function DashboardPage({
                       />
                       {/* Prompt + meta */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-[12px] leading-snug truncate" style={{ color: "var(--color-fg)" }}>
+                        <p className="text-xs leading-snug truncate text-[var(--color-fg)]">
                           {run.prompt}
                         </p>
-                        <p className="text-[11px] mt-0.5" style={{ color: "var(--color-fg-subtle)" }}>
+                        <p className="text-[10px] text-[var(--color-fg-subtle)] mt-0.5">
                           {run.engine} · {run.time}
                         </p>
                       </div>
                       {/* Mentioned */}
                       <span
-                        className="text-[11px] font-medium shrink-0 mt-0.5"
+                        className="text-[10px] font-medium shrink-0 mt-0.5"
                         style={{ color: run.mentioned ? "#10b981" : "var(--color-fg-subtle)" }}
                       >
                         {run.mentioned ? "✓" : "—"}

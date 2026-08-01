@@ -104,7 +104,7 @@ export default function NewProjectClient({
           ))}
         </div>
 
-        <div className="dash-card rounded-2xl p-8">
+        <div className="dash-card rounded-xl p-8">
           <h1 className="text-2xl font-bold mb-2 text-[var(--color-fg)]">Create a new project</h1>
           <p className="text-[var(--color-fg-muted)] text-sm mb-8">
             Set up monitoring for your brand across ChatGPT, Gemini, and Perplexity.

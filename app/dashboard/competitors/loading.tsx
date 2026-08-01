@@ -15,7 +15,7 @@ export default function CompetitorsLoading() {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 md:px-8 py-8">
-        <div className="dash-card rounded-2xl p-12 flex flex-col items-center justify-center h-[300px] space-y-4">
+        <div className="dash-card rounded-xl p-8 flex flex-col items-center justify-center h-[300px] space-y-4">
           {sk("24px", "144px")}
           {sk("18px", "256px")}
         </div>

@@ -235,7 +235,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
         {/* Left Column: Vertical tab list on desktop, Horizontal row on mobile */}
         <aside className="w-full lg:w-64 shrink-0 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex flex-col space-y-1 bg-[var(--color-sidebar-bg)] border border-[var(--color-sidebar-border)] backdrop-blur-md p-2 rounded-2xl shadow-sm">
+          <nav className="hidden lg:flex flex-col space-y-1 bg-[var(--color-sidebar-bg)] border border-[var(--color-sidebar-border)] backdrop-blur-md p-2 rounded-xl shadow-sm">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -286,12 +286,12 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
           {/* TAB 1: PROFILE */}
           {activeTab === "profile" && (
             <div className="space-y-6">
-              <div className="dash-card rounded-2xl p-6 md:p-8">
+              <div className="dash-card rounded-xl p-5 md:p-6">
                 <h3 className="text-lg font-semibold tracking-tight mb-2 text-[var(--color-fg)]">Profile Details</h3>
                 <p className="text-sm text-[var(--color-fg-muted)] mb-6">Customize your display name and choose a unique avatar.</p>
 
                 {/* Avatar Preview & Selection */}
-                <div className="flex flex-col md:flex-row gap-8 items-start p-6 rounded-xl border bg-[var(--color-surface-2)] border-[var(--color-border)] mb-8">
+                <div className="flex flex-col md:flex-row gap-8 items-start p-5 rounded-xl border bg-[var(--color-surface-2)] border-[var(--color-border)] mb-8">
                   {/* Left: Preview */}
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-fg-muted)]">Preview</span>
@@ -424,7 +424,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
               </div>
 
               {/* Sign Out Card */}
-              <div className="dash-card rounded-2xl p-6 md:p-8 border border-red-500/10 bg-red-500/5">
+              <div className="dash-card rounded-xl p-5 md:p-5 border border-red-500/10 bg-red-500/5">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold tracking-tight text-red-500 mb-1">Sign Out of Vellor</h3>
@@ -444,7 +444,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
           {/* TAB 2: BILLING */}
           {activeTab === "billing" && (
             <div className="space-y-6">
-              <div className="dash-card rounded-2xl p-6 md:p-8">
+              <div className="dash-card rounded-xl p-5 md:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                   <div>
                     <h3 className="text-lg font-semibold tracking-tight text-[var(--color-fg)]">Plan Overview</h3>
@@ -496,7 +496,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
                 </div>
 
                 {/* Progress bar info */}
-                <div className="p-6 rounded-xl border bg-[var(--color-surface-2)] border-[var(--color-border)]">
+                <div className="p-5 rounded-xl border bg-[var(--color-surface-2)] border-[var(--color-border)]">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-semibold text-[var(--color-fg)]">Monthly usage runs</span>
                     <span className={`text-sm font-mono font-bold ${isUsageDanger ? "text-red-500" : isUsageWarning ? "text-amber-500" : "text-[var(--color-fg-muted)]"}`}>
@@ -521,7 +521,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
           {activeTab === "preferences" && (
             <div className="space-y-6">
               {/* Notification Toggles */}
-              <div className="dash-card rounded-2xl p-6 md:p-8">
+              <div className="dash-card rounded-xl p-5 md:p-6">
                 <h3 className="text-lg font-semibold tracking-tight mb-2 text-[var(--color-fg)]">Notification Preferences</h3>
                 <p className="text-sm text-[var(--color-fg-muted)] mb-6">Select which updates and metrics rollups you want sent to your mailbox.</p>
                 
@@ -607,7 +607,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
           {/* TAB 5: DANGER ZONE */}
           {activeTab === "danger" && (
             <div className="space-y-6">
-              <div className="dash-card rounded-2xl border-red-500/25 p-6 md:p-8">
+              <div className="dash-card rounded-xl border-red-500/25 p-5 md:p-6">
                 <h3 className="text-lg font-semibold text-red-500 tracking-tight mb-2">Danger Zone</h3>
                 <p className="text-sm text-[var(--color-fg-muted)] mb-6">These actions are permanent and cannot be rolled back. Use extreme care.</p>
                 
@@ -654,7 +654,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
       {/* CUSTOM MODAL 1: MANAGE ACCOUNT DETAILS */}
       {showManageAccountModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
-          <div className="dash-card max-w-md w-full p-6 mx-4 rounded-2xl shadow-2xl animate-fade-in-up border border-[var(--color-border)] bg-[var(--color-sidebar-bg)] backdrop-blur-lg">
+          <div className="dash-card max-w-md w-full p-6 mx-4 rounded-xl shadow-2xl animate-fade-in-up border border-[var(--color-border)] bg-[var(--color-sidebar-bg)] backdrop-blur-lg">
             <h4 className="text-lg font-bold text-[var(--color-fg)] mb-3 flex items-center gap-2">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
@@ -687,7 +687,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
       {/* CUSTOM MODAL 3: DELETE ALL PROJECTS CONFIRMATION */}
       {showDeleteProjectsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
-          <div className="dash-card max-w-md w-full p-6 mx-4 rounded-2xl shadow-2xl animate-fade-in-up border border-red-500/20 bg-[var(--color-sidebar-bg)] backdrop-blur-lg">
+          <div className="dash-card max-w-md w-full p-6 mx-4 rounded-xl shadow-2xl animate-fade-in-up border border-red-500/20 bg-[var(--color-sidebar-bg)] backdrop-blur-lg">
             <h4 className="text-lg font-bold text-red-500 mb-3 flex items-center gap-2">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -736,7 +736,7 @@ export default function SettingsClient({ profile, plan, preferences: initialPref
       {/* CUSTOM MODAL 4: DELETE ACCOUNT CONFIRMATION */}
       {showDeleteAccountModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
-          <div className="dash-card max-w-md w-full p-6 mx-4 rounded-2xl shadow-2xl animate-fade-in-up border border-red-500/25 bg-[var(--color-sidebar-bg)] backdrop-blur-lg">
+          <div className="dash-card max-w-md w-full p-6 mx-4 rounded-xl shadow-2xl animate-fade-in-up border border-red-500/25 bg-[var(--color-sidebar-bg)] backdrop-blur-lg">
             <h4 className="text-lg font-bold text-red-500 mb-3 flex items-center gap-2">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />

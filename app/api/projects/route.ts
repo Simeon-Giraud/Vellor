@@ -121,8 +121,11 @@ export async function POST(req: Request) {
             await executeAndSaveMockResults(p.id, p.text, domain, competitors);
           }
         } else if (userState === "demo") {
-          // Generate mock results for demo users immediately
-          const { generateDemoResults } = await import("@/lib/ai/demoData");
+          // Demo: seed 7 days of history for charts + current run with full GEO fields
+          const { generateDemoResults, seedDemoHistoricalResults } = await import("@/lib/ai/demoData");
+          
+          await seedDemoHistoricalResults(createdPrompts, domain);
+          
           for (const p of createdPrompts) {
             const mockResults = generateDemoResults(p.text, domain);
             await prisma.promptResult.createMany({
@@ -132,6 +135,10 @@ export async function POST(req: Request) {
                 brandMentioned: r.mentioned,
                 mentionPosition: r.position,
                 response: r.snippet,
+                isCited: r.isCited,
+                sentimentScore: r.sentimentScore,
+                sentimentLabel: r.sentimentLabel,
+                sentimentNote: r.sentimentNote,
               }))
             });
           }

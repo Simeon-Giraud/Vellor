@@ -21,7 +21,7 @@ export default function SettingsLoading() {
           ))}
         </div>
 
-        <div className="dash-card rounded-2xl p-6 md:p-8 space-y-6">
+        <div className="dash-card rounded-xl p-5 md:p-6 space-y-6">
           <div className="border-b pb-4" style={{ borderColor: "var(--color-border)" }}>
             <div className="mb-2">
               {sk("22px", "128px")}

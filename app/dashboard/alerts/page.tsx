@@ -16,7 +16,7 @@ export default async function AlertsPage() {
         <p className="text-[var(--color-fg-muted)]">Manage your notification preferences and active alerts.</p>
       </header>
 
-      <div className="dash-card rounded-2xl p-8 md:p-12 border border-[var(--color-border)] bg-[var(--color-surface-2)] flex flex-col items-center justify-center text-center animate-fade-in-up" style={{ animationDelay: "50ms" }}>
+      <div className="dash-card rounded-xl p-8 md:p-8 border border-[var(--color-border)] bg-[var(--color-surface-2)] flex flex-col items-center justify-center text-center animate-fade-in-up" style={{ animationDelay: "50ms" }}>
         <div className="w-16 h-16 rounded-full bg-[var(--color-surface-3)] flex items-center justify-center mb-6">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--color-fg-muted)]">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />

@@ -101,6 +101,7 @@ export default function DashboardLayoutWrapper({
           boxShadow: "-8px 0 32px rgba(0, 0, 0, 0.08)"
         } as React.CSSProperties}
       >
+        {userState === "demo" && hasSeenWelcome && <DemoBanner />}
         {userState === "past_due" && hasSeenWelcome && <PastDueBanner />}
         {userState === "canceled" && hasSeenWelcome && <CanceledOverlay />}
         <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col">

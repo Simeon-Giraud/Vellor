@@ -141,7 +141,7 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
           
           {/* Bento Item 1: Overall radial score */}
-          <div className="lg:col-span-1 rounded-2xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 flex flex-col items-center justify-center text-center min-h-[280px] fade-up">
+          <div className="lg:col-span-1 rounded-xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 flex flex-col items-center justify-center text-center min-h-[280px] fade-up">
             <h3 className="text-[10px] uppercase tracking-widest text-[var(--color-fg-muted)] font-bold mb-6">Overall GEO Score</h3>
             <div className="relative w-36 h-36 flex items-center justify-center mb-4">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
@@ -178,7 +178,7 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
           </div>
 
           {/* Bento Item 2: Checklist factors */}
-          <div className="lg:col-span-2 rounded-2xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 flex flex-col justify-center fade-up fade-up-d1">
+          <div className="lg:col-span-2 rounded-xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 flex flex-col justify-center fade-up fade-up-d1">
             <h3 className="text-[10px] uppercase tracking-widest text-[var(--color-fg-muted)] font-bold mb-6">Optimization Factors</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               {scoreItems.map((item) => {
@@ -219,7 +219,7 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
           
           {/* Card: Technical AI Crawler Access */}
           {technicalAudit && (
-            <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 space-y-6 fade-up">
+            <div className="rounded-xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 space-y-6 fade-up">
               <h3 className="text-[10px] uppercase tracking-widest text-[var(--color-fg-muted)] font-bold">Technical AI Crawler Access</h3>
               <div className="space-y-3">
                 {Object.entries(technicalAudit.robotsTxtAllowed).map(([bot, allowed]) => (
@@ -250,7 +250,7 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
 
           {/* Card: Freshness Audit */}
           {freshnessAudit && (
-            <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 flex flex-col justify-between fade-up">
+            <div className="rounded-xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 flex flex-col justify-between fade-up">
               <div>
                 <h3 className="text-[10px] uppercase tracking-widest text-[var(--color-fg-muted)] font-bold mb-6">Content Freshness</h3>
                 <div className="space-y-4">
@@ -296,7 +296,7 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
 
       {/* ── Generated llms.txt block ── */}
       {technicalAudit && !technicalAudit.llmsTxtPresent && (
-        <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 space-y-4 fade-up">
+        <div className="rounded-xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 space-y-4 fade-up">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-[10px] uppercase tracking-widest text-[var(--color-fg-muted)] font-bold">Recommended llms.txt Configuration</h3>
@@ -322,14 +322,14 @@ export default function ContentAuditClient({ defaultDomain }: ContentAuditClient
 
       {/* ── AI Suggestions ── */}
       {rewrites && rewrites.length > 0 && (
-        <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 fade-up fade-up-d2">
+        <div className="rounded-xl border border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-card-bg)] dark:from-white/[0.04] dark:to-[var(--color-card-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),_var(--color-card-shadow)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),_var(--color-card-shadow)] p-6 fade-up fade-up-d2">
           <h3 className="text-[10px] uppercase tracking-widest text-[var(--color-fg-muted)] font-bold mb-6">
             AI Optimization Suggestions
           </h3>
           
           <div className="space-y-6">
             {rewrites.map((rewrite, i) => (
-              <div key={i} className="border border-[var(--color-border)] rounded-2xl overflow-hidden bg-[var(--color-surface)]">
+              <div key={i} className="border border-[var(--color-border)] rounded-xl overflow-hidden bg-[var(--color-surface)]">
                 
                 {/* Card Header */}
                 <div className="px-5 py-4 border-b border-[var(--color-border)] bg-[var(--color-surface-2)]/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">

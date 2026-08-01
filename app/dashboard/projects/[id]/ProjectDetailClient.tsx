@@ -297,7 +297,7 @@ export default function ProjectDetailClient({
       };
       setPrompts([newPromptItem, ...prompts]);
       setNewPromptText("");
-      showStatus("Prompt created. Mock runs seeded for testing.", "success");
+      showStatus("Prompt added and results queued.", "success");
       
       // Force Next.js refresh to load seeded mock database entries in the chart
       setTimeout(() => {
@@ -728,10 +728,10 @@ RECOMMENDATIONS:
               ].map((s, i) => (
                 <div
                   key={s.label}
-                  className="dash-card rounded-2xl px-5 py-5 border relative overflow-hidden"
+                  className="dash-card rounded-xl p-3.5 border relative overflow-hidden"
                   style={{ borderColor: "var(--color-border)" }}
                 >
-                  <p className="text-[10px] font-medium text-[var(--color-fg-muted)] uppercase tracking-widest mb-1.5">{s.label}</p>
+                  <p className="text-[9px] font-bold text-[var(--color-fg-muted)] uppercase tracking-wider mb-1">{s.label}</p>
                   <div className="flex items-center gap-1.5">
                     {s.isLocked && (
                       <svg className="w-3.5 h-3.5 text-indigo-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -746,23 +746,23 @@ RECOMMENDATIONS:
             </div>
 
             {/* Mention rate over time chart */}
-            <div className="dash-card rounded-2xl p-6 border">
-              <h2 className="text-[14px] font-bold text-[var(--color-fg)] mb-4">Mention rate by engine — 7 days</h2>
-              <div className="h-[220px]">
+            <div className="dash-card rounded-xl p-5 border">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--color-fg-muted)] mb-4">Mention rate by engine — 7 days</h2>
+              <div className="h-[200px]">
                 <ProjectCharts data={chartData} />
               </div>
             </div>
 
             {/* Competitor comparison */}
             {competitorData.length > 0 && (
-              <div className="dash-card rounded-2xl overflow-hidden border">
-                <div className="px-6 py-4 border-b" style={{ borderColor: "var(--color-border)" }}>
-                  <h2 className="text-[14px] font-bold text-[var(--color-fg)] tracking-tight">Competitor comparison</h2>
+              <div className="dash-card rounded-xl overflow-hidden border">
+                <div className="px-5 py-3 border-b" style={{ borderColor: "var(--color-border)" }}>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--color-fg-muted)]">Competitor comparison</h2>
                 </div>
                 <div>
                   {/* Your brand */}
-                  <div className="flex items-center gap-4 px-6 py-4 border-b" style={{ borderColor: "var(--color-border)" }}>
-                     <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "var(--color-fg-muted)" }} />
+                  <div className="flex items-center gap-4 px-5 py-3 border-b" style={{ borderColor: "var(--color-border)" }}>
+                     <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "var(--color-fg)" }} />
                      <span className="text-xs font-semibold text-[var(--color-fg)] flex-1">{project.domain}</span>
                      
                      <div className="w-20 hidden md:flex items-center justify-end">
@@ -783,8 +783,8 @@ RECOMMENDATIONS:
                     </div>
                   </div>
                   {competitorData.map((comp) => (
-                    <div key={comp.domain} className="flex items-center gap-4 px-6 py-4 border-b last:border-b-0" style={{ borderColor: "var(--color-border)" }}>
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "var(--color-surface-3)" }} />
+                    <div key={comp.domain} className="flex items-center gap-4 px-5 py-3 border-b last:border-b-0" style={{ borderColor: "var(--color-border)" }}>
+                      <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "var(--color-surface-3)" }} />
                       <span className="text-xs text-[var(--color-fg-muted)] flex-1">{comp.domain}</span>
                       
                       <div className="w-20 hidden md:flex items-center justify-end">
@@ -811,12 +811,12 @@ RECOMMENDATIONS:
 
             {/* Earned Media Target List */}
             {isPaidPlan ? (
-              <div className="dash-card rounded-2xl overflow-hidden border">
-                <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: "var(--color-border)" }}>
-                  <h2 className="text-[14px] font-bold text-[var(--color-fg)] tracking-tight">Earned Media Target List</h2>
-                  <span className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/5 px-2 py-0.5 rounded-full border border-indigo-500/10 uppercase tracking-wider">Premium Feature</span>
+              <div className="dash-card rounded-xl overflow-hidden border">
+                <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "var(--color-border)" }}>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--color-fg-muted)]">Earned Media Target List</h2>
+                  <span className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded border border-indigo-500/10 uppercase tracking-wider">Premium Feature</span>
                 </div>
-                <div className="p-6">
+                <div className="p-5">
                   <p className="text-xs text-[var(--color-fg-muted)] mb-4 leading-relaxed">
                     AI models frequently cite third-party sources (listicles, directories, news, forums). 
                     Here are the top external pages cited in your engine results. Target these pages to secure brand mentions.
@@ -853,7 +853,7 @@ RECOMMENDATIONS:
                     return (
                       <div className="space-y-4">
                         {sortedCitations.map((item, index) => (
-                          <div key={item.domain} className="flex flex-col sm:flex-row sm:items-center justify-between border border-[var(--color-border)] rounded-xl p-4 bg-[var(--color-surface-2)]/30 hover:border-[var(--color-fg-subtle)]/50 transition-all duration-200 gap-3">
+                          <div key={item.domain} className="flex flex-col sm:flex-row sm:items-center justify-between border border-[var(--color-border)] rounded-lg p-3 bg-[var(--color-surface-2)]/30 hover:border-[var(--color-fg-subtle)]/50 transition-all duration-200 gap-3">
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-[var(--color-fg)]">{item.domain}</span>
@@ -888,32 +888,32 @@ RECOMMENDATIONS:
                 </div>
               </div>
             ) : (
-              <div className="dash-card rounded-2xl overflow-hidden border relative">
-                <div className="absolute inset-0 bg-white/70 dark:bg-black/70 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center text-center p-6">
-                  <div className="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-3">
-                    <svg className="w-5 h-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <div className="dash-card rounded-xl overflow-hidden border relative">
+                <div className="absolute inset-0 bg-white/70 dark:bg-black/70 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center text-center p-5">
+                  <div className="w-8 h-8 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-2">
+                    <svg className="w-4 h-4 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                     </svg>
                   </div>
-                  <h3 className="text-sm font-bold text-[var(--color-fg)]">Earned Media Target List</h3>
-                  <p className="text-xs text-[var(--color-fg-muted)] mt-1.5 max-w-sm">
+                  <h3 className="text-xs font-bold text-[var(--color-fg)]">Earned Media Target List</h3>
+                  <p className="text-[11px] text-[var(--color-fg-muted)] mt-1 max-w-xs">
                     Upgrade to Growth or Pro to see the exact third-party pages (Reddit, G2, listicles) the AI models are citing, so you can target them.
                   </p>
                   <Link
                     href="/pricing"
-                    className="mt-4 text-[10px] font-bold text-white bg-indigo-600 hover:opacity-90 px-4 py-2 rounded-xl transition-all"
+                    className="mt-3 text-[10px] font-bold text-white bg-indigo-600 hover:opacity-90 px-3 py-1.5 rounded transition-all"
                   >
                     View Pricing Plans
                   </Link>
                 </div>
-                <div className="px-6 py-4 border-b" style={{ borderColor: "var(--color-border)" }}>
-                  <h2 className="text-[14px] font-bold text-[var(--color-fg)] opacity-50">Earned Media Target List</h2>
+                <div className="px-5 py-3 border-b" style={{ borderColor: "var(--color-border)" }}>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--color-fg-muted)] opacity-50">Earned Media Target List</h2>
                 </div>
-                <div className="p-6 opacity-30 select-none pointer-events-none">
-                  <div className="space-y-3">
+                <div className="p-5 opacity-30 select-none pointer-events-none">
+                  <div className="space-y-2">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-12 border border-[var(--color-border)] rounded-xl bg-gray-100 dark:bg-gray-800" />
+                      <div key={i} className="h-10 border border-[var(--color-border)] rounded bg-gray-100 dark:bg-gray-800" />
                     ))}
                   </div>
                 </div>
@@ -921,41 +921,41 @@ RECOMMENDATIONS:
             )}
 
             {/* Prompt results table */}
-            <div className="dash-card rounded-2xl overflow-hidden border">
-              <div className="px-6 py-4 border-b" style={{ borderColor: "var(--color-border)" }}>
-                <h2 className="text-[14px] font-bold tracking-tight text-[var(--color-fg)]">Prompt results details</h2>
+            <div className="py-6 space-y-4">
+              <div className="pb-2 border-b border-black/[0.06] dark:border-white/[0.04]">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--color-fg-muted)]">Prompt results details</h2>
               </div>
 
-              {/* Table header */}
-              <div
-                className="hidden md:grid grid-cols-[1fr_120px_120px_120px] gap-4 px-6 py-3 border-b text-[10px] font-semibold text-[var(--color-fg-muted)] uppercase tracking-wider"
-                style={{ borderColor: "var(--color-border)" }}
-              >
-                <span>Prompt</span>
-                <span className="text-center">ChatGPT</span>
-                <span className="text-center">Gemini</span>
-                <span className="text-center">Perplexity</span>
-              </div>
+              <div className="border border-black/[0.06] dark:border-white/[0.04] rounded-xl overflow-hidden">
+                {/* Table header */}
+                <div
+                  className="hidden md:grid grid-cols-[1fr_120px_120px_120px] gap-4 px-5 py-2.5 bg-black/[0.02] dark:bg-white/[0.02] border-b text-[10px] font-semibold text-[var(--color-fg-muted)] uppercase tracking-wider"
+                  style={{ borderColor: "var(--color-border)" }}
+                >
+                  <span>Prompt</span>
+                  <span className="text-center">ChatGPT</span>
+                  <span className="text-center">Gemini</span>
+                  <span className="text-center">Perplexity</span>
+                </div>
 
-              <div>
-                {prompts.length === 0 ? (
-                  <div className="px-6 py-8 text-center text-xs text-[var(--color-fg-muted)]">
-                    No prompts generated yet. Please add a prompt or click Regenerate in the Prompts tab.
-                  </div>
-                ) : (
-                  prompts.map((p) => {
-                    const resultsByEngine: Record<string, typeof p.results[0] | undefined> = {};
-                    for (const r of p.results) {
-                      const label = ENGINE_LABELS[r.engine];
-                      if (!resultsByEngine[label]) resultsByEngine[label] = r;
-                    }
+                <div className="divide-y divide-black/[0.05] dark:divide-white/[0.04]">
+                  {prompts.length === 0 ? (
+                    <div className="px-5 py-6 text-center text-xs text-[var(--color-fg-muted)]">
+                      No prompts generated yet. Please add a prompt or click Regenerate in the Prompts tab.
+                    </div>
+                  ) : (
+                    prompts.map((p) => {
+                      const resultsByEngine: Record<string, typeof p.results[0] | undefined> = {};
+                      for (const r of p.results) {
+                        const label = ENGINE_LABELS[r.engine];
+                        if (!resultsByEngine[label]) resultsByEngine[label] = r;
+                      }
 
-                    return (
-                      <div
-                        key={p.id}
-                        className="flex flex-col md:grid md:grid-cols-[1fr_120px_120px_120px] gap-3 md:gap-4 px-6 py-4 items-stretch md:items-center border-b last:border-b-0"
-                        style={{ borderColor: "var(--color-border)" }}
-                      >
+                      return (
+                        <div
+                          key={p.id}
+                          className="flex flex-col md:grid md:grid-cols-[1fr_120px_120px_120px] gap-3 px-5 py-3.5 items-stretch md:items-center"
+                        >
                         <p className="text-xs text-[var(--color-fg)] mb-1 md:mb-0 leading-relaxed font-medium">{p.text}</p>
 
                         <div className="grid grid-cols-3 gap-2 mt-1 md:mt-0 md:contents">
@@ -992,13 +992,14 @@ RECOMMENDATIONS:
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* ──────── TAB: AI Prompts ──────── */}
         {activeTab === "prompts" && (
           <div className="space-y-6 animate-fade-in-up">
             {/* Limit Banner */}
-            <div className="dash-card rounded-2xl p-6 md:p-8 border flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="dash-card rounded-xl p-5 border flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <h2 className="text-[15px] font-bold">AI-Generated Search Prompts</h2>
@@ -1030,7 +1031,7 @@ RECOMMENDATIONS:
             </div>
 
             {/* Custom Prompt Form */}
-            <form onSubmit={handleAddPrompt} className="dash-card p-4 sm:p-6 rounded-2xl border flex flex-col sm:flex-row gap-3">
+            <form onSubmit={handleAddPrompt} className="bg-white/[0.4] dark:bg-zinc-900/[0.3] border border-black/[0.04] dark:border-white/[0.03] p-4 rounded-xl flex flex-col sm:flex-row gap-3">
               <input
                 type="text"
                 value={newPromptText}
@@ -1051,25 +1052,24 @@ RECOMMENDATIONS:
             </form>
 
             {/* Prompts list */}
-            <div className="space-y-3">
+            <div className="divide-y divide-black/[0.05] dark:divide-white/[0.04]">
               {prompts.length === 0 ? (
-                <div className="p-10 text-center border border-dashed rounded-2xl text-xs text-[var(--color-fg-muted)]">
+                <div className="py-6 text-center text-xs text-[var(--color-fg-muted)]">
                   No prompts generated. Click "Regenerate all" to create a fresh AI prompt set.
                 </div>
               ) : (
                 prompts.map((pt) => (
                   <div
                     key={pt.id}
-                    className="flex items-center justify-between p-4 rounded-xl border transition-all gap-4"
-                    style={{ background: "var(--color-surface-2)", borderColor: "var(--color-border)" }}
+                    className="flex items-center justify-between py-3 hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors gap-4"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-[var(--color-fg)] leading-relaxed">{pt.text}</p>
-                      <p className="text-[10px] text-[var(--color-fg-muted)] mt-1 font-mono">{pt.results.length} run results</p>
+                      <p className="text-[10px] text-[var(--color-fg-muted)] mt-0.5 font-mono">{pt.results.length} run results</p>
                     </div>
                     <button
                       onClick={() => handleDeletePrompt(pt.id)}
-                      className="px-3 py-1.5 text-[10px] text-[var(--color-fg-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                      className="px-2.5 py-1 text-[10px] text-[var(--color-fg-muted)] hover:text-red-500 hover:bg-red-500/10 rounded transition-all"
                     >
                       Delete
                     </button>
@@ -1084,7 +1084,7 @@ RECOMMENDATIONS:
         {activeTab === "competitors" && (
           <div className="space-y-6 animate-fade-in-up">
             {/* Competitor Manager */}
-            <div className="dash-card rounded-2xl p-6 md:p-8 border space-y-6">
+            <div className="dash-card rounded-xl p-5 border space-y-5">
               <div>
                 <h2 className="text-[15px] font-bold mb-1">Tracked Competitor Domains</h2>
                 <p className="text-[var(--color-fg-muted)] text-xs">
@@ -1151,7 +1151,7 @@ RECOMMENDATIONS:
             </div>
 
             {/* Visibility Chart */}
-            <div className="dash-card rounded-2xl p-6 border">
+            <div className="dash-card rounded-xl p-5 border">
               <h2 className="text-[14px] font-bold text-[var(--color-fg)] mb-4">Competitor Share of Voice</h2>
               <div className="space-y-4">
                 {/* Brand */}

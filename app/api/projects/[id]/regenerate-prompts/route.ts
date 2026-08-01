@@ -86,7 +86,11 @@ export async function POST(
         await executeAndSaveMockResults(p.id, p.text, project.domain, project.competitors);
       }
     } else if (userState === "demo") {
-      const { generateDemoResults } = await import("@/lib/ai/demoData");
+      const { generateDemoResults, seedDemoHistoricalResults } = await import("@/lib/ai/demoData");
+      
+      // Seed 7 days of historical data for charts
+      await seedDemoHistoricalResults(createdPrompts, project.domain);
+      
       for (const p of createdPrompts) {
         const mockResults = generateDemoResults(p.text, project.domain);
         await prisma.promptResult.createMany({
@@ -96,6 +100,10 @@ export async function POST(
             brandMentioned: r.mentioned,
             mentionPosition: r.position,
             response: r.snippet,
+            isCited: r.isCited,
+            sentimentScore: r.sentimentScore,
+            sentimentLabel: r.sentimentLabel,
+            sentimentNote: r.sentimentNote,
           }))
         });
       }

@@ -65,7 +65,7 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
 
 ## 5. The AI Stack
 - **Gemini Flash**: Used for rapid prompt generation based on domain and industry (free/low cost).
-- **OpenAI GPT-4o-mini + Gemini Flash + Perplexity Sonar**: Used concurrently for executing the generated tracking prompts. These form the core tracking engine.
+- **OpenAI GPT-4o-mini-search-preview + Gemini Flash + Perplexity Sonar**: Used concurrently for executing the generated tracking prompts. These form the core tracking engine. ChatGPT calls use the **OpenAI Responses API** (`openai.responses.create`) with the built-in `web_search_preview` tool — this grounds responses in real-time web data, mirroring exactly what a real ChatGPT user with web search enabled would see, which is critical for accurate GEO tracking. Gemini and Perplexity are also inherently web-grounded.
 - **Claude Haiku**: Used for fast response analysis and generating weekly reports.
 - **Claude Sonnet**: Used for generating deep optimization recommendations and content audit tips.
 
@@ -116,7 +116,7 @@ GEO (Generative Engine Optimization) is the practice of optimizing digital prese
 - `STRIPE_SECRET_KEY`: Server-only. Stripe API secret key.
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`: Public. Stripe client key for Checkout.
 - `STRIPE_WEBHOOK_SECRET`: Server-only. Used to verify Stripe webhook signatures.
-- `OPENAI_API_KEY`: Server-only. Key for GPT-4o-mini tracking runs.
+- `OPENAI_API_KEY`: Server-only. Key for GPT-4o-mini-search-preview tracking runs (Responses API with web search).
 - `GEMINI_API_KEY`: Server-only. Key for Gemini tracking and prompt generation.
 - `PERPLEXITY_API_KEY`: Server-only. Key for Perplexity Sonar tracking runs.
 - `ANTHROPIC_API_KEY`: Server-only. Used for Claude Haiku (response analysis, weekly reports) and Claude Sonnet (optimization recommendations, content audit).
